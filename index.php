@@ -1,3 +1,14 @@
+<?php
+session_start();
+
+if(isset($_SESSION['email'])){
+    header('Location: landing_page.php');
+    exit();
+}
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
