@@ -1,15 +1,11 @@
 <?php
+// database connection
+include 'db.php';
+
 session_start();
 
 $address = 'No address found';
 $contact = 'No contact found';
-
-// Connect to your database
-$conn = new mysqli("localhost", "root", "", "neofit"); // Replace 'your_db_name' accordingly
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
 
 if (isset($_SESSION['user_name'])) {
     $user_name = $_SESSION['user_name']; // Set user_name from session
