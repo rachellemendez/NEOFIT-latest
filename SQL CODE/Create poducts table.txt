@@ -1,0 +1,1 @@
+CREATE TABLE products (id INT AUTO_INCREMENT PRIMARY KEY, product_name VARCHAR(255), product_design VARCHAR(255), product_color VARCHAR(255), product_size VARCHAR(255), product_quantity INT, product_price DECIMAL(10, 2), status VARCHAR(50));
