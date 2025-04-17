@@ -1,6 +1,11 @@
 <?php
 include 'user_settings_backend.php';
 
+if (!isset($_SESSION['email'])) {
+    header('Location: index.php');
+    exit();
+}
+
 // Assuming the user's email is stored in the session
 $user_email = $_SESSION['email'] ?? 'Email not found';
 ?>

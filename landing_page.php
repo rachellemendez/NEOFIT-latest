@@ -1,3 +1,15 @@
+<?php
+session_start();
+
+// Redirect to login if session has ended
+if (!isset($_SESSION['email'])) {
+    header('Location: index.php');
+    exit();
+}
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
