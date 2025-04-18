@@ -235,6 +235,21 @@ if (isset($product_data)) {
             border: 1px solid #ddd;
         }
 
+        /* Remove spinner for all browsers */
+        .quantity-input::-webkit-outer-spin-button,
+        .quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .quantity-input[type="number"] {
+            -moz-appearance: textfield; /* Firefox */
+            -webkit-appearance: none; /* Chrome, Safari */
+            appearance: none; /* Standard syntax */
+            padding: 0; /* Remove padding */
+        }
+
+
         .inventory {
             margin-left: 15px;
             color: #666;
@@ -368,7 +383,10 @@ if (isset($product_data)) {
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">NEOFIT</div>
+            <!-- Clickable plain text, no link styling -->
+            <div id="neofitLogo" style="font-size: 24px; cursor: pointer; text-decoration: none; font-family: Arial, sans-serif; font-weight: bold; display: inline-block; color: black;">
+                NEOFIT
+            </div>
             <div class="nav">
                 <a href="#">Trending</a>
                 <a href="#">Men</a>
@@ -428,7 +446,7 @@ if (isset($product_data)) {
                         <div class="option-label">Quantity</div>
                         <div class="quantity-selector">
                             <button type="button" class="quantity-btn" id="decrease">-</button>
-                            <input type="text" class="quantity-input" name="quantity" id="quantity" value="1">
+                            <input type="number" class="quantity-input" name="quantity" id="quantity" value="" min="1" max="2345"> <!-- 2345 temporary place holder-->
                             <button type="button" class="quantity-btn" id="increase">+</button>
                             <span class="inventory" id="inventory-count">2345 pieces available</span>
                         </div>
@@ -505,13 +523,16 @@ if (isset($product_data)) {
             const quantityInput = document.getElementById('quantity');
             const decreaseButton = document.getElementById('decrease');
             const increaseButton = document.getElementById('increase');
+            const maxQuantity = 2345; // Maximum available quantity
             
             // Handle quantity decrease
             decreaseButton.addEventListener('click', function(event) {
                 event.preventDefault();
                 let current = parseInt(quantityInput.value);
-                if (current > 1) {
+                if (!isNaN(current) && current > 1) {
                     quantityInput.value = current - 1;
+                } else {
+                    quantityInput.value = 1; // Default to 1 if empty or invalid
                 }
             });
 
@@ -519,11 +540,28 @@ if (isset($product_data)) {
             increaseButton.addEventListener('click', function(event) {
                 event.preventDefault();
                 let current = parseInt(quantityInput.value);
-                let max = 2345; // Maximum available quantity
-                if (current < max) {
+                if (!isNaN(current) && current < maxQuantity) {
                     quantityInput.value = current + 1;
+                } else if (isNaN(current) || current === "") {
+                    quantityInput.value = 1; // Default to 1 if empty or invalid
                 }
             });
+
+            // Ensure only valid numeric values within the range
+            quantityInput.addEventListener('input', function() {
+                let value = parseInt(quantityInput.value);
+                if (isNaN(value) || value < 1) {
+                    quantityInput.value = "";  // Clear if invalid input or below 1
+                } else if (value > maxQuantity) {
+                    alert("Desired quantity exceeds available stock.");
+                    quantityInput.value = maxQuantity;  // Optional: or reset to 1 or ""
+                }
+            });
+        });
+
+        // Handling the click event on the logo to redirect to landing page
+        document.getElementById("neofitLogo").addEventListener("click", function() {
+            window.location.href = 'landing_page.php'; // Redirect to landing page
         });
     </script>
 </body> 
