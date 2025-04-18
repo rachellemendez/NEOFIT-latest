@@ -333,7 +333,7 @@
                 </li>
                 <li id="products-menu-item">
                     <i class="fas fa-tshirt"></i>
-                    <span>All Products</span>
+                    <a href="all_product_page.php"><span>All Products</span></a>
                 </li>
                 <li class="active" id="add-product-menu-item">
                     <i class="fas fa-plus-square"></i>
@@ -353,82 +353,57 @@
         <main class="main-content">
             <!-- Add New Product View -->
             <div id="add-product-section">
-                <form action="admin_backend.php" method="POST">
                     <h1 class="page-title">Add New Product</h1>
 
                     <div class="product-entry-form">
                         <h2 class="product-entry-title">Product Entry</h2>
 
-                        <div class="form-group">
-                            <label class="form-label">Product Name</label>
-                            <input type="text" class="form-input" name="product-name" id="product-name" placeholder="Product Name" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Design</label>
-                            <select class="form-select" name="product-design" id="product-design" required>
-                                <option value="1">Design 1</option>
-                                <option value="2">Design 2</option>
-                                <option value="3">Design 3</option>
-                                <option value="4">Design 4</option>
-                                <option value="5">Design 5</option>
-                                <option value="6">Design 6</option>
-                                <option value="7">Design 7</option>
-                                <option value="8">Design 8</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Color</label>
-                            <select class="form-select" name="product-color" id="product-color" required>
-                                <option value="red">Red</option>
-                                <option value="blue">Blue</option>
-                                <option value="green">Green</option>
-                                <option value="yellow">Yellow</option>
-                                <option value="orange">Orange</option>
-                                <option value="purple">Purple</option>
-                                <option value="black">Black</option>
-                                <option value="white">White</option>
-                            </select>
-                        </div>
-
-                        <div class="inventory-section">
-                            <h3 class="inventory-title">Inventory & Pricing</h3>
-
+                        <!-- FORM -->
+                        <form action="add_new_product_backend.php" method="POST" enctype="multipart/form-data">
                             <div class="form-group">
-                                <label class="form-label">Size</label>
-                                <select class="form-select" name="product-size" id="product-size" required>
-                                    <option value="small">Small</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="large">Large</option>
-                                    <option value="extra-large">Extra Large</option>
-                                </select>
+                                <label class="form-label">Product Name</label>
+                                <input type="text" class="form-input" name="product_name" id="product-name" placeholder="Product Name" required>
                             </div>
 
+                            <!-- DESIGN -->
                             <div class="form-group">
-                                <label class="form-label">Quantity</label>
-                                <input type="number" class="form-input" name="product-quantity" id="product-quantity" placeholder="Quantity" min="1" value="1" required>
+                                <label class="form-label">Design</label>
+                                    <label for="">Photo For Front Display: <input type="file" accept="image/*" name="photo_front"></label><br>
+                                    <label for="">Photo 1: <input type="file" accept="image/*" name="photo_1"></label><br>
+                                    <label for="">Photo 2: <input type="file" accept="image/*" name="photo_2"></label><br>
+                                    <label for="">Photo 3: <input type="file" accept="image/*" name="photo_3"></label><br>
+                                    <label for="">Photo 4: <input type="file" accept="image/*" name="photo_4"></label><br>
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">Price</label>
-                                <input type="number" class="form-input" name="product-price" id="product-price" placeholder="Price" min="1" value="1" required>
+                            <div class="inventory-section">
+                                <h3 class="inventory-title">Inventory & Pricing</h3>
+
+                                <div class="form-group">
+                                    <label class="form-label">Size</label>
+                                            <label for="" class="form-label">Small: <input type="number" class="form-input" name="quantity_small" id="product-quantity" placeholder="Quantity" min="1" value="1" required></label><br>
+                                            <label for="" class="form-label">Medium: <input type="number" class="form-input" name="quantity_medium" id="product-quantity" placeholder="Quantity" min="1" value="1" required></label><br>
+                                            <label for="" class="form-label">Large: <input type="number" class="form-input" name="quantity_large" id="product-quantity" placeholder="Quantity" min="1" value="1" required></label><br>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Price</label>
+                                    <input type="number" class="form-input" name="product_price" id="product-price" placeholder="Price" min="1" value="1" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" name="product_status" id="product_status" required>
+                                        <option value="live">Live</option>
+                                        <option value="unpublished">Unpublished</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">Status</label>
-                                <select class="form-select" name="status" id="product-status" required>
-                                    <option value="live">Live</option>
-                                    <option value="unpublished">Unpublished</option>
-                                </select>
+                            <div class="form-submit">
+                                <button type="submit" name="product_submit" class="btn-submit" id="product-save-btn">Save</button>
                             </div>
-                        </div>
-
-                        <div class="form-submit">
-                            <button type="submit" name="submit" class="btn-submit" id="product-save-btn">Save</button>
-                        </div>
+                        </form>
                     </div>
-                </form>
             </div>
 
 </body>
