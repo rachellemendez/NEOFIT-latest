@@ -2,29 +2,19 @@
 // Start session to track user login status
 session_start();
 
-// Database connection
-$servername = "localhost"; // your database server
-$username = "root";        // your database username
-$password = "";            // your database password
-$dbname = "neofit";        // your database name
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check if connection is successful
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+//Database Connection
+include 'db.php';
 
 // Check if form is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login_submit'])) {
     // Get email and password from the POST request
     $email = $_POST['email'];
     $password = $_POST['password'];
 
     // **Admin login exception**  
     if ($email === "admin@1" && $password === "admin") {
-        $_SESSION['admin'] = true;
-        header("Location: Admin1.php"); // Redirect to the admin panel
+        $_SESSION['admin@1'] = true;
+        header("Location: Admin Pages/all_product_page.php"); // Redirect to the admin panel
         exit();
     }
 
