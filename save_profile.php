@@ -34,7 +34,11 @@ if ($stmt->execute()) {
     $_SESSION['contact'] = $contact;
 
     // Redirect to the user settings page after successful update
-    echo "<script>alert('Profile updated successfully!')</script>";
+    echo "<script>
+        alert('Profile saved successfully!');
+        window.location.href = 'user-settings.php?saved=true';
+    </script>";
+    exit;
 
     
     exit();
