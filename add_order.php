@@ -52,7 +52,7 @@ $stmt->bind_param("ssssssssssdd",
 if ($stmt->execute()) {
     echo "<script>
             alert('Order placed successfully!');
-            window.location.href = '/carl ne05/product_detail.php';
+            window.location.href = 'product_detail.php';
           </script>";
 } else {
     echo "Error: " . $stmt->error;
