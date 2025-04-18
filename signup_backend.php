@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
         if ($stmt->execute()) {
             echo "<script>
                     alert('Registration successful!');
-                    window.location.href = 'login.php';  // Redirect to login page
+                    window.location.href = 'index.php';  // Redirect to login page
                   </script>";
         } else {
             echo "<script>alert('Error: " . $stmt->error . "');</script>";
