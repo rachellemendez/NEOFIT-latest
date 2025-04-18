@@ -2,7 +2,9 @@
 // database connection
 include 'db.php';
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $address = 'No address found';
 $contact = 'No contact found';
