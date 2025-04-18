@@ -333,7 +333,7 @@ if(isset($_SESSION['email'])){
                             <div class="terms-text">
                                 By signing up, I accept NeoFit's <a href="#">Privacy Policy</a> and <a href="#">Legal Statement</a>
                             </div>
-                            <button type="submit" class="auth-button">Login</button>
+                            <button type="submit" class="auth-button" name="login_submit">Login</button>
                         </form>
                     </div>
                     <!-- END OF LOGIN FORM -->
