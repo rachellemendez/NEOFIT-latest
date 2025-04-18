@@ -1,13 +1,27 @@
 <?php
-include 'user_settings_backend.php';
+session_start();
 
 if (!isset($_SESSION['email'])) {
     header('Location: index.php');
     exit();
 }
 
-// Assuming the user's email is stored in the session
-$user_email = $_SESSION['email'] ?? 'Email not found';
+$user_email = $_SESSION['email'];
+$user_name = '';  // Fetch this from your DB or session as required
+$address = '';
+$contact = '';
+
+// Always load values for DISPLAY
+include 'user_settings_backend.php'; // This should set: $user_name, $address, $contact
+
+// If the user has just saved the profile, clear the form fields for new input
+if (isset($_GET['saved'])) {
+    $address_input = '';
+    $contact_input = '';
+} else {
+    $address_input = $address;
+    $contact_input = $contact;
+}
 ?>
 
 <!DOCTYPE html>
@@ -24,15 +38,16 @@ $user_email = $_SESSION['email'] ?? 'Email not found';
     <p>Email: <?php echo htmlspecialchars($user_email); ?></p>
 
     <!-- Form to update address and contact -->
-    <form action="save_profile.php" method="POST">
+    <form action="save_profile.php" method="POST" autocomplete="off">
         <label for="address">Address</label>
-        <input type="text" name="address" placeholder="Put address" value="<?php echo htmlspecialchars($address); ?>">
+        <input type="text" name="address" placeholder="Put address" value="<?php echo htmlspecialchars($address_input); ?>" autocomplete="off">
 
         <label for="contact">Contact</label>
-        <input type="number" name="contact" placeholder="Put contact number" value="<?php echo htmlspecialchars($contact); ?>">
+        <input type="tel" name="contact" placeholder="Put contact number" value="<?php echo htmlspecialchars($contact_input); ?>" autocomplete="off" pattern="[0-9]{10,11}" title="Please enter a valid contact number (For phone numbers start from '09' only)">
 
         <button type="submit">Save</button>
     </form>
+
 
     <!-- Display the updated address and contact -->
     <h2>Current Address: <?php echo htmlspecialchars($address); ?></h2>
@@ -58,4 +73,19 @@ $user_email = $_SESSION['email'] ?? 'Email not found';
         <button type="submit">Logout</button>
     </form>
 </body>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('saved')) {
+        document.querySelector('input[name="address"]').value = '';
+        document.querySelector('input[name="contact"]').value = '';
+    }
+});
+
+document.querySelector('input[name="contact"]').addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+</script>
+
 </html>
