@@ -1,3 +1,12 @@
+<?php
+
+if (isset($_GET['success']) && $_GET['success'] == 1) {
+    echo "<script>alert('Product added successfully!');</script>";
+}
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
