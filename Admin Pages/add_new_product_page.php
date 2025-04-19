@@ -366,14 +366,15 @@
                             </div>
 
                             <!-- DESIGN -->
-                            <div class="form-group">
+                            <!-- On Hold Muna To If Mag IImplement ba Ng Adding Photo Attachment -->
+                            <!-- <div class="form-group">
                                 <label class="form-label">Design</label>
                                     <label for="">Photo For Front Display: <input type="file" accept="image/*" name="photo_front"></label><br>
                                     <label for="">Photo 1: <input type="file" accept="image/*" name="photo_1"></label><br>
                                     <label for="">Photo 2: <input type="file" accept="image/*" name="photo_2"></label><br>
                                     <label for="">Photo 3: <input type="file" accept="image/*" name="photo_3"></label><br>
                                     <label for="">Photo 4: <input type="file" accept="image/*" name="photo_4"></label><br>
-                            </div>
+                            </div> -->
 
                             <div class="inventory-section">
                                 <h3 class="inventory-title">Inventory & Pricing</h3>
