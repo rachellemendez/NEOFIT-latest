@@ -70,10 +70,18 @@ include '../db.php';
             </div>
             
             <div class="search-filter">
-                <input type="text" placeholder="Search product">
-                <input type="text" placeholder="Filter">
+                <input type="text" placeholder="Search product" id="searchInput" name="search">
+                <select name="filter" id="filter">
+                    <option value="productName">Product Name</option>
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large">Large</option>
+                    <option value="totalStocks">Total Stocks</option>
+                    <option value="price">Price</option>
+                    <option value="totalPrice">Total Price</option>
+                </select>
                 <button class="btn-apply">Apply</button>
-                <button class="btn-reset">Reset</button>
+                <button class="btn-reset" type="reset">Reset</button>
             </div>
             
             <div class="product-count">
@@ -102,7 +110,7 @@ include '../db.php';
                             <th>Total Price</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="productList">
                     <?php
                     $sql = "SELECT * FROM products";
                     $result = $conn->query($sql);
@@ -152,5 +160,52 @@ include '../db.php';
             </div>
         </main>
     </div>
+
+
+    <script>
+        const applyBtn = document.querySelector('.btn-apply');
+        const resetBtn = document.querySelector('.btn-reset');
+        const searchInput = document.getElementById('searchInput');
+        const filterSelect = document.getElementById('filter');
+        const rows = document.querySelectorAll('tbody tr');
+
+        applyBtn.addEventListener('click', () => {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            const filter = filterSelect.value;
+
+            let colIndex;
+            switch (filter) {
+                case 'productName': colIndex = 0; break;
+                case 'small': colIndex = 1; break;
+                case 'medium': colIndex = 2; break;
+                case 'large': colIndex = 3; break;
+                case 'totalStocks': colIndex = 4; break;
+                case 'price': colIndex = 5; break;
+                case 'totalPrice': colIndex = 6; break;
+            }
+
+            rows.forEach(row => {
+                const cell = row.cells[colIndex];
+                if (!cell) return;
+
+                const cellValue = cell.textContent.trim().toLowerCase();
+
+                if (filter === 'productName') {
+                    row.style.display = cellValue.includes(searchTerm) ? '' : 'none';
+                } else {
+                    const cellNumber = parseFloat(cellValue.replace(/,/g, ''));
+                    const searchNumber = parseFloat(searchTerm);
+                    row.style.display = (cellNumber === searchNumber) ? '' : 'none';
+                }
+            });
+        });
+
+        resetBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            rows.forEach(row => row.style.display = '');
+        });
+        </script>
+
+
 </body>
 </html>
