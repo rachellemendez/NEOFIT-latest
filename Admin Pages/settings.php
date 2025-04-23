@@ -54,7 +54,7 @@
         </aside>
         
         <form action="admin_logout.php" method="POST">
-            <button>Logout</button>
+            <button><a href="index.php">Logout</a></button>
         </form>
     </div>
 </body>
