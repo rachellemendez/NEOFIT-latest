@@ -64,11 +64,11 @@ include '../db.php';
             <h1 class="page-title">All Products</h1>
             
             <div class="tabs">
-                <div class="tab active">All</div>
-                <div class="tab">Live</div>
-                <div class="tab">Unpublished</div>
+                <div class="tab active" data-filter="All">All</div>
+                <div class="tab" data-filter="Live">Live</div>
+                <div class="tab" data-filter="Unpublished">Unpublished</div>
             </div>
-            
+
             <div class="search-filter">
                 <input type="text" placeholder="Search product" id="searchInput" name="search">
                 <select name="filter" id="filter">
@@ -112,7 +112,16 @@ include '../db.php';
                     </thead>
                     <tbody id="productList">
                     <?php
-                    $sql = "SELECT * FROM products";
+                    $status = isset($_GET['status']) ? $_GET['status'] : 'All';  // Get the status from the URL, default to 'All'
+
+                    if ($status == 'Live') {
+                        $sql = "SELECT * FROM products WHERE product_status = 'Live'";
+                    } elseif ($status == 'Unpublished') {
+                        $sql = "SELECT * FROM products WHERE product_status = 'Unpublished'";
+                    } else {
+                        $sql = "SELECT * FROM products";  // Get all products if status is 'All' or not specified
+                    }
+
                     $result = $conn->query($sql);
 
                     $total_small = $total_medium = $total_large = $total_price = 0;
@@ -167,7 +176,7 @@ include '../db.php';
         const resetBtn = document.querySelector('.btn-reset');
         const searchInput = document.getElementById('searchInput');
         const filterSelect = document.getElementById('filter');
-        const rows = document.querySelectorAll('tbody tr');
+        const rows = document.querySelectorAll('tbody tr'); // Declare it once
 
         applyBtn.addEventListener('click', () => {
             const searchTerm = searchInput.value.trim().toLowerCase();
@@ -204,7 +213,29 @@ include '../db.php';
             searchInput.value = '';
             rows.forEach(row => row.style.display = '');
         });
-        </script>
+
+        document.querySelectorAll('.tabs .tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Toggle active class
+                document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                const status = tab.dataset.filter;
+
+                // Make an AJAX request to get the filtered products
+                fetch('get_products.php?status=' + status)  // Fetch the new content from the PHP file
+                    .then(response => response.text())
+                    .then(data => {
+                        // Update the product list with the filtered products
+                        document.getElementById('productList').innerHTML = data;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
+        });
+
+    </script>
 
 
 </body>
