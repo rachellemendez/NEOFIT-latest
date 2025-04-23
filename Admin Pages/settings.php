@@ -36,7 +36,7 @@
                 </li>
                 <li class="active">
                     <i class="fas fa-tshirt"></i>
-                    <span>All Products</span>
+                    <a href="all_product_page.php"><span>All Products</span></a>
                 </li>
                 <li>
                     <i class="fas fa-plus-square"></i>

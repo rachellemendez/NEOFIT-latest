@@ -329,11 +329,11 @@ if (isset($_GET['success']) && $_GET['success'] == 1) {
             <ul class="sidebar-menu">
                 <li>
                     <i class="fas fa-chart-line"></i>
-                    <span>Dashboard</span>
+                    <a href="dashboard_page.php"><span>Dashboard</span></a>
                 </li>
                 <li>
                     <i class="fas fa-list"></i>
-                    <span>Manage Orders</span>
+                    <a href="manage_order_details_page.php"><span>Manage Orders</span></a>
                 </li>
                 <li>
                     <i class="fas fa-box"></i>
@@ -354,7 +354,7 @@ if (isset($_GET['success']) && $_GET['success'] == 1) {
                 </li>
                 <li>
                     <i class="fas fa-cog"></i>
-                    <span>Settings</span>
+                    <a href="settings.php"><span>Settings</span></a>
                 </li>
             </ul>
         </aside>

@@ -23,7 +23,7 @@
             <ul class="sidebar-menu">
                 <li>
                     <i class="fas fa-chart-line"></i>
-                    <span>Dashboard</span>
+                    <a href="dashboard_page.php"><span>Dashboard</span></a>
                 </li>
                 <li class="active">
                     <i class="fas fa-list"></i>
@@ -40,7 +40,7 @@
                 </li>
                 <li>
                     <i class="fas fa-cog"></i>
-                    <span>Settings</span>
+                    <a href="settings.php"><span>Settings</span></a>
                 </li>
             </ul>
         </aside>
