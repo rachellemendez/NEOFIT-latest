@@ -20,28 +20,60 @@ if ($conn->connect_error) {
 }
 
 // Retrieve the posted data
-$address = $_POST['address'];
-$contact = $_POST['contact'];
+$address = trim($_POST['address']);
+$contact = trim($_POST['contact']);
 $user_id = $_SESSION['user_id'];
 
-// Update the database with the new values
-$stmt = $conn->prepare("UPDATE users SET address = ?, contact = ? WHERE id = ?");
-$stmt->bind_param("ssi", $address, $contact, $user_id);
+// Build the SQL dynamically based on filled fields
+$fieldsToUpdate = [];
+$params = [];
+$types = "";
+
+if (!empty($address)) {
+    $fieldsToUpdate[] = "address = ?";
+    $params[] = $address;
+    $types .= "s";
+}
+
+if (!empty($contact)) {
+    $fieldsToUpdate[] = "contact = ?";
+    $params[] = $contact;
+    $types .= "s";
+}
+
+// If nothing is filled, don't update
+if (empty($fieldsToUpdate)) {
+    echo "<script>
+        alert('No changes made.');
+        window.location.href = 'user-settings.php';
+    </script>";
+    exit();
+}
+
+// Build final query
+$sql = "UPDATE users SET " . implode(", ", $fieldsToUpdate) . " WHERE id = ?";
+$params[] = $user_id;
+$types .= "i";
+
+$stmt = $conn->prepare($sql);
+
+if (!$stmt) {
+    echo "Error preparing statement: " . $conn->error;
+    exit();
+}
+
+// Bind parameters dynamically
+$stmt->bind_param($types, ...$params);
 
 if ($stmt->execute()) {
-    // Update session variables with the new address and contact
-    $_SESSION['address'] = $address;
-    $_SESSION['contact'] = $contact;
+    // Update session variables if updated
+    if (!empty($address)) $_SESSION['address'] = $address;
+    if (!empty($contact)) $_SESSION['contact'] = $contact;
 
-    // Redirect to the user settings page after successful update
     echo "<script>
         alert('Profile saved successfully!');
         window.location.href = 'user-settings.php?saved=true';
     </script>";
-    exit;
-
-    
-    exit();
 } else {
     echo "Error updating profile.";
 }
