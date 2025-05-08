@@ -4,6 +4,21 @@ if (isset($_GET['success']) && $_GET['success'] == 1) {
     echo "<script>alert('Product added successfully!');</script>";
 }
 
+include '../db.php';
+
+// Query to get the distinct box_ids that are already occupied
+$occupiedBoxes = $conn->query("SELECT DISTINCT box_id FROM products")->fetch_all(MYSQLI_ASSOC);
+
+// Create an array of occupied box_ids
+$occupiedBoxIds = array_map(function($box) {
+    return $box['box_id'];
+}, $occupiedBoxes);
+
+// Check if a box is occupied in the dropdown
+function isBoxOccupied($boxId, $occupiedBoxIds) {
+    return in_array($boxId, $occupiedBoxIds);
+}
+
 ?>
 
 
@@ -205,6 +220,12 @@ if (isset($_GET['success']) && $_GET['success'] == 1) {
         color: white;
     }
 
+    .assign-slot{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+    }
+
     /* Table Styles */
     .product-count {
         margin-bottom: 15px;
@@ -375,15 +396,15 @@ if (isset($_GET['success']) && $_GET['success'] == 1) {
                             </div>
 
                             <!-- DESIGN -->
-                            <!-- On Hold Muna To If Mag IImplement ba Ng Adding Photo Attachment -->
-                            <!-- <div class="form-group">
+                          
+                                <div class="form-group">
                                 <label class="form-label">Design</label>
                                     <label for="">Photo For Front Display: <input type="file" accept="image/*" name="photo_front"></label><br>
                                     <label for="">Photo 1: <input type="file" accept="image/*" name="photo_1"></label><br>
                                     <label for="">Photo 2: <input type="file" accept="image/*" name="photo_2"></label><br>
                                     <label for="">Photo 3: <input type="file" accept="image/*" name="photo_3"></label><br>
                                     <label for="">Photo 4: <input type="file" accept="image/*" name="photo_4"></label><br>
-                            </div> -->
+                            </div>
 
                             <div class="inventory-section">
                                 <h3 class="inventory-title">Inventory & Pricing</h3>
@@ -409,9 +430,58 @@ if (isset($_GET['success']) && $_GET['success'] == 1) {
                                 </div>
                             </div>
 
-                            <div class="form-submit">
-                                <button type="submit" name="product_submit" class="btn-submit" id="product-save-btn">Save</button>
-                            </div>
+
+                            <div class="form-group">
+                                <h6>Assign Slot</h6>
+                                <select name="box_id" required>
+                                    <option value="">-- Do not assign a box --</option>
+
+                                    <optgroup label="ALL PRODUCTS">
+                                    <?php
+                                        for ($i = 1; $i <= 8; $i++) {
+                                            $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
+                                            $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
+                                            echo "<option value='$i' $disabled>Box $i $label</option>";
+                                        }
+                                    ?>
+                                    </optgroup>
+
+                                    <optgroup label="TRENDING">
+                                    <?php
+                                        for ($i = 9; $i <= 16; $i++) {
+                                            $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
+                                            $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
+                                            echo "<option value='$i' $disabled>Box $i $label</option>";
+                                        }
+                                    ?>
+                                    </optgroup>
+
+                                    <optgroup label="MEN">
+                                    <?php
+                                        for ($i = 17; $i <= 24; $i++) {
+                                            $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
+                                            $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
+                                            echo "<option value='$i' $disabled>Box $i $label</option>";
+                                        }
+                                    ?>
+                                    </optgroup>
+
+                                    <optgroup label="WOMEN">
+                                    <?php
+                                        for ($i = 25; $i <= 32; $i++) {
+                                            $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
+                                            $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
+                                            echo "<option value='$i' $disabled>Box $i $label</option>";
+                                        }
+                                    ?>
+                                    </optgroup>
+                                </select>
+
+                            
+
+                                <div class="form-submit">
+                                    <button type="submit" name="product_submit" class="btn-submit" id="product-save-btn">Save</button>
+                                </div>
                         </form>
                     </div>
             </div>

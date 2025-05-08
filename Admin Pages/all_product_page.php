@@ -50,6 +50,10 @@ include '../db.php';
                     <a href="add_new_product_page.php"><span>Add New Product</span></a>
                 </li>
                 <li>
+                    <i class="fas fa-plus-square"></i>
+                    <a href="assign_product.php"><span>Assign Product</span></a>
+                </li>
+                <li>
                     <i class="fas fa-credit-card"></i>
                     <span>Payments</span>
                 </li>

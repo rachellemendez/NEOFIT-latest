@@ -53,9 +53,7 @@
             </ul>
         </aside>
         
-        <form action="admin_logout.php" method="POST">
-            <button><a href="index.php">Logout</a></button>
-        </form>
+        <a href="../index.php">Logout</a>
     </div>
 </body>
 </html>

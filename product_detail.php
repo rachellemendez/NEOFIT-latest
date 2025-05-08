@@ -1,26 +1,31 @@
 <?php
-include 'get_product_value.php';
+include './db.php'; // Include your database connection
 
+// Get the product id from the URL
+$product_id = $_GET['id'];
 
-if (isset($product_data)) {
-    $product_name = $product_data['product_name'];
-    $product_price = $product_data['product_price'];
-    $product_quantity = $product_data['product_quantity'];
-    $variants = $product_data['variants'];
-    $unique_colors = $product_data['unique_colors'];
-    
-    // Get unique sizes
-    $unique_sizes = array_unique(array_map(function($variant) {
-        return $variant['product_size'];
-    }, $variants));
+// Query the database to fetch the product details based on the id
+$result = $conn->query("SELECT * FROM products WHERE box_id = $product_id LIMIT 1");
+
+// Check if the product exists in the database
+if ($result->num_rows > 0) {
+    // Fetch the product details
+    $product = $result->fetch_assoc();
+    $productName = $product['product_name'];
+    $productPrice = $product['product_price'];
+    $productStatus = $product['product_status'];
+    $quantitySmall = $product['quantity_small'];
+    $quantityMedium = $product['quantity_medium'];
+    $quantityLarge = $product['quantity_large'];
+    $photoFront = "Admin Pages/" . $product['photoFront']; // Path to the main product image
+    $photo1 = "Admin Pages/" . $product['photo1']; // Additional image 1
+    $photo2 = "Admin Pages/" . $product['photo2']; // Additional image 2
+    $photo3 = "Admin Pages/" . $product['photo3']; // Additional image 3
+    $photo4 = "Admin Pages/" . $product['photo4']; // Additional image 4
 } else {
-    // Optional fallback
-    $product_name = 'Product Not Found';
-    $product_price = '0.00';
-    $product_quantity = '0';
-    $variants = [];
-    $unique_colors = [];
-    $unique_sizes = [];
+    // Handle case when no product is found
+    echo "Product not found.";
+    exit;
 }
 ?>
 
@@ -382,86 +387,85 @@ if (isset($product_data)) {
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <!-- Clickable plain text, no link styling -->
-            <div id="neofitLogo" style="font-size: 24px; cursor: pointer; text-decoration: none; font-family: Arial, sans-serif; font-weight: bold; display: inline-block; color: black;">
-                NEOFIT
-            </div>
-            <div class="nav">
-                <a href="#">Trending</a>
-                <a href="#">Men</a>
-                <a href="#">Women</a>
-            </div>
-            <div class="search-container">
-                <div class="search-bar">
-                    <span></span>
-                    <input type="text" placeholder="Search">
+            <div class="header">
+                <div id="neofitLogo" style="font-size: 24px; cursor: pointer; text-decoration: none; font-family: Arial, sans-serif; font-weight: bold; display: inline-block; color: black;">
+                    NEOFIT
                 </div>
-                <div class="user-icon"><a href="user-settings.php"> <img src="profile.jpg" alt="Profile Icon" width="24" height="24"></a></div>
-                <div class="cart-icon"> <img src="cart.jpg" alt="Cart Icon" width="24" height="24"></div>
-            </div>
-        </div>
-
-        <div class="product-container">
-            <div class="product-images">
-                <div class="main-image">
-                    <img src="Models Images/6.png" alt="Remo 98 T-shirt">
+                <div class="nav">
+                    <a href="#">Trending</a>
+                    <a href="#">Men</a>
+                    <a href="#">Women</a>
                 </div>
-                <div class="thumbnail-container">
-                    <div class="thumbnail"><img src="Models Images/6.png" alt="Thumbnail 1"></div>
-                    <div class="thumbnail"><img src="Models Images/4.png" alt="Thumbnail 2"></div>
-                    <div class="thumbnail"><img src="Models Images/7.png" alt="Thumbnail 3"></div>
-                    <div class="thumbnail"><img src="Models Images/5.png" alt="Thumbnail 4"></div>
+                <div class="search-container">
+                    <div class="search-bar">
+                        <span></span>
+                        <input type="text" placeholder="Search">
+                    </div>
+                    <div class="user-icon"><a href="user-settings.php"> <img src="profile.jpg" alt="Profile Icon" width="24" height="24"></a></div>
+                    <div class="cart-icon"> <img src="cart.jpg" alt="Cart Icon" width="24" height="24"></div>
                 </div>
             </div>
 
-            <div class="product-info">
-                <h1 class="product-title">Remo 98</h1>
-                <div class="rating">
-                    4.9 ★★★★★
-                </div>
-                <div class="price">
-                    <span class="current-price">₱ 250</span>
-                    <span class="original-price">₱ 350</span>
+            <div class="product-container">
+                <div class="product-images">
+                    <div class="main-image">
+                        <img src="<?php echo $photoFront; ?>" alt="<?php echo $productName; ?>">
+                    </div>
+                    <div class="thumbnail-container">
+                        <div class="thumbnail"><img src="<?php echo $photo1; ?>" alt="Thumbnail 1"></div>
+                        <div class="thumbnail"><img src="<?php echo $photo2; ?>" alt="Thumbnail 2"></div>
+                        <div class="thumbnail"><img src="<?php echo $photo3; ?>" alt="Thumbnail 3"></div>
+                        <div class="thumbnail"><img src="<?php echo $photo4; ?>" alt="Thumbnail 4"></div>
+                    </div>
                 </div>
 
-                <form action="payment.php" method="POST" id="buyForm">
-                <input type="hidden" name="product_name" value="Remo 98">
-                <input type="hidden" name="price" id="hidden-price" value="250">
-
-                <div class="product-options">
-                    <!-- Size -->
-                    <div class="option-group">
-                        <div class="option-label">Size</div>
-                        <select name="size" id="size">
-                            <option value="small">Small</option>
-                            <option value="medium">Medium</option>
-                            <option value="large">Large</option>
-                            <option value="xlarge">X-Large</option>
-                        </select>
+                <div class="product-info">
+                    <h1 class="product-title"><?php echo $productName; ?></h1>
+                    <div class="rating">
+                        4.9 ★★★★★
+                    </div>
+                    <div class="price">
+                        <span class="current-price">₱ <?php echo $productPrice; ?></span>
+                        <!-- Assume that you store original price in database as 'product_original_price' -->
+                        <span class="original-price">₱ <?php echo $productPrice * 1.4; ?></span> <!-- Example: apply 40% discount -->
                     </div>
 
-                    <!-- Quantity -->
-                    <div class="option-group">
-                        <div class="option-label">Quantity</div>
-                        <div class="quantity-selector">
-                            <button type="button" class="quantity-btn" id="decrease">-</button>
-                            <input type="number" class="quantity-input" name="quantity" id="quantity" value="" min="1" max="2345"> <!-- 2345 temporary place holder-->
-                            <button type="button" class="quantity-btn" id="increase">+</button>
-                            <span class="inventory" id="inventory-count">2345 pieces available</span>
+                    <form action="payment.php" method="POST" id="buyForm">
+                        <input type="hidden" name="product_name" value="<?php echo $productName; ?>">
+                        <input type="hidden" name="price" id="hidden-price" value="<?php echo $productPrice; ?>">
+
+                        <div class="product-options">
+                            <!-- Size -->
+                            <div class="option-group">
+                                <div class="option-label">Size</div>
+                                <select name="size" id="size">
+                                    <option value="small">Small</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="large">Large</option>
+                                </select>
+                            </div>
+
+                            <!-- Quantity -->
+                            <div class="option-group">
+                                <div class="option-label">Quantity</div>
+                                <div class="quantity-selector">
+                                    <button type="button" class="quantity-btn" id="decrease">-</button>
+                                    <input type="number" class="quantity-input" name="quantity" id="quantity" value="1" min="1" max="2345"> <!-- Example: 2345 as max quantity -->
+                                    <button type="button" class="quantity-btn" id="increase">+</button>
+                                    <span class="inventory" id="inventory-count"><?php echo $quantitySmall; ?> pieces available</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="buttons">
-                    <button type="button" class="cart-btn" id="addToCartBtn">
-                        <span>🛒</span> Add to Cart
-                    </button>
-                    <button type="submit" class="buy-btn">Buy Now</button>
-                    <button type="button" class="wishlist-btn">♥</button>
-                </div>
-                <a href="#" class="size-chart">click here to see size chart</a>
-                </form>
+                        <div class="buttons">
+                            <button type="button" class="cart-btn" id="addToCartBtn">
+                                <span>🛒</span> Add to Cart
+                            </button>
+                            <button type="submit" class="buy-btn">Buy Now</button>
+                            <button type="button" class="wishlist-btn">♥</button>
+                        </div>
+                        <a href="#" class="size-chart">click here to see size chart</a>
+                    </form>
             </div>
         </div>
     </div>
@@ -518,51 +522,79 @@ if (isset($product_data)) {
         </div>
     </div>
 </footer>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const quantityInput = document.getElementById('quantity');
-            const decreaseButton = document.getElementById('decrease');
-            const increaseButton = document.getElementById('increase');
-            const maxQuantity = 2345; // Maximum available quantity
-            
-            // Handle quantity decrease
-            decreaseButton.addEventListener('click', function(event) {
-                event.preventDefault();
-                let current = parseInt(quantityInput.value);
-                if (!isNaN(current) && current > 1) {
-                    quantityInput.value = current - 1;
-                } else {
-                    quantityInput.value = 1; // Default to 1 if empty or invalid
-                }
-            });
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const quantityInput = document.getElementById("quantity");
+    const decreaseBtn = document.getElementById("decrease");
+    const increaseBtn = document.getElementById("increase");
+    const inventoryCount = document.getElementById("inventory-count");
+    const sizeSelect = document.getElementById("size");
 
-            // Handle quantity increase
-            increaseButton.addEventListener('click', function(event) {
-                event.preventDefault();
-                let current = parseInt(quantityInput.value);
-                if (!isNaN(current) && current < maxQuantity) {
-                    quantityInput.value = current + 1;
-                } else if (isNaN(current) || current === "") {
-                    quantityInput.value = 1; // Default to 1 if empty or invalid
-                }
-            });
+    // Set initial inventory data
+    let availableQuantities = {
+        small: <?php echo $quantitySmall; ?>,
+        medium: <?php echo $quantityMedium; ?>,
+        large: <?php echo $quantityLarge; ?>
+    };
 
-            // Ensure only valid numeric values within the range
-            quantityInput.addEventListener('input', function() {
-                let value = parseInt(quantityInput.value);
-                if (isNaN(value) || value < 1) {
-                    quantityInput.value = "";  // Clear if invalid input or below 1
-                } else if (value > maxQuantity) {
-                    alert("Desired quantity exceeds available stock.");
-                    quantityInput.value = maxQuantity;  // Optional: or reset to 1 or ""
-                }
-            });
-        });
+    // Function to update the available inventory count and enable/disable buttons
+    function updateInventory() {
+        const selectedSize = sizeSelect.value;
+        const available = availableQuantities[selectedSize];
 
-        // Handling the click event on the logo to redirect to landing page
-        document.getElementById("neofitLogo").addEventListener("click", function() {
-            window.location.href = 'landing_page.php'; // Redirect to landing page
-        });
-    </script>
-</body> 
-</html>
+        inventoryCount.textContent = `${available} pieces available`;
+
+        // Set max value and adjust quantity if necessary
+        quantityInput.setAttribute("max", available);
+        quantityInput.value = Math.min(quantityInput.value, available);
+
+        // Enable/disable buttons based on available stock
+        increaseBtn.disabled = available <= 0 || quantityInput.value >= available;
+        decreaseBtn.disabled = quantityInput.value <= 1;
+    }
+
+    // Event listener for size change
+    sizeSelect.addEventListener("change", updateInventory);
+
+    // Increase quantity
+    increaseBtn.addEventListener("click", function() {
+        let current = parseInt(quantityInput.value);
+        const max = parseInt(quantityInput.getAttribute("max"));
+        if (current < max) {
+            quantityInput.value = current + 1;
+        }
+        updateInventory();
+    });
+
+    // Decrease quantity
+    decreaseBtn.addEventListener("click", function() {
+        let current = parseInt(quantityInput.value);
+        if (current > 1) {
+            quantityInput.value = current - 1;
+        }
+        updateInventory();
+    });
+
+    // Handle manual input in quantity field
+    quantityInput.addEventListener("input", function() {
+        let value = parseInt(quantityInput.value);
+        const max = parseInt(quantityInput.getAttribute("max"));
+
+        if (isNaN(value) || value < 1) {
+            quantityInput.value = "";
+        } else if (value > max) {
+            alert("Desired quantity exceeds available stock.");
+            quantityInput.value = max;
+        }
+        updateInventory();
+    });
+
+    // Initialize on page load
+    updateInventory();
+
+    // Redirect logo to landing page
+    document.getElementById("neofitLogo").addEventListener("click", function() {
+        window.location.href = 'landing_page.php';
+    });
+});
+</script>

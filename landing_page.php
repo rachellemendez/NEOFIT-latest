@@ -625,102 +625,60 @@ if (!isset($_SESSION['email'])) {
         <section class="product-section" id="featured-products">
             <h2 class="section-title" style="color: #1e1e1e;">ALL PRODUCTS</h2>
             <div class="product-grid">
-                <!-- Yellow T-shirt -->
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="Models Images/neoncotton.jpg" alt="Neon Cotton T-shirt">
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name">Neon Cotton T-shirt</h3>
-                        <span class="product-price">₱ 250</span>
-                        <span class="product-sold">1.3k sold</span>
-                    </div>
-                </div>
-                
-                <!-- Remo 98 -->
-                <div class="product-card">
-                    <a href="product_detail.php">
-                    <div class="product-image">
-                        <img src="Models Images/remo98.jpg" alt="Remo 98" style="object-position: 90% 10%;">
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name">Remo 98</h3>
-                        <span class="product-price">₱ 250</span>
-                        <span class="product-sold">1.3k sold</span>
-                    </div>
-                    </a>
-                </div>
-                
-                <!-- Emerald -->
-                <div class="product-card">
-                    
-                        <div class="product-image">
-                            <img src="Models Images/emerald.jpg" alt="Emerald">
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-name">Emerald</h3>
-                            <span class="product-price">₱ 250</span>
-                            <span class="product-sold">1.3k sold</span>
-                        </div>
-                    
-                </div>
-                
-                <!-- DUB SKU -->
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="Models Images/dubsku.jpg" alt="DUB SKU">
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name">DUB SKU</h3>
-                        <span class="product-price">₱ 250</span>
-                        <span class="product-sold">1.3k sold</span>
-                    </div>
-                </div>
+            <?php
+                include './db.php'; // Include your database connection
 
-                <!-- Second Row -->
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="Models Images/pegador.jpg" alt="Pegador">
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name">Pegador</h3>
-                        <span class="product-price">₱ 250</span>
-                        <span class="product-sold">1.3k sold</span>
-                    </div>
-                </div>
-                
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="Models Images/plainwhite.jpg" alt="Plain White T-shirt">
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name">Plain White T-shirt</h3>
-                        <span class="product-price">₱ 250</span>
-                        <span class="product-sold">1.3k sold</span>
-                    </div>
-                </div>
-                
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="Models Images/preststudios.jpg" alt="Prest Studios">
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name">Prest Studios</h3>
-                        <span class="product-price">₱ 250</span>
-                        <span class="product-sold">1.3k sold</span>
-                    </div>
-                </div>
-                
-                <div class="product-card">
-                    <div class="product-image">
-                        <img src="Models Images/personality.jpg" alt="Personality">
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name">Personality</h3>
-                        <span class="product-price">₱ 250</span>
-                        <span class="product-sold">1.3k sold</span>
-                    </div>
-                </div>
+                // Define products for each box manually (optional, if no data is found in the DB)
+                $box_data = [
+                    1 => ['product_name' => 'Neon Cotton T-shirt', 'product_price' => 250, 'photoFront' => 'Models Images/neoncotton.jpg'],
+                    2 => ['product_name' => 'Remo 98', 'product_price' => 250, 'photoFront' => 'Models Images/remo98.jpg'],
+                    3 => ['product_name' => 'Emerald', 'product_price' => 250, 'photoFront' => 'Models Images/emerald.jpg'],
+                    4 => ['product_name' => 'DUB SKU', 'product_price' => 250, 'photoFront' => 'Models Images/dubsku.jpg'],
+                    5 => ['product_name' => 'Pegador', 'product_price' => 250, 'photoFront' => 'Models Images/pegador.jpg'],
+                    6 => ['product_name' => 'Plain White T-shirt', 'product_price' => 250, 'photoFront' => 'Models Images/plainwhite.jpg'],
+                    7 => ['product_name' => 'Prest Studios', 'product_price' => 250, 'photoFront' => 'Models Images/preststudios.jpg'],
+                    8 => ['product_name' => 'Personality', 'product_price' => 250, 'photoFront' => 'Models Images/personality.jpg']
+                ];
+
+                // Loop through each box and fetch data from the database or use the manual definition
+                for ($box_id = 1; $box_id <= 8; $box_id++) {
+                    // Query the database to fetch the product details for each box
+                    $result = $conn->query("SELECT * FROM products WHERE box_id = $box_id LIMIT 1");
+
+                    // Check if the product exists in the database
+                    if ($result->num_rows > 0) {
+                        // Fetch the product details from the database
+                        $product = $result->fetch_assoc();
+                        $productName = $product['product_name'];
+                        $productPrice = $product['product_price'];
+                        $photoFront = "Admin Pages/" . $product['photoFront']; // Path to the image
+                        $link = 'product_detail.php?id=' . $product['box_id'];
+                    } else {
+                        // If no product is assigned, use the manually defined data
+                        $productName = $box_data[$box_id]['product_name'];
+                        $productPrice = $box_data[$box_id]['product_price'];
+                        $photoFront = $box_data[$box_id]['photoFront']; // Placeholder image path
+                        $link = 'product_detail.php?id=' . $box_id;
+                    }
+
+                    // Display the box content
+                    echo '
+                    <div class="product-card" id="product-box-' . $box_id . '">
+                        <a href="' . $link . '" class="product-link">
+                            <div class="product-image">
+                                <img src="' . $photoFront . '" alt="' . $productName . '">
+                            </div>
+                            <div class="product-info">
+                                <h3 class="product-name">' . $productName . '</h3>
+                                <span class="product-price">₱ ' . $productPrice . '</span>
+                                <span class="product-sold">1.3k sold</span>
+                            </div>
+                        </a>
+                    </div>';
+                }
+                            
+                ?>
+
             </div>
             <a href="browse_all_collection.php" class="browse-all" id="browse-all-button">browse all collection</a>
         </section>
