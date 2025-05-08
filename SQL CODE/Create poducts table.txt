@@ -1,9 +1,0 @@
-CREATE TABLE products (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    product_name VARCHAR(255),
-    quantity_small INT,
-    quantity_medium INT,
-    quantity_large INT,
-    product_price DECIMAL(10, 2),
-    product_status VARCHAR(50)
-);
