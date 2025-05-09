@@ -172,8 +172,12 @@ include '../db.php';
                                 <span class='text'>" . number_format($product_total_price, 2) . "</span>
                             </td>";
 
-                            echo "<td>  
-                                <a class='edit-btn' href='edit_product.php?id=" . $row['id'] . "'>Edit</a></td>";
+                            echo "<td>
+                                <form action='edit_product.php' method='get' style='display:inline;'>
+                                    <input type='hidden' name='id' value='{$row['id']}'>
+                                    <button type='submit' class='edit-btn'>Edit</button>
+                                </form>
+                            </td>";
 
                             echo "</tr>";
 

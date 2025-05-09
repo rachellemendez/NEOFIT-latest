@@ -34,6 +34,15 @@ if ($result->num_rows > 0) {
         echo "<td>" . $total_stock . "</td>";
         echo "<td>" . number_format($row['product_price'], 2) . "</td>";
         echo "<td>" . number_format($product_total_price, 2) . "</td>";
+
+        // Add Edit button inside a form
+        echo "<td>
+            <form action='edit_product.php' method='get' style='display:inline;'>
+                <input type='hidden' name='id' value='{$row['id']}'>
+                <button type='submit' class='edit-btn'>Edit</button>
+            </form>
+        </td>";
+
         echo "</tr>";
     }
 
@@ -48,8 +57,9 @@ if ($result->num_rows > 0) {
     echo "<td>$grand_total_stocks</td>";
     echo "<td>-</td>";
     echo "<td>" . number_format($total_price, 2) . "</td>";
+    echo "<td>-</td>"; // empty action column for totals row
     echo "</tr>";
 } else {
-    echo "<tr><td colspan='7'>No products found.</td></tr>";
+    echo "<tr><td colspan='8'>No products found.</td></tr>";
 }
 ?>

@@ -1,10 +1,35 @@
 <?php
 
-if (isset($_GET['success']) && $_GET['success'] == 1) {
-    echo "<script>alert('Product added successfully!');</script>";
+if (isset($_GET['updated']) && $_GET['updated'] == 1) {
+    echo "<script>alert('Product updated successfully!');</script>";
+}
+
+if (isset($_GET['deleted']) && $_GET['deleted'] == 1) {
+    echo "<script>alert('Product deleted successfully!');</script>";
 }
 
 include '../db.php'; // Or however you connect to your DB
+// Retrieve GET parameters
+$id = $_GET['id'];
+$result = $conn->query("SELECT  * FROM products WHERE id = $id");
+
+if ($result && $row = $result->fetch_assoc()) {
+    $product_name = $row['product_name'];
+    $product_small = $row['quantity_small'];
+    $product_medium = $row['quantity_medium'];
+    $product_large = $row['quantity_large'];
+    $product_price = $row['product_price'];
+    $product_status = $row['product_status'];
+    $product_box = $row['box_id'];
+
+    $photo_front = $row['photoFront'];
+    $photo_1 = $row['photo1'];
+    $photo_2 = $row['photo2'];
+    $photo_3 = $row['photo3'];
+    $photo_4 = $row['photo4'];
+} else {
+    // handle error: product not found
+}
 
         if (isset($_GET['id'])) {
             $id = intval($_GET['id']);
@@ -369,21 +394,33 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
 
                     <div class="product-entry-form">
                         <!-- FORM -->
-                        <form action="add_new_product_backend.php" method="POST" enctype="multipart/form-data">
+                        <form action="update_product.php" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="id" value="<?php echo $id; ?>">
+                            <input type="hidden" name="update_product" value="1">
                             <div class="form-group">
-                                <label class="form-label">Product Name</label>
-                                <input type="text" class="form-input" name="product_name" id="product-name" placeholder="Product Name" required>
+                                <label class="form-label" >Product Name</label>
+                                <input type="text" class="form-input" name="product_name" id="product-name" placeholder="Product Name" value="<?php echo htmlspecialchars($product_name); ?>" required>
                             </div>
 
                             <!-- DESIGN -->
                           
-                                <div class="form-group">
+                            <div class="form-group">
                                 <label class="form-label">Design</label>
-                                    <label for="">Photo For Front Display: <input type="file" accept="image/*" name="photo_front"></label><br>
-                                    <label for="">Photo 1: <input type="file" accept="image/*" name="photo_1"></label><br>
-                                    <label for="">Photo 2: <input type="file" accept="image/*" name="photo_2"></label><br>
-                                    <label for="">Photo 3: <input type="file" accept="image/*" name="photo_3"></label><br>
-                                    <label for="">Photo 4: <input type="file" accept="image/*" name="photo_4"></label><br>
+                                <label for="">Photo For Front Display: <input type="file" accept="image/*" name="photo_front"></label><br>
+                                <p>Current Image Path: <?php echo htmlspecialchars($photo_front); ?></p><br>
+
+                                <label for="">Photo 1: <input type="file" accept="image/*" name="photo_1"></label><br>
+                                <p>Current Image Path: <?php echo htmlspecialchars($photo_1); ?></p><br>
+
+                                <label for="">Photo 2: <input type="file" accept="image/*" name="photo_2"></label><br>
+                                <p>Current Image Path: <?php echo htmlspecialchars($photo_2); ?></p><br>
+
+                                <label for="">Photo 3: <input type="file" accept="image/*" name="photo_3"></label><br>
+                                <p>Current Image Path: <?php echo htmlspecialchars($photo_3); ?></p><br>
+
+                                <label for="">Photo 4: <input type="file" accept="image/*" name="photo_4"></label><br>
+                                <p>Current Image Path: <?php echo htmlspecialchars($photo_4); ?></p><br>
+
                             </div>
 
                             <div class="inventory-section">
@@ -391,22 +428,24 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
 
                                 <div class="form-group">
                                     <label class="form-label">Size</label>
-                                            <label for="" class="form-label">Small: <input type="number" class="form-input" name="quantity_small" id="product-quantity" placeholder="Quantity" min="1" value="1" required></label><br>
-                                            <label for="" class="form-label">Medium: <input type="number" class="form-input" name="quantity_medium" id="product-quantity" placeholder="Quantity" min="1" value="1" required></label><br>
-                                            <label for="" class="form-label">Large: <input type="number" class="form-input" name="quantity_large" id="product-quantity" placeholder="Quantity" min="1" value="1" required></label><br>
+                                    <label for="" class="form-label">Small: <input type="number" class="form-input" name="quantity_small" id="product-quantity" placeholder="Quantity" min="1" value="<?php echo htmlspecialchars($product_small); ?>" required></label><br>
+
+                                    <label for="" class="form-label">Medium: <input type="number" class="form-input" name="quantity_medium" id="product-quantity" placeholder="Quantity" min="1" value="<?php echo htmlspecialchars($product_medium); ?>" required></label><br>
+
+                                    <label for="" class="form-label">Large: <input type="number" class="form-input" name="quantity_large" id="product-quantity" placeholder="Quantity" min="1" value="<?php echo htmlspecialchars($product_large); ?>" required></label><br>
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label">Price</label>
-                                    <input type="number" class="form-input" name="product_price" id="product-price" placeholder="Price" min="1" value="1" required>
+                                    <input type="number" class="form-input" name="product_price" id="product-price" placeholder="Price" min="1" value="<?php echo htmlspecialchars($product_price); ?>" required>
                                 </div>
 
                                 <div class="form-group">
                                     <label class="form-label">Status</label>
-                                    <select class="form-select" name="product_status" id="product_status" required>
-                                        <option value="live">Live</option>
-                                        <option value="unpublished">Unpublished</option>
-                                    </select>
+                                        <select class="form-select" name="product_status" id="product_status" required>
+                                            <option value="live" <?php echo ($product_status == 'live') ? 'selected' : ''; ?>>Live</option>
+                                            <option value="unpublished" <?php echo ($product_status == 'unpublished') ? 'selected' : ''; ?>>Unpublished</option>
+                                        </select>
                                 </div>
                             </div>
 
@@ -421,7 +460,8 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                                         for ($i = 1; $i <= 8; $i++) {
                                             $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
                                             $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
-                                            echo "<option value='$i' $disabled>Box $i $label</option>";
+                                            $selected = ($product_box == $i) ? 'selected' : ''; // Check if this is the selected box
+                                            echo "<option value='$i' $selected $disabled>Box $i $label</option>";
                                         }
                                     ?>
                                     </optgroup>
@@ -431,7 +471,8 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                                         for ($i = 9; $i <= 16; $i++) {
                                             $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
                                             $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
-                                            echo "<option value='$i' $disabled>Box $i $label</option>";
+                                            $selected = ($product_box == $i) ? 'selected' : ''; // Check if this is the selected box
+                                            echo "<option value='$i' $selected $disabled>Box $i $label</option>";
                                         }
                                     ?>
                                     </optgroup>
@@ -441,7 +482,8 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                                         for ($i = 17; $i <= 24; $i++) {
                                             $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
                                             $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
-                                            echo "<option value='$i' $disabled>Box $i $label</option>";
+                                            $selected = ($product_box == $i) ? 'selected' : ''; // Check if this is the selected box
+                                            echo "<option value='$i' $selected $disabled>Box $i $label</option>";
                                         }
                                     ?>
                                     </optgroup>
@@ -451,18 +493,22 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                                         for ($i = 25; $i <= 32; $i++) {
                                             $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
                                             $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
-                                            echo "<option value='$i' $disabled>Box $i $label</option>";
+                                            $selected = ($product_box == $i) ? 'selected' : ''; // Check if this is the selected box
+                                            echo "<option value='$i' $selected $disabled>Box $i $label</option>";
                                         }
                                     ?>
                                     </optgroup>
                                 </select>
 
+
                             
 
                                 <div class="form-submit">
-                                    <button type="submit" name="product_submit" class="btn-submit" id="product-save-btn">Update</button>
+                                    <button type="submit" class="btn-submit">Update</button>
+                                    <a href="delete_product.php?id=<?php echo $id; ?>" class="btn-delete" onclick="return confirm('Are you sure you want to delete this product?');">Delete Product</a>
                                 </div>
 
+                                
                                 <div class="form-submit">
                                     <button type="submit" name="product_submit" class="btn-submit" id="product-save-btn">Delete</button>
                                 </div>
@@ -471,4 +517,5 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
             </div>
 
 </body>
+
 </html>
