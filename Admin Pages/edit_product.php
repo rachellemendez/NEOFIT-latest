@@ -3,9 +3,26 @@
 if (isset($_GET['success']) && $_GET['success'] == 1) {
     echo "<script>alert('Product added successfully!');</script>";
 }
-//placeholder
-include '../db.php';
 
+include '../db.php'; // Or however you connect to your DB
+
+        if (isset($_GET['id'])) {
+            $id = intval($_GET['id']);
+        
+            $sql = "SELECT * FROM products WHERE id = $id";
+            $result = $conn->query($sql);
+        
+            if ($result->num_rows === 1) {
+                $product = $result->fetch_assoc();
+            } else {
+                echo "Product not found.";
+                exit;
+            }
+        } else {
+            echo "No product ID specified.";
+            exit;
+        }
+    
 // Query to get the distinct box_ids that are already occupied
 $occupiedBoxes = $conn->query("SELECT DISTINCT box_id FROM products")->fetch_all(MYSQLI_ASSOC);
 
@@ -344,50 +361,13 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
             <i class="fas fa-user-circle"></i>
         </div>
     </header>
-    
-    <div class="container">
-        <aside class="sidebar">
-            <ul class="sidebar-menu">
-                <li>
-                    <i class="fas fa-chart-line"></i>
-                    <a href="dashboard_page.php"><span>Dashboard</span></a>
-                </li>
-                <li>
-                    <i class="fas fa-list"></i>
-                    <a href="manage_order_details_page.php"><span>Manage Orders</span></a>
-                </li>
-                <li>
-                    <i class="fas fa-box"></i>
-                    <span>Inventory</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
-                </li>
-                <li id="products-menu-item">
-                    <i class="fas fa-tshirt"></i>
-                    <a href="all_product_page.php"><span>All Products</span></a>
-                </li>
-                <li class="active" id="add-product-menu-item">
-                    <i class="fas fa-plus-square"></i>
-                    <span>Add New Product</span>
-                </li>
-                <li>
-                    <i class="fas fa-credit-card"></i>
-                    <span>Payments</span>
-                </li>
-                <li>
-                    <i class="fas fa-cog"></i>
-                    <a href="settings.php"><span>Settings</span></a>
-                </li>
-            </ul>
-        </aside>
-        
+
         <main class="main-content">
             <!-- Add New Product View -->
             <div id="add-product-section">
-                    <h1 class="page-title">Add New Product</h1>
+                    <h1 class="page-title">Edit Product</h1>
 
                     <div class="product-entry-form">
-                        <h2 class="product-entry-title">Product Entry</h2>
-
                         <!-- FORM -->
                         <form action="add_new_product_backend.php" method="POST" enctype="multipart/form-data">
                             <div class="form-group">
@@ -480,7 +460,11 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                             
 
                                 <div class="form-submit">
-                                    <button type="submit" name="product_submit" class="btn-submit" id="product-save-btn">Save</button>
+                                    <button type="submit" name="product_submit" class="btn-submit" id="product-save-btn">Update</button>
+                                </div>
+
+                                <div class="form-submit">
+                                    <button type="submit" name="product_submit" class="btn-submit" id="product-save-btn">Delete</button>
                                 </div>
                         </form>
                     </div>
@@ -488,7 +472,3 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
 
 </body>
 </html>
-            
-           
-    
-    

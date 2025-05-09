@@ -103,17 +103,18 @@ include '../db.php';
             
             <div class="content-card">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Product Name</th>
-                            <th>Small</th>
-                            <th>Medium</th>
-                            <th>Large</th>
-                            <th>Total Stocks</th>
-                            <th>Price</th>
-                            <th>Total Price</th>
-                        </tr>
-                    </thead>
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Small</th>
+                        <th>Medium</th>
+                        <th>Large</th>
+                        <th>Total Stocks</th>
+                        <th>Price</th>
+                        <th>Total Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
                     <tbody id="productList">
                     <?php
                     $status = isset($_GET['status']) ? $_GET['status'] : 'All';  // Get the status from the URL, default to 'All'
@@ -141,15 +142,42 @@ include '../db.php';
                             $total_large += $row['quantity_large'];
                             $total_price += $product_total_price;
 
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row['product_name']) . "</td>";
-                            echo "<td>" . $row['quantity_small'] . "</td>";
-                            echo "<td>" . $row['quantity_medium'] . "</td>";
-                            echo "<td>" . $row['quantity_large'] . "</td>";
-                            echo "<td>" . $total_stock . "</td>";
-                            echo "<td>" . number_format($row['product_price'], 2) . "</td>";
-                            echo "<td>" . number_format($product_total_price, 2) . "</td>";
+                            echo "<tr data-id='{$row['id']}'>";
+
+                            echo "<td>
+                                <span class='text'>" . htmlspecialchars($row['product_name']) . "</span>
+                            </td>";
+
+                            echo "<td>
+                                <span class='text'>{$row['quantity_small']}</span>
+                            </td>";
+
+                            echo "<td>
+                                <span class='text'>{$row['quantity_medium']}</span>
+                            </td>";
+
+                            echo "<td>
+                                <span class='text'>{$row['quantity_large']}</span>
+                            </td>";
+
+                            echo "<td class='total-stock'>
+                                <span class='text'>{$total_stock}</span>
+                            </td>";
+
+                            echo "<td>
+                                <span class='text'>" . number_format($row['product_price'], 2) . "</span>
+                            </td>";
+
+                            echo "<td class='total-price'>
+                                <span class='text'>" . number_format($product_total_price, 2) . "</span>
+                            </td>";
+
+                            echo "<td>  
+                                <a class='edit-btn' href='edit_product.php?id=" . $row['id'] . "'>Edit</a></td>";
+
                             echo "</tr>";
+
+                            
                         }
 
                         // Display totals row
@@ -180,9 +208,8 @@ include '../db.php';
         const resetBtn = document.querySelector('.btn-reset');
         const searchInput = document.getElementById('searchInput');
         const filterSelect = document.getElementById('filter');
-        const rows = document.querySelectorAll('tbody tr'); // Declare it once
 
-        applyBtn.addEventListener('click', () => {
+        function applySearchFilter() {
             const searchTerm = searchInput.value.trim().toLowerCase();
             const filter = filterSelect.value;
 
@@ -197,6 +224,7 @@ include '../db.php';
                 case 'totalPrice': colIndex = 6; break;
             }
 
+            const rows = document.querySelectorAll('tbody tr');
             rows.forEach(row => {
                 const cell = row.cells[colIndex];
                 if (!cell) return;
@@ -211,34 +239,33 @@ include '../db.php';
                     row.style.display = (cellNumber === searchNumber) ? '' : 'none';
                 }
             });
-        });
+        }
+
+        applyBtn.addEventListener('click', applySearchFilter);
 
         resetBtn.addEventListener('click', () => {
             searchInput.value = '';
-            rows.forEach(row => row.style.display = '');
+            document.querySelectorAll('tbody tr').forEach(row => row.style.display = '');
         });
 
         document.querySelectorAll('.tabs .tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Toggle active class
+            tab.addEventListener('click', function () {
                 document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
 
                 const status = tab.dataset.filter;
 
-                // Make an AJAX request to get the filtered products
-                fetch('get_products.php?status=' + status)  // Fetch the new content from the PHP file
+                fetch('get_products.php?status=' + status)
                     .then(response => response.text())
                     .then(data => {
-                        // Update the product list with the filtered products
                         document.getElementById('productList').innerHTML = data;
+                        applySearchFilter(); // Apply filter to newly loaded rows
                     })
                     .catch(error => {
                         console.error('Error:', error);
                     });
             });
         });
-
     </script>
 
 
