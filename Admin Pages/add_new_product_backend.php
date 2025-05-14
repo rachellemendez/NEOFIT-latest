@@ -44,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_submit'])) {
     $quantity_large = $_POST['quantity_large'] ?? 0;
     $product_price = $_POST['product_price'] ?? 0;
     $product_status = $_POST['product_status'] ?? '';
-    $box_id = $_POST['box_id'] ?? '';
 
     // Handle file uploads
     $photoFront = uploadPhoto('photo_front');
@@ -65,8 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_submit'])) {
         !$photo1 ||                                            // Check if photo1 is not set
         !$photo2 ||                                            // Check if photo2 is not set
         !$photo3 ||                                            // Check if photo3 is not set
-        !$photo4 ||                                            // Check if photo4 is not set
-        empty($box_id)                                         // Check if box_id is empty
+        !$photo4                                           // Check if photo4 is not set
     ) {
         echo "Please fill in all fields!";
         exit;
@@ -74,12 +72,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_submit'])) {
 
     // Combine everything into one insert
     $stmt = $conn->prepare("INSERT INTO products 
-        (product_name, quantity_small, quantity_medium, quantity_large, product_price, product_status, photoFront, photo1, photo2, photo3, photo4, box_id) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        (product_name, quantity_small, quantity_medium, quantity_large, product_price, product_status, photoFront, photo1, photo2, photo3, photo4) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     $stmt->bind_param(
-        "siiidssssssi",  // Adjusted to correct parameter types
-        $product_name, $quantity_small, $quantity_medium, $quantity_large, $product_price, $product_status, $photoFront, $photo1, $photo2, $photo3, $photo4, $box_id
+        "siiidssssss",  // Adjusted to correct parameter types
+        $product_name, $quantity_small, $quantity_medium, $quantity_large, $product_price, $product_status, $photoFront, $photo1, $photo2, $photo3, $photo4
     );
 
     // Execute and check

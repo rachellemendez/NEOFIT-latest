@@ -382,8 +382,7 @@ include '../db.php';
                                 <input type="text" class="form-input" name="product_name" id="product-name" placeholder="Product Name" required>
                             </div>
 
-                            <!-- DESIGN -->
-                          
+                            <!-- Input Photos -->
                                 <div class="form-group">
                                 <label class="form-label">Design</label>
                                     <label for="">Photo For Front Display: <input type="file" accept="image/*" name="photo_front"></label><br>
