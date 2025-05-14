@@ -10,5 +10,6 @@ CREATE TABLE `products` (
   `photo1` varchar(255) DEFAULT NULL,
   `photo2` varchar(255) DEFAULT NULL,
   `photo3` varchar(255) DEFAULT NULL,
-  `photo4` varchar(255) DEFAULT NULL
+  `photo4` varchar(255) DEFAULT NULL,
+  `product_category` enum('men','women') DEFAULT NULL
 )
