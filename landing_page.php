@@ -696,21 +696,25 @@ if (!isset($_SESSION['email'])) {
                         $productPrice = $product['product_price'];
                         $photoFront = "Admin Pages/" . $product['photoFront'];
                         $link = 'product_detail.php?id=' . $id;
+                        $product_status = $product['product_status'];
 
                             // Display The Product Box
-                            echo '
-                            <div class="product-card" id="product-box-' . $id . '">
-                                <a href="' . $link . '" class="product-link">
-                                    <div class="product-image">
-                                        <img src="' . $photoFront . '" alt="' . $productName . '">
-                                    </div>
-                                    <div class="product-info">
-                                        <h3 class="product-name">' . $productName . '</h3>
-                                        <span class="product-price">₱ ' . $productPrice . '</span>
-                                        <span class="product-sold">1.3k sold</span>
-                                    </div>
-                                </a>
-                            </div>';
+                            if($product_status == "live"){
+                                echo '
+                                <div class="product-card" id="product-box-' . $id . '">
+                                    <a href="' . $link . '" class="product-link">
+                                        <div class="product-image">
+                                            <img src="' . $photoFront . '" alt="' . $productName . '">
+                                        </div>
+                                        <div class="product-info">
+                                            <h3 class="product-name">' . $productName . '</h3>
+                                            <span class="product-price">₱ ' . $productPrice . '</span>
+                                            <span class="product-sold">1.3k sold</span>
+                                        </div>
+                                    </a>
+                                </div>';
+                            }
+                            
                         }
                     }
                 ?>
