@@ -414,6 +414,14 @@ include '../db.php';
                                         <option value="unpublished">Unpublished</option>
                                     </select>
                                 </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" name="product_category" id="product_category" required>
+                                        <option value="men">Men</option>
+                                        <option value="women">Women</option>
+                                    </select>
+                                </div>
                             </div>
                             
                                 <div class="form-submit">

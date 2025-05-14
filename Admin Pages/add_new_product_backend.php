@@ -44,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_submit'])) {
     $quantity_large = $_POST['quantity_large'] ?? 0;
     $product_price = $_POST['product_price'] ?? 0;
     $product_status = $_POST['product_status'] ?? '';
+    $product_category = $_POST['product_category'] ?? '';
 
     // Handle file uploads
     $photoFront = uploadPhoto('photo_front');
@@ -60,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_submit'])) {
         !is_numeric($quantity_large) ||                        // Check if quantity_large is a number
         !is_numeric($product_price) ||                         // Check if product_price is a number
         empty($product_status) ||                              // Check if product_status is empty
+        empty($product_category) ||  
         !$photoFront ||                                        // Check if photoFront is not set
         !$photo1 ||                                            // Check if photo1 is not set
         !$photo2 ||                                            // Check if photo2 is not set
@@ -72,12 +74,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_submit'])) {
 
     // Combine everything into one insert
     $stmt = $conn->prepare("INSERT INTO products 
-        (product_name, quantity_small, quantity_medium, quantity_large, product_price, product_status, photoFront, photo1, photo2, photo3, photo4) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        (product_name, quantity_small, quantity_medium, quantity_large, product_price, product_status, photoFront, photo1, photo2, photo3, photo4, product_category) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     $stmt->bind_param(
-        "siiidssssss",  // Adjusted to correct parameter types
-        $product_name, $quantity_small, $quantity_medium, $quantity_large, $product_price, $product_status, $photoFront, $photo1, $photo2, $photo3, $photo4
+        "siiidsssssss",  // Adjusted to correct parameter types
+        $product_name, $quantity_small, $quantity_medium, $quantity_large, $product_price, $product_status, $photoFront, $photo1, $photo2, $photo3, $photo4, $product_category
     );
 
     // Execute and check
