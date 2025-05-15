@@ -406,21 +406,20 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                           
                             <div class="form-group">
                                 <label class="form-label">Design</label>
-                                <label for="">Photo For Front Display: <input type="file" accept="image/*" name="photo_front"></label><br>
+                                <label for="">Photo For Front Display: <input type="file" accept="image/*" name="photoFront"></label><br>
                                 <p>Current Image Path: <?php echo htmlspecialchars($photo_front); ?></p><br>
 
-                                <label for="">Photo 1: <input type="file" accept="image/*" name="photo_1"></label><br>
+                                <label for="">Photo 1: <input type="file" accept="image/*" name="photo1"></label><br>
                                 <p>Current Image Path: <?php echo htmlspecialchars($photo_1); ?></p><br>
 
-                                <label for="">Photo 2: <input type="file" accept="image/*" name="photo_2"></label><br>
+                                <label for="">Photo 2: <input type="file" accept="image/*" name="photo2"></label><br>
                                 <p>Current Image Path: <?php echo htmlspecialchars($photo_2); ?></p><br>
 
-                                <label for="">Photo 3: <input type="file" accept="image/*" name="photo_3"></label><br>
+                                <label for="">Photo 3: <input type="file" accept="image/*" name="photo3"></label><br>
                                 <p>Current Image Path: <?php echo htmlspecialchars($photo_3); ?></p><br>
 
-                                <label for="">Photo 4: <input type="file" accept="image/*" name="photo_4"></label><br>
+                                <label for="">Photo 4: <input type="file" accept="image/*" name="photo4"></label><br>
                                 <p>Current Image Path: <?php echo htmlspecialchars($photo_4); ?></p><br>
-
                             </div>
 
                             <div class="inventory-section">
