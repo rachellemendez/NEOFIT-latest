@@ -296,7 +296,7 @@
                     <h2>Request Account Deletion</h2>
                     <button class="delete-btn">Delete</button>
                 </div>
-                
+        
                 <!-- Empty space below as shown in the image -->
             </div>
         </div>
