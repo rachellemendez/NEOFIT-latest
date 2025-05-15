@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEOFIT - Change Password</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* External CSS would normally be in a separate file, including it here for the demo */
         * {
             margin: 0;
             padding: 0;
@@ -13,64 +16,68 @@
         }
 
         body {
-            background-color: #f5f5f5;
+            background-color: #f9f9f9;
         }
 
-        /* Header Styles */
-        header {
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 30px;
+            padding: 20px 40px;
             background-color: white;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
         .logo {
-            font-size: 24px;
             font-weight: bold;
-            letter-spacing: 1px;
+            font-size: 24px;
+            text-decoration: none;
+            color: #000;
         }
 
-        .nav-links {
+        .nav {
             display: flex;
             gap: 30px;
         }
 
-        .nav-links a {
+        .nav a {
             text-decoration: none;
             color: #333;
             font-weight: 500;
         }
 
-        .header-right {
+        .search-cart {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
         }
 
-        .search-bar {
+        .search-container {
+            position: relative;
             display: flex;
             align-items: center;
-            background-color: #f5f5f5;
-            border-radius: 20px;
+        }
+
+        .search-container input {
             padding: 8px 15px;
-        }
-
-        .search-bar input {
+            border-radius: 20px;
             border: none;
-            background: transparent;
-            outline: none;
-            width: 150px;
+            background-color: #f0f0f0;
+            width: 180px;
         }
 
-        .search-icon, .account-icon, .cart-icon {
-            width: 20px;
-            height: 20px;
+        .search-icon {
+            position: absolute;
+            right: 10px;
+            color: #666;
         }
 
-         /* Main content styles */
-     .container {
+        .profile-icon, .cart-icon {
+            font-size: 22px;
+            color: #333;
+        }
+ /* Main content styles */
+ .container {
             display: flex;
             min-height: calc(100vh - 80px);
         }
@@ -112,36 +119,34 @@
             align-items: center;
             color: white;
         }
-
-
-        /* Content Area Styles */
-        .content-area {
+        .content {
             flex: 1;
             padding: 30px;
         }
 
         .page-title {
             font-size: 24px;
-            margin-bottom: 20px;
-            color: #333;
+            margin-bottom: 30px;
+            font-weight: bold;
+            color: #222;
         }
 
         .password-form {
+            max-width: 600px;
             background-color: white;
             padding: 30px;
             border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            font-weight: 500;
+            font-size: 16px;
             margin-bottom: 10px;
+            font-weight: 500;
             color: #333;
         }
 
@@ -149,12 +154,12 @@
             position: relative;
         }
 
-        .password-input {
+        .form-group input {
             width: 100%;
-            padding: 12px 40px 12px 15px;
-            border: 1px solid #ddd;
+            padding: 12px 15px;
+            border: none;
+            background-color: #f5f5f5;
             border-radius: 5px;
-            background-color: #f9f9f9;
             font-size: 16px;
         }
 
@@ -164,67 +169,38 @@
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
-            width: 20px;
-            height: 20px;
+            color: #777;
         }
 
-        .confirm-btn {
-            background-color: #ccc;
+        .submit-btn {
+            background-color: #000;
             color: white;
             border: none;
-            padding: 12px 30px;
+            padding: 12px 40px;
             font-size: 16px;
             cursor: pointer;
-            border-radius: 5px;
-        }
-
-        /* Password Strength Indicator */
-        .password-strength {
-            position: absolute;
-            right: -50px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <div class="logo">NEOFIT</div>
-        <nav class="nav-links">
+    <header class="header">
+        <a href="#" class="logo">NEOFIT</a>
+        <nav class="nav">
             <a href="#">Trending</a>
             <a href="#">Men</a>
             <a href="#">Women</a>
         </nav>
-        <div class="header-right">
-            <div class="search-bar">
-                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
+        <div class="search-cart">
+            <div class="search-container">
                 <input type="text" placeholder="Search">
+                <i class="fas fa-search search-icon"></i>
             </div>
-            <svg class="account-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            <svg class="cart-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-            </svg>
+            <a href="#"><i class="fas fa-user profile-icon"></i></a>
+            <a href="#"><i class="fas fa-shopping-cart cart-icon"></i></a>
         </div>
     </header>
 
-    <!-- Main Container -->
     <div class="container">
         <aside class="sidebar">
             <ul class="sidebar-menu">
@@ -265,55 +241,42 @@
             </ul>
         </aside>
 
-        <!-- Content Area -->
-        <div class="content-area">
+        <div class="content">
             <h1 class="page-title">Change Password</h1>
             
             <div class="password-form">
-                <!-- New Password Field -->
                 <div class="form-group">
                     <label for="new-password">New Password</label>
                     <div class="password-input-container">
-                        <input type="password" id="new-password" class="password-input" placeholder="New Password">
-                        <svg class="toggle-password" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                            <line x1="1" y1="1" x2="23" y2="23"></line>
-                        </svg>
+                        <input type="password" id="new-password" value="***********">
+                        <i class="fas fa-eye-slash toggle-password"></i>
                     </div>
                 </div>
                 
-                <!-- Confirm Password Field -->
                 <div class="form-group">
                     <label for="confirm-password">Confirm Password</label>
                     <div class="password-input-container">
-                        <input type="password" id="confirm-password" class="password-input" placeholder="Confirm Password">
-                        <svg class="toggle-password" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                        
-                        <!-- Password Strength Indicator -->
-                        <div class="password-strength">
-                        </div>
+                        <input type="text" id="confirm-password" value="newpass1234">
+                        <i class="fas fa-eye toggle-password"></i>
                     </div>
                 </div>
                 
-                <!-- Confirm Button -->
-                <button class="confirm-btn">Confirm</button>
+                <button class="submit-btn">Confirm</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Toggle password visibility
+        // JavaScript to toggle password visibility (for demonstration purposes)
         document.querySelectorAll('.toggle-password').forEach(icon => {
             icon.addEventListener('click', function() {
-                const input = this.closest('.password-input-container').querySelector('input');
-                if (input.type === 'password') {
-                    input.type = 'text';
-                } else {
-                    input.type = 'password';
-                }
+                const input = this.previousElementSibling;
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                
+                // Toggle the eye icon
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
             });
         });
     </script>
