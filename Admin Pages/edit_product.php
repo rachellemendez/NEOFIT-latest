@@ -391,7 +391,6 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
             <!-- Add New Product View -->
             <div id="add-product-section">
                     <h1 class="page-title">Edit Product</h1>
-
                     <div class="product-entry-form">
                         <!-- FORM -->
                         <form action="update_product.php" method="POST" enctype="multipart/form-data">

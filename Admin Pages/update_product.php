@@ -22,7 +22,7 @@ if (!isset($_POST['id'])) {
 $id = intval($_POST['id']);
 $fieldsToUpdate = [];
 
-// List of all editable fields (excluding image files here)
+// List of all editable fields
 $validFields = [
     'product_name',
     'product_status',
