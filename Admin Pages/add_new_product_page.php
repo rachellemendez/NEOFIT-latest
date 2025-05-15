@@ -415,6 +415,7 @@ include '../db.php';
                                     </select>
                                 </div>
 
+
                                 <div class="form-group">
                                     <label class="form-label">Category</label>
                                     <select class="form-select" name="product_category" id="product_category" required>

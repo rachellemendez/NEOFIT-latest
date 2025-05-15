@@ -391,7 +391,6 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
             <!-- Add New Product View -->
             <div id="add-product-section">
                     <h1 class="page-title">Edit Product</h1>
-
                     <div class="product-entry-form">
                         <!-- FORM -->
                         <form action="update_product.php" method="POST" enctype="multipart/form-data">
@@ -406,21 +405,20 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                           
                             <div class="form-group">
                                 <label class="form-label">Design</label>
-                                <label for="">Photo For Front Display: <input type="file" accept="image/*" name="photo_front"></label><br>
+                                <label for="">Photo For Front Display: <input type="file" accept="image/*" name="photoFront"></label><br>
                                 <p>Current Image Path: <?php echo htmlspecialchars($photo_front); ?></p><br>
 
-                                <label for="">Photo 1: <input type="file" accept="image/*" name="photo_1"></label><br>
+                                <label for="">Photo 1: <input type="file" accept="image/*" name="photo1"></label><br>
                                 <p>Current Image Path: <?php echo htmlspecialchars($photo_1); ?></p><br>
 
-                                <label for="">Photo 2: <input type="file" accept="image/*" name="photo_2"></label><br>
+                                <label for="">Photo 2: <input type="file" accept="image/*" name="photo2"></label><br>
                                 <p>Current Image Path: <?php echo htmlspecialchars($photo_2); ?></p><br>
 
-                                <label for="">Photo 3: <input type="file" accept="image/*" name="photo_3"></label><br>
+                                <label for="">Photo 3: <input type="file" accept="image/*" name="photo3"></label><br>
                                 <p>Current Image Path: <?php echo htmlspecialchars($photo_3); ?></p><br>
 
-                                <label for="">Photo 4: <input type="file" accept="image/*" name="photo_4"></label><br>
+                                <label for="">Photo 4: <input type="file" accept="image/*" name="photo4"></label><br>
                                 <p>Current Image Path: <?php echo htmlspecialchars($photo_4); ?></p><br>
-
                             </div>
 
                             <div class="inventory-section">
@@ -455,7 +453,7 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                                 <select name="box_id" required>
                                     <option value="">-- Do not assign a box --</option>
 
-                                    <optgroup label="ALL PRODUCTS">
+                                    <optgroup label="MEN">
                                     <?php
                                         for ($i = 1; $i <= 8; $i++) {
                                             $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
@@ -466,7 +464,7 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                                     ?>
                                     </optgroup>
 
-                                    <optgroup label="TRENDING">
+                                    <optgroup label="WOMEN">
                                     <?php
                                         for ($i = 9; $i <= 16; $i++) {
                                             $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
@@ -476,32 +474,7 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                                         }
                                     ?>
                                     </optgroup>
-
-                                    <optgroup label="MEN">
-                                    <?php
-                                        for ($i = 17; $i <= 24; $i++) {
-                                            $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
-                                            $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
-                                            $selected = ($product_box == $i) ? 'selected' : ''; // Check if this is the selected box
-                                            echo "<option value='$i' $selected $disabled>Box $i $label</option>";
-                                        }
-                                    ?>
-                                    </optgroup>
-
-                                    <optgroup label="WOMEN">
-                                    <?php
-                                        for ($i = 25; $i <= 32; $i++) {
-                                            $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
-                                            $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
-                                            $selected = ($product_box == $i) ? 'selected' : ''; // Check if this is the selected box
-                                            echo "<option value='$i' $selected $disabled>Box $i $label</option>";
-                                        }
-                                    ?>
-                                    </optgroup>
                                 </select>
-
-
-                            
 
                                 <div class="form-submit">
                                     <button type="submit" class="btn-submit">Update</button>
