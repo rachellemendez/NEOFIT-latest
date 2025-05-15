@@ -436,7 +436,7 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                                 <select name="box_id" required>
                                     <option value="">-- Do not assign a box --</option>
 
-                                    <optgroup label="ALL PRODUCTS">
+                                    <optgroup label="MEN">
                                     <?php
                                         for ($i = 1; $i <= 8; $i++) {
                                             $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
@@ -446,29 +446,9 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                                     ?>
                                     </optgroup>
 
-                                    <optgroup label="TRENDING">
-                                    <?php
-                                        for ($i = 9; $i <= 16; $i++) {
-                                            $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
-                                            $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
-                                            echo "<option value='$i' $disabled>Box $i $label</option>";
-                                        }
-                                    ?>
-                                    </optgroup>
-
-                                    <optgroup label="MEN">
-                                    <?php
-                                        for ($i = 17; $i <= 24; $i++) {
-                                            $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
-                                            $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
-                                            echo "<option value='$i' $disabled>Box $i $label</option>";
-                                        }
-                                    ?>
-                                    </optgroup>
-
                                     <optgroup label="WOMEN">
                                     <?php
-                                        for ($i = 25; $i <= 32; $i++) {
+                                        for ($i = 9; $i <= 16; $i++) {
                                             $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
                                             $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
                                             echo "<option value='$i' $disabled>Box $i $label</option>";
