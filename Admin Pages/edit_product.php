@@ -20,13 +20,12 @@ if ($result && $row = $result->fetch_assoc()) {
     $product_large = $row['quantity_large'];
     $product_price = $row['product_price'];
     $product_status = $row['product_status'];
-    $product_box = $row['box_id'];
-
     $photo_front = $row['photoFront'];
     $photo_1 = $row['photo1'];
     $photo_2 = $row['photo2'];
     $photo_3 = $row['photo3'];
     $photo_4 = $row['photo4'];
+    $product_category = $row['product_category'];
 } else {
     // handle error: product not found
 }
@@ -47,19 +46,6 @@ if ($result && $row = $result->fetch_assoc()) {
             echo "No product ID specified.";
             exit;
         }
-    
-// Query to get the distinct box_ids that are already occupied
-$occupiedBoxes = $conn->query("SELECT DISTINCT box_id FROM products")->fetch_all(MYSQLI_ASSOC);
-
-// Create an array of occupied box_ids
-$occupiedBoxIds = array_map(function($box) {
-    return $box['box_id'];
-}, $occupiedBoxes);
-
-// Check if a box is occupied in the dropdown
-function isBoxOccupied($boxId, $occupiedBoxIds) {
-    return in_array($boxId, $occupiedBoxIds);
-}
 
 ?>
 
@@ -448,43 +434,20 @@ function isBoxOccupied($boxId, $occupiedBoxIds) {
                             </div>
 
 
-                            <div class="form-group">
-                                <h6>Assign Slot</h6>
-                                <select name="box_id" required>
-                                    <option value="">-- Do not assign a box --</option>
-
-                                    <optgroup label="MEN">
-                                    <?php
-                                        for ($i = 1; $i <= 8; $i++) {
-                                            $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
-                                            $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
-                                            $selected = ($product_box == $i) ? 'selected' : ''; // Check if this is the selected box
-                                            echo "<option value='$i' $selected $disabled>Box $i $label</option>";
-                                        }
-                                    ?>
-                                    </optgroup>
-
-                                    <optgroup label="WOMEN">
-                                    <?php
-                                        for ($i = 9; $i <= 16; $i++) {
-                                            $disabled = isBoxOccupied($i, $occupiedBoxIds) ? 'disabled' : '';
-                                            $label = isBoxOccupied($i, $occupiedBoxIds) ? '(Occupied)' : '';
-                                            $selected = ($product_box == $i) ? 'selected' : ''; // Check if this is the selected box
-                                            echo "<option value='$i' $selected $disabled>Box $i $label</option>";
-                                        }
-                                    ?>
-                                    </optgroup>
-                                </select>
+                                <div class="form-group">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-select" name="product_category" id="product_category" required>
+                                            <option value="men" <?php echo ($product_category == 'men') ? 'selected' : ''; ?>>Men</option>
+                                            <option value="women" <?php echo ($product_category == 'women') ? 'selected' : ''; ?>>Women</option>
+                                    </select>
+                                </div>
+                            </div>
 
                                 <div class="form-submit">
                                     <button type="submit" class="btn-submit">Update</button>
-                                    <a href="delete_product.php?id=<?php echo $id; ?>" class="btn-delete" onclick="return confirm('Are you sure you want to delete this product?');">Delete Product</a>
+                                    <a href="delete_product.php?id=<?php echo $id; ?>" class="btn-submit" onclick="return confirm('Are you sure you want to delete this product?');">Delete</a>
                                 </div>
 
-                                
-                                <div class="form-submit">
-                                    <button type="submit" name="product_submit" class="btn-submit" id="product-save-btn">Delete</button>
-                                </div>
                         </form>
                     </div>
             </div>
