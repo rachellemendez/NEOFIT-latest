@@ -578,118 +578,50 @@
         </div>
     </header>
 
- 
- <!-- Category Sections -->
- <section id="trending-section">
- <h2 class="category-title">TRENDING</h2>
-    <div class="product-grid">
-        <?php
-            include './db.php'; // Include your database connection
 
-            // Define products for each box manually (optional, if no data is found in the DB)
-            $box_data = [
-                9 => ['product_name' => 'Neon Cotton T-shirt', 'product_price' => 250, 'photoFront' => 'Models Images/neoncotton.jpg'],
-                10 => ['product_name' => 'Remo 98', 'product_price' => 250, 'photoFront' => 'Models Images/remo98.jpg'],
-                11=> ['product_name' => 'Emerald', 'product_price' => 250, 'photoFront' => 'Models Images/emerald.jpg'],
-                12 => ['product_name' => 'DUB SKU', 'product_price' => 250, 'photoFront' => 'Models Images/dubsku.jpg'],
-                13 => ['product_name' => 'Pegador', 'product_price' => 250, 'photoFront' => 'Models Images/pegador.jpg'],
-                14 => ['product_name' => 'Plain White T-shirt', 'product_price' => 250, 'photoFront' => 'Models Images/plainwhite.jpg'],
-                15 => ['product_name' => 'Prest Studios', 'product_price' => 250, 'photoFront' => 'Models Images/preststudios.jpg'],
-                16 => ['product_name' => 'Personality', 'product_price' => 250, 'photoFront' => 'Models Images/personality.jpg']
-            ];
 
-            // Loop through each box and fetch data from the database or use the manual definition
-            for ($box_id = 9; $box_id <= 16; $box_id++) {
-                // Query the database to fetch the product details for each box
-                $result = $conn->query("SELECT * FROM products WHERE box_id = $box_id LIMIT 1");
-
-                // Check if the product exists in the database
-                if ($result->num_rows > 0) {
-                    // Fetch the product details from the database
-                    $product = $result->fetch_assoc();
-                    $productName = $product['product_name'];
-                    $productPrice = $product['product_price'];
-                    $photoFront = "Admin Pages/" . $product['photoFront']; // Path to the image
-                    $link = 'product_detail.php?id=' . $product['box_id'];
-                } else {
-                    // If no product is assigned, use the manually defined data
-                    $productName = $box_data[$box_id]['product_name'];
-                    $productPrice = $box_data[$box_id]['product_price'];
-                    $photoFront = $box_data[$box_id]['photoFront']; // Placeholder image path
-                    $link = 'product_detail.php?id=' . $box_id;
-                }
-
-                // Display the box content in the same structure as the static HTML
-                echo '
-                <div class="product-card">
-                   <a href="' . $link . '" class="product-link">
-                            <div class="product-image">
-                                <img src="' . $photoFront . '" alt="' . $productName . '">
-                            </div>
-                            <div class="product-info">
-                                <h3 class="product-name">' . $productName . '</h3>
-                                <span class="product-price">₱ ' . $productPrice . '</span>
-                                <span class="product-sold">1.3k sold</span>
-                            </div>
-                        </a>
-                </div>';
-            }
-        ?>
-    </div>
-            
         <section id="men-section">
         <h2 class="category-title">Men</h2>
             <div class="product-grid">
                 <?php
-                    include './db.php'; // Include your database connection
+                    // Connect to Database
+                    include './db.php';
 
-                    // Define products for each box manually (optional, if no data is found in the DB)
-                    $box_data = [
-                        17 => ['product_name' => 'Neon Cotton T-shirt', 'product_price' => 250, 'photoFront' => 'Models Images/neoncotton.jpg'],
-                        18 => ['product_name' => 'Remo 98', 'product_price' => 250, 'photoFront' => 'Models Images/remo98.jpg'],
-                        19=> ['product_name' => 'Emerald', 'product_price' => 250, 'photoFront' => 'Models Images/emerald.jpg'],
-                        20 => ['product_name' => 'DUB SKU', 'product_price' => 250, 'photoFront' => 'Models Images/dubsku.jpg'],
-                        21 => ['product_name' => 'Pegador', 'product_price' => 250, 'photoFront' => 'Models Images/pegador.jpg'],
-                        22 => ['product_name' => 'Plain White T-shirt', 'product_price' => 250, 'photoFront' => 'Models Images/plainwhite.jpg'],
-                        23 => ['product_name' => 'Prest Studios', 'product_price' => 250, 'photoFront' => 'Models Images/preststudios.jpg'],
-                        24 => ['product_name' => 'Personality', 'product_price' => 250, 'photoFront' => 'Models Images/personality.jpg']
-                    ];
+                    // Fetch Products
+                    $sql = "SELECT * FROM products";
+                    $result = $conn->query($sql);
 
-                    // Loop through each box and fetch data from the database or use the manual definition
-                    for ($box_id = 17; $box_id <= 24; $box_id++) {
-                        // Query the database to fetch the product details for each box
-                        $result = $conn->query("SELECT * FROM products WHERE box_id = $box_id LIMIT 1");
+                    // If Product Exists
+                    if ($result->num_rows > 0){
+                        // Loop Through All Products
+                        while($product = $result->fetch_assoc()){
+                        $id = $product['id'];
+                        $productName = $product['product_name'];
+                        $productPrice = $product['product_price'];
+                        $photoFront = "Admin Pages/" . $product['photoFront'];
+                        $link = 'product_detail.php?id=' . $id;
+                        $product_status = $product['product_status'];
+                        $product_category = $product['product_category'];
 
-                        // Check if the product exists in the database
-                        if ($result->num_rows > 0) {
-                            // Fetch the product details from the database
-                            $product = $result->fetch_assoc();
-                            $productName = $product['product_name'];
-                            $productPrice = $product['product_price'];
-                            $photoFront = "Admin Pages/" . $product['photoFront']; // Path to the image
-                            $link = 'product_detail.php?id=' . $product['box_id'];
-                        } else {
-                            // If no product is assigned, use the manually defined data
-                            $productName = $box_data[$box_id]['product_name'];
-                            $productPrice = $box_data[$box_id]['product_price'];
-                            $photoFront = $box_data[$box_id]['photoFront']; // Placeholder image path
-                            $link = 'product_detail.php?id=' . $box_id;
+                            // Display The Product Box
+                            if($product_status == "live"){
+                                if($product_category == "men"){
+                                    echo '
+                                    <div class="product-card" id="product-box-' . $id . '">
+                                        <a href="' . $link . '" class="product-link">
+                                            <div class="product-image">
+                                                <img src="' . $photoFront . '" alt="' . $productName . '">
+                                            </div>
+                                            <div class="product-info">
+                                                <h3 class="product-name">' . $productName . '</h3>
+                                                <span class="product-price">₱ ' . $productPrice . '</span>
+                                                <span class="product-sold">1.3k sold</span>
+                                            </div>
+                                        </a>
+                                    </div>';
+                                }
+                            }
                         }
-
-                        // Display the box content in the same structure as the static HTML
-                        echo '
-                        <div class="product-card">
-                            <a href="' . $link . '" class="product-link">
-                                <div class="product-image">
-                                    <img src="' . $photoFront . '" alt="' . $productName . '">
-                                </div>
-                                <div class="product-info">
-                                    <h3 class="product-name">' . $productName . '</h3>
-                                    <span class="product-price">₱ ' . $productPrice . '</span>
-                                    <span class="product-sold">1.3k sold</span>
-                                </div>
-                            </a>
-                        </div>';
                     }
                 ?>
             </div>
@@ -699,55 +631,44 @@
         <h2 class="category-title">WOMEN</h2>
             <div class="product-grid">
                 <?php
-                    include './db.php'; // Include your database connection
+                    // Connect to Database
+                    include './db.php';
 
-                    // Define products for each box manually (optional, if no data is found in the DB)
-                    $box_data = [
-                        25 => ['product_name' => 'Neon Cotton T-shirt', 'product_price' => 250, 'photoFront' => 'Models Images/neoncotton.jpg'],
-                        26 => ['product_name' => 'Remo 98', 'product_price' => 250, 'photoFront' => 'Models Images/remo98.jpg'],
-                        27 => ['product_name' => 'Emerald', 'product_price' => 250, 'photoFront' => 'Models Images/emerald.jpg'],
-                        28 => ['product_name' => 'DUB SKU', 'product_price' => 250, 'photoFront' => 'Models Images/dubsku.jpg'],
-                        29 => ['product_name' => 'Pegador', 'product_price' => 250, 'photoFront' => 'Models Images/pegador.jpg'],
-                        30 => ['product_name' => 'Plain White T-shirt', 'product_price' => 250, 'photoFront' => 'Models Images/plainwhite.jpg'],
-                        31 => ['product_name' => 'Prest Studios', 'product_price' => 250, 'photoFront' => 'Models Images/preststudios.jpg'],
-                        32 => ['product_name' => 'Personality', 'product_price' => 250, 'photoFront' => 'Models Images/personality.jpg']
-                    ];
+                    // Fetch Products
+                    $sql = "SELECT * FROM products";
+                    $result = $conn->query($sql);
 
-                    // Loop through each box and fetch data from the database or use the manual definition
-                    for ($box_id = 25; $box_id <= 32; $box_id++) {
-                        // Query the database to fetch the product details for each box
-                        $result = $conn->query("SELECT * FROM products WHERE box_id = $box_id LIMIT 1");
+                    // If Product Exists
+                    if ($result->num_rows > 0){
+                        // Loop Through All Products
+                        while($product = $result->fetch_assoc()){
+                        $id = $product['id'];
+                        $productName = $product['product_name'];
+                        $productPrice = $product['product_price'];
+                        $photoFront = "Admin Pages/" . $product['photoFront'];
+                        $link = 'product_detail.php?id=' . $id;
+                        $product_status = $product['product_status'];
+                        $product_category = $product['product_category'];
 
-                        // Check if the product exists in the database
-                        if ($result->num_rows > 0) {
-                            // Fetch the product details from the database
-                            $product = $result->fetch_assoc();
-                            $productName = $product['product_name'];
-                            $productPrice = $product['product_price'];
-                            $photoFront = "Admin Pages/" . $product['photoFront']; // Path to the image
-                            $link = 'product_detail.php?id=' . $product['box_id'];
-                        } else {
-                            // If no product is assigned, use the manually defined data
-                            $productName = $box_data[$box_id]['product_name'];
-                            $productPrice = $box_data[$box_id]['product_price'];
-                            $photoFront = $box_data[$box_id]['photoFront']; // Placeholder image path
-                            $link = 'product_detail.php?id=' . $box_id;
+                            // Display The Product Box
+                            if($product_status == "live"){
+                                if($product_category == "women"){
+                                    echo '
+                                    <div class="product-card" id="product-box-' . $id . '">
+                                        <a href="' . $link . '" class="product-link">
+                                            <div class="product-image">
+                                                <img src="' . $photoFront . '" alt="' . $productName . '">
+                                            </div>
+                                            <div class="product-info">
+                                                <h3 class="product-name">' . $productName . '</h3>
+                                                <span class="product-price">₱ ' . $productPrice . '</span>
+                                                <span class="product-sold">1.3k sold</span>
+                                            </div>
+                                        </a>
+                                    </div>';
+                                }
+                            }
                         }
-
-                        // Display the box content in the same structure as the static HTML
-                        echo '
-                        <div class="product-card">
-                            <a href="' . $link . '" class="product-link">
-                                <div class="product-image">
-                                    <img src="' . $photoFront . '" alt="' . $productName . '">
-                                </div>
-                                <div class="product-info">
-                                    <h3 class="product-name">' . $productName . '</h3>
-                                    <span class="product-price">₱ ' . $productPrice . '</span>
-                                    <span class="product-sold">1.3k sold</span>
-                                </div>
-                            </a>
-                        </div>';
                     }
                 ?>
             </div>

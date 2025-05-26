@@ -5,7 +5,7 @@ include './db.php'; // Include your database connection
 $product_id = $_GET['id'];
 
 // Query the database to fetch the product details based on the id
-$result = $conn->query("SELECT * FROM products WHERE box_id = $product_id LIMIT 1");
+$result = $conn->query("SELECT * FROM products WHERE id = $product_id LIMIT 1");
 
 // Check if the product exists in the database
 if ($result->num_rows > 0) {
