@@ -3,8 +3,6 @@
 include '../db.php';
 
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -84,7 +82,7 @@ include '../db.php';
                 <button class="btn-reset" type="reset">Reset</button>
             </div>
             
-            <div class="product-count">
+            <div class="product-count" id="productCount">
             <?php
             $count_sql = "SELECT COUNT(*) as total FROM products";
             $count_result = $conn->query($count_sql);
@@ -113,14 +111,14 @@ include '../db.php';
                 </thead>
                     <tbody id="productList">
                     <?php
-                    $status = isset($_GET['status']) ? $_GET['status'] : 'All';  // Get the status from the URL, default to 'All'
+                    $status = isset($_GET['status']) ? $_GET['status'] : 'All';
 
                     if ($status == 'Live') {
                         $sql = "SELECT * FROM products WHERE product_status = 'Live'";
                     } elseif ($status == 'Unpublished') {
                         $sql = "SELECT * FROM products WHERE product_status = 'Unpublished'";
                     } else {
-                        $sql = "SELECT * FROM products";  // Get all products if status is 'All' or not specified
+                        $sql = "SELECT * FROM products";
                     }
 
                     $result = $conn->query($sql);
@@ -132,55 +130,28 @@ include '../db.php';
                             $total_stock = $row['quantity_small'] + $row['quantity_medium'] + $row['quantity_large'];
                             $product_total_price = $row['product_price'] * $total_stock;
 
-                            // Add to running totals
                             $total_small += $row['quantity_small'];
                             $total_medium += $row['quantity_medium'];
                             $total_large += $row['quantity_large'];
                             $total_price += $product_total_price;
 
                             echo "<tr data-id='{$row['id']}'>";
-
-                            echo "<td>
-                                <span class='text'>" . htmlspecialchars($row['product_name']) . "</span>
-                            </td>";
-
-                            echo "<td>
-                                <span class='text'>{$row['quantity_small']}</span>
-                            </td>";
-
-                            echo "<td>
-                                <span class='text'>{$row['quantity_medium']}</span>
-                            </td>";
-
-                            echo "<td>
-                                <span class='text'>{$row['quantity_large']}</span>
-                            </td>";
-
-                            echo "<td class='total-stock'>
-                                <span class='text'>{$total_stock}</span>
-                            </td>";
-
-                            echo "<td>
-                                <span class='text'>" . number_format($row['product_price'], 2) . "</span>
-                            </td>";
-
-                            echo "<td class='total-price'>
-                                <span class='text'>" . number_format($product_total_price, 2) . "</span>
-                            </td>";
-
+                            echo "<td><span class='text'>" . htmlspecialchars($row['product_name']) . "</span></td>";
+                            echo "<td><span class='text'>{$row['quantity_small']}</span></td>";
+                            echo "<td><span class='text'>{$row['quantity_medium']}</span></td>";
+                            echo "<td><span class='text'>{$row['quantity_large']}</span></td>";
+                            echo "<td class='total-stock'><span class='text'>{$total_stock}</span></td>";
+                            echo "<td><span class='text'>" . number_format($row['product_price'], 2) . "</span></td>";
+                            echo "<td class='total-price'><span class='text'>" . number_format($product_total_price, 2) . "</span></td>";
                             echo "<td>
                                 <form action='edit_product.php' method='get' style='display:inline;'>
                                     <input type='hidden' name='id' value='{$row['id']}'>
                                     <button type='submit' class='edit-btn'>Edit</button>
                                 </form>
                             </td>";
-
                             echo "</tr>";
-
-                            
                         }
 
-                        // Display totals row
                         $grand_total_stocks = $total_small + $total_medium + $total_large;
 
                         echo "<tr style='font-weight:bold'>";
@@ -191,9 +162,10 @@ include '../db.php';
                         echo "<td>$grand_total_stocks</td>";
                         echo "<td>-</td>";
                         echo "<td>" . number_format($total_price, 2) . "</td>";
+                        echo "<td></td>";
                         echo "</tr>";
                     } else {
-                        echo "<tr><td colspan='7'>No products found.</td></tr>";
+                        echo "<tr><td colspan='8'>No products found.</td></tr>";
                     }
                     ?>
                     </tbody>
@@ -201,7 +173,6 @@ include '../db.php';
             </div>
         </main>
     </div>
-
 
     <script>
         const applyBtn = document.querySelector('.btn-apply');
@@ -255,19 +226,22 @@ include '../db.php';
 
                 const status = tab.dataset.filter;
 
+                // Load products by status
                 fetch('get_products.php?status=' + status)
                     .then(response => response.text())
                     .then(data => {
                         document.getElementById('productList').innerHTML = data;
-                        applySearchFilter(); // Apply filter to newly loaded rows
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
+                        applySearchFilter(); // Reapply any filter after reload
+                    });
+
+                // Load updated product count
+                fetch('get_product_count.php?status=' + status)
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById('productCount').textContent = data;
                     });
             });
         });
     </script>
-
-
 </body>
 </html>
