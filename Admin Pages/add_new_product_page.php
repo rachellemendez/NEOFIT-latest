@@ -432,6 +432,46 @@ include '../db.php';
                     </div>
             </div>
 
+            <script>
+    // Simulated list of existing product names (fetch from PHP/DB in real case)
+    const existingProducts = <?php
+        $query = "SELECT product_name FROM products";
+        $result = mysqli_query($conn, $query);
+        $names = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $names[] = $row['product_name'];
+        }
+        echo json_encode($names);
+    ?>;
+
+    document.getElementById('product-save-btn').addEventListener('click', function (e) {
+        const productNameInput = document.getElementById('product-name');
+        const name = productNameInput.value.trim();
+
+        const isOnlyNumbers = /^[0-9]+$/.test(name);
+        const isOnlySpecialChars = /^[^a-zA-Z0-9]+$/.test(name);
+        const isDuplicate = existingProducts.includes(name); // Case-sensitive check
+
+        if (isOnlyNumbers) {
+            alert("Product name cannot be numbers only.");
+            e.preventDefault();
+            return;
+        }
+
+        if (isOnlySpecialChars) {
+            alert("Product name cannot consist of special characters only.");
+            e.preventDefault();
+            return;
+        }
+
+        if (isDuplicate) {
+            alert("A product with this exact name already exists.");
+            e.preventDefault();
+            return;
+        }
+    });
+</script>
+
 </body>
 </html>
             
