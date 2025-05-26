@@ -64,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_submit'])) {
         !$photoFront ||                                
         empty($box_id)                                         // Check if box_id is empty
     ) {
+        
         echo "Please fill in all fields!";
         exit;
     }
