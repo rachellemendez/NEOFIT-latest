@@ -63,12 +63,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_submit'])) {
         empty($product_status) ||                              // Check if product_status is empty
         !$photoFront ||                                
         empty($box_id)                                         // Check if box_id is empty
-        empty($product_category) ||  
-        !$photoFront ||                                        // Check if photoFront is not set
-        !$photo1 ||                                            // Check if photo1 is not set
-        !$photo2 ||                                            // Check if photo2 is not set
-        !$photo3 ||                                            // Check if photo3 is not set
-        !$photo4                                           // Check if photo4 is not set
     ) {
         echo "Please fill in all fields!";
         exit;
