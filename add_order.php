@@ -19,6 +19,7 @@ if ($conn->connect_error) {
 }
 
 // Get form data
+$product_id = $_POST['product_id'] ?? '';
 $product_name = $_POST['product_name'] ?? '';
 $product_price = $_POST['product_price'] ?? 0.00;
 $size = $_POST['size'] ?? '';
@@ -52,7 +53,7 @@ $stmt->bind_param("ssssssssssdd",
 if ($stmt->execute()) {
     echo "<script>
             alert('Order placed successfully!');
-            window.location.href = 'product_detail.php';
+            window.location.href = 'product_detail.php?id=$product_id';
           </script>";
 } else {
     echo "Error: " . $stmt->error;

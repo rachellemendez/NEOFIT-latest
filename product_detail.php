@@ -430,7 +430,8 @@ if ($result->num_rows > 0) {
                         <span class="original-price">₱ <?php echo $productPrice * 1.4; ?></span> <!-- Example: apply 40% discount -->
                     </div>
 
-                    <form action="payment.php" method="POST" id="buyForm">
+                    <form action="payment.php?id=<?= $product_id ?>" method="POST" id="buyForm">
+                        <input type="hidden" name="product_id" value="<?= $product_id ?>">
                         <input type="hidden" name="product_name" value="<?php echo $productName; ?>">
                         <input type="hidden" name="price" id="hidden-price" value="<?php echo $productPrice; ?>">
 
