@@ -106,15 +106,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_submit'])) {
 
     // Validate all fields
     if (
-        empty($product_name) ||
-        !is_numeric($quantity_small) ||
-        !is_numeric($quantity_medium) ||
-        !is_numeric($quantity_large) ||
-        !is_numeric($product_price) ||
-        empty($product_status) ||
-        empty($product_category) ||
-        !$photoFront || !$photo1 || !$photo2 || !$photo3 || !$photo4
+        empty($product_name) ||                               // Check if product name is empty
+        !is_numeric($quantity_small) ||                        // Check if quantity_small is a number
+        !is_numeric($quantity_medium) ||                       // Check if quantity_medium is a number
+        !is_numeric($quantity_large) ||                        // Check if quantity_large is a number
+        !is_numeric($product_price) ||                         // Check if product_price is a number
+        empty($product_status) ||                              // Check if product_status is empty
+        !$photoFront ||                                
+        empty($box_id)                                         // Check if box_id is empty
+
     ) {
+        
         echo "Please fill in all fields!";
         exit;
     }
