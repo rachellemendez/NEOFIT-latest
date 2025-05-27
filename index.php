@@ -297,7 +297,7 @@ if(isset($_SESSION['email'])){
 <body>
     <header>
         <div class="header-container">
-            <div class="logo">NeoFiT</div>
+            <div class="logo">NEOFIT</div>
         </div>
     </header>
 
@@ -309,7 +309,7 @@ if(isset($_SESSION['email'])){
             </div>
             
             <div class="auth-container">
-                <h2 class="auth-title">NeoFit Account</h2>
+                <h2 class="auth-title">NEOFIT ACCOUNT</h2>
                 
                 <div class="tabs">
                     <button class="tab-btn active" data-tab="login">Login</button>
@@ -373,7 +373,7 @@ if(isset($_SESSION['email'])){
         <div class="footer-links">
             <a href="#">Contact Us</a>
             <a href="#">Find a Store</a>
-            <a href="#">About NeoFiT</a>
+            <a href="#">About NEOFIT</a>
         </div>
     </footer>
 
