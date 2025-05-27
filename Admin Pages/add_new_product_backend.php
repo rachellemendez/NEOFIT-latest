@@ -2,12 +2,16 @@
 // Database connection
 include '../db.php';
 
-function uploadPhoto($inputName) {
-    echo "<pre>Debug info for $inputName:\n";
-    print_r($_FILES[$inputName]);
-    echo "</pre>";
+function uploadPhoto($inputName, $isRequired = false) {
+    if (!isset($_FILES[$inputName]) || $_FILES[$inputName]['error'] == UPLOAD_ERR_NO_FILE) {
+        if ($isRequired) {
+            echo "Error: $inputName is required.<br>";
+            return false;
+        }
+        return null; // Return null for optional photos that weren't uploaded
+    }
 
-    if (isset($_FILES[$inputName]) && $_FILES[$inputName]['error'] == UPLOAD_ERR_OK) {
+    if ($_FILES[$inputName]['error'] == UPLOAD_ERR_OK) {
         $tmpName = $_FILES[$inputName]['tmp_name'];
         $fileName = time() . "_" . basename($_FILES[$inputName]['name']);
         $uploadDir = "../uploads/";
@@ -40,16 +44,17 @@ function uploadPhoto($inputName) {
 
         // Move the uploaded file to the desired directory
         if (move_uploaded_file($tmpName, $targetFile)) {
-            echo "Success: File '$fileName' uploaded to $targetFile<br>";
             return $targetFile;
         } else {
-            echo "Error: move_uploaded_file() failed for $inputName → $targetFile<br>";
+            echo "Error: Failed to move uploaded file $inputName.<br>";
             return false;
         }
     } else {
-        $error = $_FILES[$inputName]['error'] ?? 'Not set';
-        echo "Error: File '$inputName' not uploaded. PHP Upload Error Code: $error<br>";
-        return false;
+        if ($isRequired) {
+            echo "Error: File upload failed for $inputName. Error code: " . $_FILES[$inputName]['error'] . "<br>";
+            return false;
+        }
+        return null;
     }
 }
 
@@ -98,13 +103,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_submit'])) {
     }
 
     // Handle file uploads
-    $photoFront = uploadPhoto('photo_front');
-    $photo1 = uploadPhoto('photo_1');
+    $photoFront = uploadPhoto('photo_front', true); // Front photo is required
+    $photo1 = uploadPhoto('photo_1'); // Optional photos
     $photo2 = uploadPhoto('photo_2');
     $photo3 = uploadPhoto('photo_3');
     $photo4 = uploadPhoto('photo_4');
 
-    // Validate all fields
+    // Validate required fields
     if (
         empty($product_name) ||                               // Check if product name is empty
         !is_numeric($quantity_small) ||                        // Check if quantity_small is a number
@@ -112,12 +117,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_submit'])) {
         !is_numeric($quantity_large) ||                        // Check if quantity_large is a number
         !is_numeric($product_price) ||                         // Check if product_price is a number
         empty($product_status) ||                              // Check if product_status is empty
-        !$photoFront ||                                
-        empty($box_id)                                         // Check if box_id is empty
-
+        $photoFront === false                                  // Front photo upload failed or is missing
     ) {
-        
-        echo "Please fill in all fields!";
+        echo "Please fill in all required fields! Front photo is required.";
         exit;
     }
 
