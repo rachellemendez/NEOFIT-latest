@@ -30,7 +30,7 @@ $validFields = [
     'quantity_medium',
     'quantity_large',
     'product_price',
-    'box_id'
+    'product_category'
 ];
 
 foreach ($validFields as $field) {
@@ -38,7 +38,7 @@ foreach ($validFields as $field) {
         $value = $_POST[$field];
 
         // Cast numeric values appropriately
-        if (in_array($field, ['quantity_small', 'quantity_medium', 'quantity_large', 'box_id'])) {
+        if (in_array($field, ['quantity_small', 'quantity_medium', 'quantity_large'])) {
             $value = intval($value);
         } elseif ($field === 'product_price') {
             $value = floatval($value);

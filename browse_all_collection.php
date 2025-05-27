@@ -563,7 +563,6 @@
             <a href="landing_page.php" class="logo">NEOFIT</a>
             <nav>
                 <ul>
-                    <li><a href="#trending-section" class="nav-link" data-category="trending">Trending</a></li>
                     <li><a href="#men-section" class="nav-link" data-category="men">Men</a></li>
                     <li><a href="#women-section" class="nav-link" data-category="women">Women</a></li>
                 </ul>
@@ -741,7 +740,6 @@
         <div class="footer-column">
             <h3>Shop</h3>
             <ul>
-                <li><a href="#">Trending</a></li>
                 <li><a href="#">Men</a></li>
                 <li><a href="#">Women</a></li>
             </ul>

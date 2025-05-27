@@ -9,7 +9,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['product-name'])) {
     $product_size = $_POST['product-size'];
     $product_quantity = $_POST['product-quantity'];
     $product_price = $_POST['product-price'];
-    $status = $_POST['status'];
+    $status = $_POST['product_status'];
+    $product_category = $_POST['product_category'];
 
     if ($product_id) {
         // Update existing product
@@ -20,7 +21,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['product-name'])) {
                         product_size='$product_size', 
                         product_quantity=$product_quantity, 
                         product_price=$product_price, 
-                        status='$status' 
+                        product_status='$status',
+                        product_category='$product_category' 
                         WHERE id=$product_id";
 
         if ($conn->query($sql_update) === TRUE) {
