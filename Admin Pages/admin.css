@@ -22,133 +22,97 @@
 /* Sidebar Styles */
 .sidebar {
     width: 250px;
-    background-color: #4d8d8b;
+    background: linear-gradient(135deg, #4d8d8b 0%, #3c7c7a 100%);
     color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1;
 }
 
 .sidebar-menu {
     list-style: none;
+    padding: 10px 0;
 }
 
 .sidebar-menu li {
     display: flex;
     align-items: center;
-    padding: 15px 20px;
+    padding: 12px 20px;
     cursor: pointer;
-    border-left: 4px solid transparent;
     position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    margin: 2px 8px;
+    border-radius: 4px;
 }
 
-/* Modern hover effect - slide overlay */
+/* Simple hover effect */
+.sidebar-menu li:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Active state */
+.sidebar-menu li.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-left: 3px solid #fff;
+}
+
+/* Icon styles */
+.sidebar-menu i {
+    margin-right: 12px;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.sidebar-menu li:hover i,
+.sidebar-menu li.active i {
+    color: #ffffff;
+}
+
+/* Text styles */
+.sidebar-menu span {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.sidebar-menu li:hover span,
+.sidebar-menu li.active span {
+    color: #ffffff;
+}
+
+/* Remove any remaining effects */
+
+/* Hover indicator line */
 .sidebar-menu li::before {
     content: '';
     position: absolute;
     left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background: #ffffff;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-menu li:hover::before {
-    transform: translateX(0);
-}
-
-/* Active state and hover effects */
-.sidebar-menu li.active {
-    background-color: #3c7c7a;
-    border-left-color: #2d6a68;
-}
-
-.sidebar-menu li:hover {
-    border-left-color: #2d6a68;
-    transform: translateX(5px);
-}
-
-/* Icon animations */
-.sidebar-menu i {
-    margin-right: 15px;
-    font-size: 18px;
-    position: relative;
-    z-index: 1;
-    transition: transform 0.3s ease;
-}
-
-.sidebar-menu li:hover i {
-    transform: scale(1.2);
-}
-
-/* Text animations */
-.sidebar-menu span {
-    position: relative;
-    z-index: 1;
-    transition: transform 0.3s ease, color 0.3s ease;
-}
-
-.sidebar-menu li:hover span {
-    transform: translateX(5px);
-    color: #ffffff;
-}
-
-/* Glow effect on active tab */
-.sidebar-menu li.active::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
     width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        to right,
-        rgba(255, 255, 255, 0.1) 0%,
-        rgba(255, 255, 255, 0.05) 100%
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
 }
 
-.sidebar-menu li.active:hover::after {
-    opacity: 1;
+.sidebar-menu li.active::before {
+    width: 100%;
+    background: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
-/* Ripple effect on click */
-.sidebar-menu li {
-    position: relative;
-    overflow: hidden;
-}
-
-@keyframes ripple {
-    to {
-        transform: scale(4);
-        opacity: 0;
-    }
-}
-
-.sidebar-menu li::after {
-    content: '';
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 60%);
-    border-radius: 50%;
-    pointer-events: none;
-    transform: scale(0);
-    opacity: 1;
-    transition: 0s;
-}
-
-.sidebar-menu li:active::after {
-    animation: ripple 0.6s ease-out;
-}
-
+/* Dropdown icon animations */
 .dropdown-icon {
     margin-left: auto;
     position: relative;
     z-index: 1;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-menu li:hover .dropdown-icon {
+    transform: rotate(180deg);
 }
 
 body {
