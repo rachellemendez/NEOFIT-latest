@@ -1,3 +1,22 @@
+<?php
+include '../db.php';
+
+// Get user filter from URL if provided
+$user_filter = isset($_GET['user']) ? $_GET['user'] : null;
+
+// Prepare the SQL query based on whether we're filtering by user
+if ($user_filter) {
+    $sql = "SELECT * FROM orders WHERE user_email = ? ORDER BY order_date DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $user_filter);
+    $stmt->execute();
+    $result = $stmt->get_result();
+} else {
+    $sql = "SELECT * FROM orders ORDER BY order_date DESC";
+    $result = $conn->query($sql);
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +25,77 @@
     <title>NEOFIT Admin - Order Details</title>
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .order-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .detail-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-processing { background: #cce5ff; color: #004085; }
+        .status-shipped { background: #d4edda; color: #155724; }
+        .status-delivered { background: #c3e6cb; color: #1e7e34; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+
+        .back-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .back-button:hover {
+            background: #5a6268;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -30,13 +120,17 @@
                     <span>Manage Orders</span>
                 </li>
                 <li>
+                    <i class="fas fa-users"></i>
+                    <a href="customer_orders_page.php"><span>Customer Orders</span></a>
+                </li>
+                <li>
                     <i class="fas fa-box"></i>
                     <span>Inventory</span>
                     <i class="fas fa-chevron-down dropdown-icon"></i>
                 </li>
                 <li>
                     <i class="fas fa-credit-card"></i>
-                    <span>Payments</span>
+                    <a href="payments_page.php"><span>Payments</span></a>
                 </li>
                 <li>
                     <i class="fas fa-cog"></i>
@@ -46,106 +140,93 @@
         </aside>
         
         <main class="main-content">
-            <h1 class="page-title">Manage Orders</h1>
+            <?php if ($user_filter): ?>
+                <a href="customer_orders_page.php" class="back-button">
+                    <i class="fas fa-arrow-left"></i> Back to All Customers
+                </a>
+            <?php endif; ?>
+
+            <h1 class="page-title">
+                <?php 
+                if ($user_filter) {
+                    $user_name = $result->num_rows > 0 ? $result->fetch_array()['user_name'] : 'Unknown User';
+                    $result->data_seek(0); // Reset result pointer
+                    echo "Orders for " . htmlspecialchars($user_name);
+                } else {
+                    echo "All Orders";
+                }
+                ?>
+            </h1>
             
-            <div class="order-header">
-                <h2>Order #10231</h2>
-                <div class="delivery-status">
-                    <span class="status-indicator"></span>
-                    <span>For Delivery</span>
-                    <i class="fas fa-chevron-down"></i>
-                </div>
-            </div>
-            
-            <div class="content-card">
-                <div class="order-details-row">
-                    <div>
-                        <strong>Order Date:</strong>
-                        <span>04/25/2025</span>
-                    </div>
-                    <div>
-                        <strong>Tracking Number:</strong>
-                        <span>0123456789</span>
-                    </div>
-                </div>
-                
-                <div class="order-details-row">
-                    <div>
-                        <strong>Payment Method:</strong>
-                        <span>GCash</span>
-                    </div>
-                    <div>
-                        <strong>Total Amount:</strong>
-                        <span>Php. 250</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="order-details">
-                <div class="customer-info">
-                    <div class="info-header">Customer Information</div>
-                    <div class="info-content">
-                        <p>Maria Santos</p>
-                        <p>0912 345 6789</p>
-                        <p>mariasantos@gmail.com</p>
-                        <p>Blk 3 Lot 4, Village 1, Brgy. Niog, Bacoor City</p>
-                    </div>
-                </div>
-                
-                <div class="timeline">
-                    <div class="info-header">Order Timeline</div>
-                    <div class="info-content">
-                        <div class="timeline-item">
-                            <i class="fas fa-check-circle"></i>
-                            <div>
-                                <div>Order Placed</div>
-                                <div>04/04/2025, 2:15 pm</div>
+            <div class="orders-list">
+                <?php
+                if ($result->num_rows > 0) {
+                    while($row = $result->fetch_assoc()) {
+                        $status_class = 'status-' . strtolower($row['status']);
+                        ?>
+                        <div class="order-card">
+                            <div class="order-header">
+                                <h2>Order #<?php echo $row['id']; ?></h2>
+                                <span class="status-badge <?php echo $status_class; ?>">
+                                    <?php echo htmlspecialchars($row['status']); ?>
+                                </span>
+                            </div>
+                            
+                            <div class="order-details">
+                                <div class="detail-item">
+                                    <div class="detail-label">Customer</div>
+                                    <div class="detail-value"><?php echo htmlspecialchars($row['user_name']); ?></div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Product</div>
+                                    <div class="detail-value"><?php echo htmlspecialchars($row['product_name']); ?></div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Size</div>
+                                    <div class="detail-value"><?php echo htmlspecialchars($row['size']); ?></div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Quantity</div>
+                                    <div class="detail-value"><?php echo $row['quantity']; ?></div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Total Price</div>
+                                    <div class="detail-value">$<?php echo number_format($row['total'], 2); ?></div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Order Date</div>
+                                    <div class="detail-value"><?php echo date('M d, Y', strtotime($row['order_date'])); ?></div>
+                                </div>
+                            </div>
+
+                            <div class="detail-item">
+                                <div class="detail-label">Delivery Address</div>
+                                <div class="detail-value"><?php echo htmlspecialchars($row['delivery_address']); ?></div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <div class="detail-label">Contact Number</div>
+                                <div class="detail-value"><?php echo htmlspecialchars($row['contact_number']); ?></div>
                             </div>
                         </div>
-                        <div class="timeline-item">
-                            <i class="fas fa-check-circle"></i>
-                            <div>
-                                <div>Paid</div>
-                                <div>04/04/25, 2:20 pm</div>
-                            </div>
-                        </div>
-                        <div class="timeline-item">
-                            <i class="fas fa-check-circle"></i>
-                            <div>
-                                <div>Packed</div>
-                                <div>04/05/2025, 8:00 am</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="content-card">
-                <div class="info-header">Order Items</div>
-                
-                <div class="order-items">
-                    <div class="item-row">
-                        <div class="item-image"></div>
-                        <div>Snoopy T-shirt</div>
-                        <div>1</div>
-                        <div>P 250</div>
-                        <div>P 250</div>
-                    </div>
-                    
-                    <div class="summary-row">
-                        <div>Shipping Fee</div>
-                        <div>P 100</div>
-                        <div>P 100</div>
-                    </div>
-                    
-                    <div class="summary-row">
-                        <div><strong>Total</strong></div>
-                        <div></div>
-                        <div><strong>P 350</strong></div>
-                    </div>
-                </div>
+                        <?php
+                    }
+                } else {
+                    if ($user_filter) {
+                        echo "<p>No orders found for this customer.</p>";
+                    } else {
+                        echo "<p>No orders found.</p>";
+                    }
+                }
+                ?>
             </div>
         </main>
     </div>
 </body>
 </html>
+<?php
+if (isset($stmt)) {
+    $stmt->close();
+}
+$conn->close();
+?>

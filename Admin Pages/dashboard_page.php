@@ -1,161 +1,144 @@
+<?php
+include '../db.php';
+
+// Get today's sales
+$today = date('Y-m-d');
+$sql_today_sales = "SELECT COALESCE(SUM(total), 0) as today_sales, COUNT(*) as today_orders 
+                    FROM orders 
+                    WHERE DATE(order_date) = ?";
+$stmt = $conn->prepare($sql_today_sales);
+$stmt->bind_param("s", $today);
+$stmt->execute();
+$today_result = $stmt->get_result()->fetch_assoc();
+
+// Get yesterday's sales for comparison
+$yesterday = date('Y-m-d', strtotime('-1 day'));
+$sql_yesterday_sales = "SELECT COALESCE(SUM(total), 0) as yesterday_sales 
+                       FROM orders 
+                       WHERE DATE(order_date) = ?";
+$stmt = $conn->prepare($sql_yesterday_sales);
+$stmt->bind_param("s", $yesterday);
+$stmt->execute();
+$yesterday_result = $stmt->get_result()->fetch_assoc();
+
+// Calculate sales trend
+$sales_trend = 0;
+if ($yesterday_result['yesterday_sales'] > 0) {
+    $sales_trend = (($today_result['today_sales'] - $yesterday_result['yesterday_sales']) / $yesterday_result['yesterday_sales']) * 100;
+}
+
+// Get total orders for last 30 days
+$last_month = date('Y-m-d', strtotime('-30 days'));
+$sql_month_orders = "SELECT COUNT(*) as total_orders, COALESCE(SUM(total), 0) as total_sales 
+                    FROM orders 
+                    WHERE order_date >= ?";
+$stmt = $conn->prepare($sql_month_orders);
+$stmt->bind_param("s", $last_month);
+$stmt->execute();
+$month_result = $stmt->get_result()->fetch_assoc();
+
+// Calculate average order value
+$avg_order_value = 0;
+if ($month_result['total_orders'] > 0) {
+    $avg_order_value = $month_result['total_sales'] / $month_result['total_orders'];
+}
+
+// Get recent activity (last 10 orders/events)
+$sql_recent = "SELECT id, user_name, product_name, status, order_date, total 
+               FROM orders 
+               ORDER BY order_date DESC 
+               LIMIT 10";
+$recent_result = $conn->query($sql_recent);
+
+// Get low stock items
+$sql_low_stock = "SELECT product_name, 
+                         quantity_small + quantity_medium + quantity_large as total_stock,
+                         product_status,
+                         id
+                  FROM products 
+                  WHERE (quantity_small + quantity_medium + quantity_large) <= 5
+                  ORDER BY (quantity_small + quantity_medium + quantity_large) ASC
+                  LIMIT 5";
+$low_stock_result = $conn->query($sql_low_stock);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEOFIT Admin Dashboard</title>
+    <title>NEOFIT Admin - Dashboard</title>
     <link rel="stylesheet" href="admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-
-
-        /* Action Icons */
-        .action-icons {
-            display: flex;
-            gap: 10px;
-        }
-
-        /* Dashboard Specific Styles */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
 
         .stat-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            background: white;
             padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             position: relative;
             overflow: hidden;
         }
 
         .stat-card h3 {
-            font-size: 16px;
-            color: #555;
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 1em;
+        }
+
+        .value {
+            font-size: 1.8em;
+            font-weight: bold;
             margin-bottom: 10px;
         }
 
-        .stat-card .value {
-            font-size: 28px;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .stat-card .trend {
-            font-size: 14px;
-            color: #7ab55c;
+        .trend {
+            font-size: 0.9em;
             display: flex;
             align-items: center;
-            margin-top: 5px;
+            gap: 5px;
         }
 
-        .trend.up {
-            color: #7ab55c;
-        }
-
-        .trend.down {
-            color: #e74c3c;
-        }
+        .trend.up { color: #28a745; }
+        .trend.down { color: #dc3545; }
 
         .stat-icon {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 22px;
-            color: #4d8d8b;
-        }
-
-        .chart-row {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .chart-container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-            height: 300px;
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .chart-header h3 {
-            font-size: 18px;
-            color: #333;
-        }
-
-        .chart-controls {
-            display: flex;
-            gap: 10px;
-        }
-
-        .period-selector {
-            padding: 5px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            background-color: #f5f5f5;
-            cursor: pointer;
-        }
-
-        .period-selector.active {
-            background-color: #4d8d8b;
-            color: white;
-            border-color: #4d8d8b;
-        }
-
-        .placeholder-chart {
-            width: 100%;
-            height: 220px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
+            right: 20px;
+            top: 20px;
+            font-size: 2em;
+            opacity: 0.1;
         }
 
         .activity-feed {
-            background-color: white;
+            background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             padding: 20px;
             margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .activity-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .activity-header h3 {
-            font-size: 18px;
-            color: #333;
-        }
-
-        .view-all {
-            color: #4d8d8b;
-            font-size: 14px;
-            cursor: pointer;
+            margin: 0;
         }
 
         .activity-item {
             display: flex;
             align-items: center;
-            gap: 15px;
             padding: 15px 0;
             border-bottom: 1px solid #eee;
         }
@@ -163,12 +146,12 @@
         .activity-icon {
             width: 40px;
             height: 40px;
-            background-color: #f2f2f2;
+            background: #f8f9fa;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #4d8d8b;
+            margin-right: 15px;
         }
 
         .activity-content {
@@ -176,88 +159,56 @@
         }
 
         .activity-content p {
-            margin-bottom: 5px;
+            margin: 0;
         }
 
         .activity-time {
-            color: #888;
-            font-size: 14px;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
         }
 
         .inventory-items {
-            background-color: white;
+            background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .inventory-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .inventory-header h3 {
-            font-size: 18px;
-            color: #333;
+            margin: 0;
         }
 
         .stock-level {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-
-        .in-stock {
-            background-color: #d5f5e3;
-            color: #27ae60;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
         }
 
         .low-stock {
-            background-color: #fdebd0;
-            color: #f39c12;
+            background: #fff3cd;
+            color: #856404;
         }
 
         .out-of-stock {
-            background-color: #fadbd8;
-            color: #e74c3c;
+            background: #f8d7da;
+            color: #721c24;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 1200px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .chart-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-            }
-            
-            .order-details {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+        .in-stock {
+            background: #d4edda;
+            color: #155724;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header>
         <div class="logo">
             <h1>NEOFIT</h1>
@@ -268,18 +219,20 @@
         </div>
     </header>
 
-    <!-- Main Container -->
     <div class="container">
-        <!-- Sidebar -->
-        <div class="sidebar">
+        <aside class="sidebar">
             <ul class="sidebar-menu">
                 <li class="active">
                     <i class="fas fa-chart-line"></i>
                     <span>Dashboard</span>
                 </li>
                 <li>
-                    <i class="fas fa-clipboard-list"></i>
+                    <i class="fas fa-list"></i>
                     <a href="manage_order_details_page.php"><span>Manage Orders</span></a>
+                </li>
+                <li>
+                    <i class="fas fa-users"></i>
+                    <a href="customer_orders_page.php"><span>Customer Orders</span></a>
                 </li>
                 <li>
                     <i class="fas fa-box"></i>
@@ -288,26 +241,26 @@
                 </li>
                 <li>
                     <i class="fas fa-credit-card"></i>
-                    <span>Payments</span>
+                    <a href="payments_page.php"><span>Payments</span></a>
                 </li>
                 <li>
                     <i class="fas fa-cog"></i>
                     <a href="settings.php"><span>Settings</span></a>
                 </li>
             </ul>
-        </div>
+        </aside>
 
-        <!-- Main Content -->
-        <div class="main-content">
+        <main class="main-content">
             <h1 class="page-title">Dashboard</h1>
 
             <!-- Stats Overview -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Today's Sales</h3>
-                    <div class="value">$8,459</div>
-                    <div class="trend up">
-                        <i class="fas fa-arrow-up"></i> 12.5% from yesterday
+                    <div class="value">$<?php echo number_format($today_result['today_sales'], 2); ?></div>
+                    <div class="trend <?php echo $sales_trend >= 0 ? 'up' : 'down'; ?>">
+                        <i class="fas fa-arrow-<?php echo $sales_trend >= 0 ? 'up' : 'down'; ?>"></i>
+                        <?php echo abs(round($sales_trend, 1)); ?>% from yesterday
                     </div>
                     <div class="stat-icon">
                         <i class="fas fa-dollar-sign"></i>
@@ -315,10 +268,11 @@
                 </div>
                 
                 <div class="stat-card">
-                    <h3>Total Orders</h3>
-                    <div class="value">124</div>
+                    <h3>Total Orders (30 days)</h3>
+                    <div class="value"><?php echo $month_result['total_orders']; ?></div>
                     <div class="trend up">
-                        <i class="fas fa-arrow-up"></i> 5.3% from yesterday
+                        <i class="fas fa-shopping-bag"></i>
+                        Last 30 days
                     </div>
                     <div class="stat-icon">
                         <i class="fas fa-shopping-bag"></i>
@@ -327,9 +281,10 @@
                 
                 <div class="stat-card">
                     <h3>Average Order Value</h3>
-                    <div class="value">$68.22</div>
-                    <div class="trend up">
-                        <i class="fas fa-arrow-up"></i> 2.1% from yesterday
+                    <div class="value">$<?php echo number_format($avg_order_value, 2); ?></div>
+                    <div class="trend">
+                        <i class="fas fa-calculator"></i>
+                        30-day average
                     </div>
                     <div class="stat-icon">
                         <i class="fas fa-calculator"></i>
@@ -337,40 +292,14 @@
                 </div>
                 
                 <div class="stat-card">
-                    <h3>Conversion Rate</h3>
-                    <div class="value">3.2%</div>
-                    <div class="trend down">
-                        <i class="fas fa-arrow-down"></i> 0.5% from yesterday
+                    <h3>Today's Orders</h3>
+                    <div class="value"><?php echo $today_result['today_orders']; ?></div>
+                    <div class="trend">
+                        <i class="fas fa-clock"></i>
+                        Today's count
                     </div>
                     <div class="stat-icon">
-                        <i class="fas fa-percentage"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Charts Row -->
-            <div class="chart-row">
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3>Sales Overview</h3>
-                        <div class="chart-controls">
-                            <div class="period-selector">Day</div>
-                            <div class="period-selector active">Week</div>
-                            <div class="period-selector">Month</div>
-                            <div class="period-selector">Year</div>
-                        </div>
-                    </div>
-                    <div class="placeholder-chart">
-                        [Sales Chart Visualization]
-                    </div>
-                </div>
-                
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3>Top Categories</h3>
-                    </div>
-                    <div class="placeholder-chart">
-                        [Category Pie Chart]
+                        <i class="fas fa-shopping-cart"></i>
                     </div>
                 </div>
             </div>
@@ -379,107 +308,96 @@
             <div class="activity-feed">
                 <div class="activity-header">
                     <h3>Recent Activity</h3>
-                    <div class="view-all">View All</div>
+                    <a href="manage_order_details_page.php" style="text-decoration: none; color: #7ab55c;">View All</a>
                 </div>
                 
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <div class="activity-content">
-                        <p>Order #1234 was placed by John Smith</p>
-                        <div class="activity-time">10 minutes ago</div>
-                    </div>
-                </div>
-                
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas fa-exchange-alt"></i>
-                    </div>
-                    <div class="activity-content">
-                        <p>Refund request for Order #1156 was processed</p>
-                        <div class="activity-time">1 hour ago</div>
-                    </div>
-                </div>
-                
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="activity-content">
-                        <p>New customer account created: Emma Wilson</p>
-                        <div class="activity-time">2 hours ago</div>
-                    </div>
-                </div>
-                
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas fa-truck"></i>
-                    </div>
-                    <div class="activity-content">
-                        <p>Order #1205 has been shipped</p>
-                        <div class="activity-time">3 hours ago</div>
-                    </div>
-                </div>
+                <?php
+                if ($recent_result->num_rows > 0) {
+                    while ($row = $recent_result->fetch_assoc()) {
+                        $time_ago = time_elapsed_string($row['order_date']);
+                        ?>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>Order #<?php echo $row['id']; ?> - <?php echo htmlspecialchars($row['user_name']); ?> 
+                                   ordered <?php echo htmlspecialchars($row['product_name']); ?> 
+                                   ($<?php echo number_format($row['total'], 2); ?>)</p>
+                                <div class="activity-time"><?php echo $time_ago; ?></div>
+                            </div>
+                        </div>
+                        <?php
+                    }
+                } else {
+                    echo "<p>No recent activity</p>";
+                }
+                ?>
             </div>
 
             <!-- Low Stock Items -->
             <div class="inventory-items">
                 <div class="inventory-header">
-                    <h3>Inventory Status</h3>
-                    <button class="btn-apply">Manage Inventory</button>
+                    <h3>Low Stock Items</h3>
+                    <a href="all_product_page.php" class="btn-apply">Manage Inventory</a>
                 </div>
                 
                 <table>
                     <thead>
                         <tr>
                             <th>Product</th>
-                            <th>SKU</th>
                             <th>Current Stock</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>NEOFIT Running Shoes - Black</td>
-                            <td>RS-BLK-001</td>
-                            <td>5</td>
-                            <td><span class="stock-level low-stock">Low Stock</span></td>
-                            <td><button class="btn-track">Restock</button></td>
-                        </tr>
-                        <tr>
-                            <td>NEOFIT Fitness Tracker</td>
-                            <td>FT-100</td>
-                            <td>0</td>
-                            <td><span class="stock-level out-of-stock">Out of Stock</span></td>
-                            <td><button class="btn-track">Restock</button></td>
-                        </tr>
-                        <tr>
-                            <td>NEOFIT Compression Leggings</td>
-                            <td>CL-BLK-M</td>
-                            <td>2</td>
-                            <td><span class="stock-level low-stock">Low Stock</span></td>
-                            <td><button class="btn-track">Restock</button></td>
-                        </tr>
-                        <tr>
-                            <td>NEOFIT Resistance Bands Set</td>
-                            <td>RB-SET-3</td>
-                            <td>42</td>
-                            <td><span class="stock-level in-stock">In Stock</span></td>
-                            <td><button class="btn-track">Restock</button></td>
-                        </tr>
-                        <tr>
-                            <td>NEOFIT Yoga Mat - Blue</td>
-                            <td>YM-BLU-001</td>
-                            <td>15</td>
-                            <td><span class="stock-level in-stock">In Stock</span></td>
-                            <td><button class="btn-track">Restock</button></td>
-                        </tr>
+                        <?php
+                        if ($low_stock_result->num_rows > 0) {
+                            while ($row = $low_stock_result->fetch_assoc()) {
+                                $stock_class = $row['total_stock'] == 0 ? 'out-of-stock' : 'low-stock';
+                                $stock_text = $row['total_stock'] == 0 ? 'Out of Stock' : 'Low Stock';
+                                ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($row['product_name']); ?></td>
+                                    <td><?php echo $row['total_stock']; ?></td>
+                                    <td><span class="stock-level <?php echo $stock_class; ?>"><?php echo $stock_text; ?></span></td>
+                                    <td>
+                                        <a href="edit_product.php?id=<?php echo $row['id']; ?>" class="btn-track">Update Stock</a>
+                                    </td>
+                                </tr>
+                                <?php
+                            }
+                        } else {
+                            echo "<tr><td colspan='4'>No low stock items</td></tr>";
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>
-        </div>
+        </main>
     </div>
 </body>
 </html>
+
+<?php
+// Helper function to format time elapsed
+function time_elapsed_string($datetime) {
+    $now = new DateTime;
+    $ago = new DateTime($datetime);
+    $diff = $now->diff($ago);
+
+    if ($diff->d > 0) {
+        return $diff->d . " day" . ($diff->d > 1 ? "s" : "") . " ago";
+    }
+    if ($diff->h > 0) {
+        return $diff->h . " hour" . ($diff->h > 1 ? "s" : "") . " ago";
+    }
+    if ($diff->i > 0) {
+        return $diff->i . " minute" . ($diff->i > 1 ? "s" : "") . " ago";
+    }
+    return "just now";
+}
+
+$conn->close();
+?>
