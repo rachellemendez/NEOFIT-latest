@@ -6,19 +6,10 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['email']) || !isset($_SESSI
     die("You must be logged in to place an order.");
 }
 
-// DB connection
-$servername = "localhost";
-$db_username = "root";
-$db_password = "";
-$dbname = "neofit";
-
-$conn = new mysqli($servername, $db_username, $db_password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+include 'db.php';
 
 // Get form data
+$user_id = $_SESSION['user_id'];
 $product_id = $_POST['product_id'] ?? '';
 $product_name = $_POST['product_name'] ?? '';
 $product_price = $_POST['product_price'] ?? 0.00;
@@ -38,19 +29,40 @@ $user_name = $_SESSION['user_name'];
 
 // Insert order into DB
 $sql = "INSERT INTO orders (
-            user_name, user_email,
-            payment_method, delivery_address, contact_number, status,
-            product_name, price, size, color, quantity, total
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            user_id, user_name, user_email,
+            product_id, product_name, price,
+            size, color, quantity, total,
+            payment_method, delivery_address, contact_number, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ssssssssssdd", 
-    $user_name, $user_email, 
-    $payment_method, $delivery_address, $contact_number, $status,
-    $product_name, $product_price, $size, $color, $quantity, $total_price
+$stmt->bind_param("issiisdssidsss", 
+    $user_id, $user_name, $user_email, 
+    $product_id, $product_name, $product_price,
+    $size, $color, $quantity, $total_price,
+    $payment_method, $delivery_address, $contact_number, $status
 );
 
 if ($stmt->execute()) {
+    // Update product stock
+    $update_stock_sql = "UPDATE products SET ";
+    switch ($size) {
+        case 'small':
+            $update_stock_sql .= "quantity_small = quantity_small - ?";
+            break;
+        case 'medium':
+            $update_stock_sql .= "quantity_medium = quantity_medium - ?";
+            break;
+        case 'large':
+            $update_stock_sql .= "quantity_large = quantity_large - ?";
+            break;
+    }
+    $update_stock_sql .= " WHERE id = ?";
+
+    $update_stock_stmt = $conn->prepare($update_stock_sql);
+    $update_stock_stmt->bind_param("ii", $quantity, $product_id);
+    $update_stock_stmt->execute();
+
     echo "<script>
             alert('Order placed successfully!');
             window.location.href = 'product_detail.php?id=$product_id';

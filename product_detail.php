@@ -1,5 +1,9 @@
 <?php
+session_start();
 include './db.php'; // Include your database connection
+
+// Check if user is logged in
+$is_logged_in = isset($_SESSION['user_id']);
 
 // Get the product id from the URL
 $product_id = $_GET['id'];
@@ -409,6 +413,23 @@ if ($result->num_rows > 0) {
         .user-icon, .cart-icon {
             font-size: 18px;
             cursor: pointer;
+            position: relative;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #55a39b;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -429,7 +450,12 @@ if ($result->num_rows > 0) {
                         <input type="text" placeholder="Search">
                     </div>
                     <div class="user-icon"><a href="user-settings.php"> <img src="profile.jpg" alt="Profile Icon" width="24" height="24"></a></div>
-                    <div class="cart-icon"> <img src="cart.jpg" alt="Cart Icon" width="24" height="24"></div>
+                    <div class="cart-icon">
+                        <a href="cart.php">
+                            <img src="cart.jpg" alt="Cart Icon" width="24" height="24">
+                            <span class="cart-count">0</span>
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -497,8 +523,8 @@ if ($result->num_rows > 0) {
                             <button type="button" class="cart-btn" id="addToCartBtn">
                                 <span>🛒</span> Add to Cart
                             </button>
-                            <button type="submit" class="buy-btn">Buy Now</button>
-                            <button type="button" class="wishlist-btn">♥</button>
+                            <button type="button" class="buy-btn" id="buyNowBtn">Buy Now</button>
+                            <button type="button" class="wishlist-btn" id="wishlistBtn">♥</button>
                         </div>
                         <a href="#" class="size-chart">click here to see size chart</a>
                     </form>
@@ -565,6 +591,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const increaseBtn = document.getElementById("increase");
     const inventoryCount = document.getElementById("inventory-count");
     const sizeSelect = document.getElementById("size");
+    const addToCartBtn = document.getElementById("addToCartBtn");
+    const wishlistBtn = document.getElementById("wishlistBtn");
 
     // Set initial inventory data
     let availableQuantities = {
@@ -643,5 +671,132 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     });
+
+    // Add to Cart functionality
+    addToCartBtn.addEventListener("click", function() {
+        <?php if (!$is_logged_in): ?>
+            window.location.href = 'login.php';
+            return;
+        <?php endif; ?>
+
+        const formData = new FormData();
+        formData.append("product_id", <?php echo $product_id; ?>);
+        formData.append("size", sizeSelect.value);
+        formData.append("quantity", quantityInput.value);
+
+        fetch("add_to_cart.php", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                updateCartCount();
+            } else {
+                alert(data.message || "Error adding item to cart");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Error adding item to cart");
+        });
+    });
+
+    // Buy Now functionality
+    const buyNowBtn = document.getElementById("buyNowBtn");
+    buyNowBtn.addEventListener("click", function() {
+        <?php if (!$is_logged_in): ?>
+            window.location.href = 'login.php';
+            return;
+        <?php endif; ?>
+
+        const formData = new FormData();
+        formData.append("product_id", <?php echo $product_id; ?>);
+        formData.append("size", sizeSelect.value);
+        formData.append("quantity", quantityInput.value);
+
+        fetch("buy_now.php", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                alert(data.message || "Error processing request");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Error processing request");
+        });
+    });
+
+    // Toggle Favorite functionality
+    wishlistBtn.addEventListener("click", function() {
+        <?php if (!$is_logged_in): ?>
+            window.location.href = 'login.php';
+            return;
+        <?php endif; ?>
+
+        const formData = new FormData();
+        formData.append("product_id", <?php echo $product_id; ?>);
+
+        fetch("toggle_favorite.php", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.action === 'added') {
+                    wishlistBtn.style.backgroundColor = '#ff4d4d';
+                    wishlistBtn.style.color = '#fff';
+                } else {
+                    wishlistBtn.style.backgroundColor = '#fff';
+                    wishlistBtn.style.color = '#ff4d4d';
+                }
+                alert(data.message);
+            } else {
+                alert(data.message || "Error updating favorites");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Error updating favorites");
+        });
+    });
+
+    // Check favorite status on load
+    <?php if ($is_logged_in): ?>
+    fetch("check_favorite.php?product_id=<?php echo $product_id; ?>")
+        .then(response => response.json())
+        .then(data => {
+            if (data.is_favorite) {
+                wishlistBtn.style.backgroundColor = '#ff4d4d';
+                wishlistBtn.style.color = '#fff';
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    <?php endif; ?>
+
+    // Update cart count
+    function updateCartCount() {
+        fetch('get_cart_count.php')
+            .then(response => response.json())
+            .then(data => {
+                const cartCount = document.querySelector('.cart-count');
+                if (cartCount) {
+                    cartCount.textContent = data.count;
+                    cartCount.style.display = data.count > 0 ? 'flex' : 'none';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Update cart count on page load
+    updateCartCount();
 });
 </script>
