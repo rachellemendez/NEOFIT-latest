@@ -87,6 +87,23 @@
         .user-icon, .cart-icon {
             font-size: 18px;
             cursor: pointer;
+            position: relative;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #55a39b;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
         }
 
         /* Main Content */
@@ -572,7 +589,12 @@
                     <input type="text" class="search-input" placeholder="Search">
                 </div>
                 <div class="user-icon"><a href="user-settings.php"> <img src="profile.jpg" alt="Profile Icon" width="24" height="24"></a></div>
-                <div class="cart-icon"> <img src="cart.jpg" alt="Cart Icon" width="24" height="24"></div>
+                <div class="cart-icon">
+                    <a href="cart.php">
+                        <img src="cart.jpg" alt="Cart Icon" width="24" height="24">
+                        <span class="cart-count">0</span>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
@@ -778,5 +800,23 @@
         </div>
     </div>
 </footer>
+    <script>
+        // Update cart count
+        function updateCartCount() {
+            fetch('get_cart_count.php')
+                .then(response => response.json())
+                .then(data => {
+                    const cartCount = document.querySelector('.cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = data.count;
+                        cartCount.style.display = data.count > 0 ? 'flex' : 'none';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Update cart count on page load
+        updateCartCount();
+    </script>
     </body>
     </html>
