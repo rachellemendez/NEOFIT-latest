@@ -17,11 +17,11 @@ if ($result->num_rows > 0) {
     $quantitySmall = $product['quantity_small'];
     $quantityMedium = $product['quantity_medium'];
     $quantityLarge = $product['quantity_large'];
-    $photoFront = "Admin Pages/" . $product['photoFront']; // Path to the main product image
-    $photo1 = "Admin Pages/" . $product['photo1']; // Additional image 1
-    $photo2 = "Admin Pages/" . $product['photo2']; // Additional image 2
-    $photo3 = "Admin Pages/" . $product['photo3']; // Additional image 3
-    $photo4 = "Admin Pages/" . $product['photo4']; // Additional image 4
+    $photoFront = !empty($product['photoFront']) ? "Admin Pages/" . $product['photoFront'] : "";
+    $photo1 = !empty($product['photo1']) ? "Admin Pages/" . $product['photo1'] : "";
+    $photo2 = !empty($product['photo2']) ? "Admin Pages/" . $product['photo2'] : "";
+    $photo3 = !empty($product['photo3']) ? "Admin Pages/" . $product['photo3'] : "";
+    $photo4 = !empty($product['photo4']) ? "Admin Pages/" . $product['photo4'] : "";
 } else {
     // Handle case when no product is found
     echo "Product not found.";
@@ -158,6 +158,33 @@ if ($result->num_rows > 0) {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .image-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #55a39b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .product-info {
@@ -411,12 +438,20 @@ if ($result->num_rows > 0) {
                     <div class="main-image">
                         <img src="<?php echo $photoFront; ?>" alt="<?php echo $productName; ?>">
                     </div>
-                    <div class="thumbnail-container">
-                        <div class="thumbnail"><img src="<?php echo $photo1; ?>" alt="Thumbnail 1"></div>
-                        <div class="thumbnail"><img src="<?php echo $photo2; ?>" alt="Thumbnail 2"></div>
-                        <div class="thumbnail"><img src="<?php echo $photo3; ?>" alt="Thumbnail 3"></div>
-                        <div class="thumbnail"><img src="<?php echo $photo4; ?>" alt="Thumbnail 4"></div>
-                    </div>
+                    <?php
+                    // Only show thumbnail container if there are actual additional photos
+                    $additional_photos = array_filter([$photo1, $photo2, $photo3, $photo4], function($photo) {
+                        return !empty($photo) && $photo !== "Admin Pages/";
+                    });
+                    
+                    if (!empty($additional_photos)) {
+                        echo '<div class="thumbnail-container">';
+                        foreach ($additional_photos as $photo) {
+                            echo '<div class="thumbnail"><img src="' . $photo . '" alt="Additional view"></div>';
+                        }
+                        echo '</div>';
+                    }
+                    ?>
                 </div>
 
                 <div class="product-info">
@@ -596,6 +631,17 @@ document.addEventListener("DOMContentLoaded", function() {
     // Redirect logo to landing page
     document.getElementById("neofitLogo").addEventListener("click", function() {
         window.location.href = 'landing_page.php';
+    });
+
+    // Handle thumbnail clicks
+    document.querySelectorAll('.thumbnail').forEach(thumb => {
+        thumb.addEventListener('click', function() {
+            const mainImage = document.querySelector('.main-image img');
+            const thumbImage = this.querySelector('img');
+            if (mainImage && thumbImage) {
+                mainImage.src = thumbImage.src;
+            }
+        });
     });
 });
 </script>
