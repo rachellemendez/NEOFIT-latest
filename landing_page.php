@@ -362,6 +362,19 @@ if (!isset($_SESSION['email'])) {
             border: 2px solid #00a0a0;
         }
 
+        /* Add these new styles for product links */
+        .product-link {
+            text-decoration: none !important;
+            color: inherit !important;
+        }
+
+        .product-link:hover, 
+        .product-link:visited, 
+        .product-link:active {
+            text-decoration: none !important;
+            color: inherit !important;
+        }
+
         .product-image {
             width: 100%;
             height: 250px;
@@ -625,63 +638,13 @@ if (!isset($_SESSION['email'])) {
         <section class="product-section" id="featured-products">
             <h2 class="section-title" style="color: #1e1e1e;">ALL PRODUCTS</h2>
             <div class="product-grid">
-            <!-- <?php
-                include './db.php'; // Include your database connection
-
-                // Define products for each box manually (optional, if no data is found in the DB)
-                $box_data = [
-                    1 => ['product_name' => 'Neon Cotton T-shirt', 'product_price' => 250, 'photoFront' => 'Models Images/neoncotton.jpg'],
-                    2 => ['product_name' => 'Remo 98', 'product_price' => 250, 'photoFront' => 'Models Images/remo98.jpg'],
-                    3 => ['product_name' => 'Emerald', 'product_price' => 250, 'photoFront' => 'Models Images/emerald.jpg'],
-                    4 => ['product_name' => 'DUB SKU', 'product_price' => 250, 'photoFront' => 'Models Images/dubsku.jpg'],
-                    5 => ['product_name' => 'Pegador', 'product_price' => 250, 'photoFront' => 'Models Images/pegador.jpg'],
-                    6 => ['product_name' => 'Plain White T-shirt', 'product_price' => 250, 'photoFront' => 'Models Images/plainwhite.jpg'],
-                    7 => ['product_name' => 'Prest Studios', 'product_price' => 250, 'photoFront' => 'Models Images/preststudios.jpg'],
-                    8 => ['product_name' => 'Personality', 'product_price' => 250, 'photoFront' => 'Models Images/personality.jpg']
-                ];
-
-                // // Loop through each box and fetch data from the database or use the manual definition
-                // for ($box_id = 1; $box_id <= 8; $box_id++) {
-                //     // Query the database to fetch the product details for each box
-                //     $result = $conn->query("SELECT * FROM products WHERE box_id = $box_id LIMIT 1");
-
-                //     // Check if the product exists in the database
-                //     if ($result->num_rows > 0) {
-                //         // Fetch the product details from the database
-                //         $product = $result->fetch_assoc();
-                //         $productName = $product['product_name'];
-                //         $productPrice = $product['product_price'];
-                //         $photoFront = "Admin Pages/" . $product['photoFront']; // Path to the image
-                //         $link = 'product_detail.php?id=' . $product['box_id'];
-                //     } else {
-                //         // If no product is assigned, use the manually defined data
-                //         $productName = $box_data[$box_id]['product_name'];
-                //         $productPrice = $box_data[$box_id]['product_price'];
-                //         $photoFront = $box_data[$box_id]['photoFront']; // Placeholder image path
-                //         $link = 'product_detail.php?id=' . $box_id;
-                //     }
-
-                //     // Display the box content
-                //     echo '
-                //     <div class="product-card" id="product-box-' . $box_id . '">
-                //         <a href="' . $link . '" class="product-link">
-                //             <div class="product-image">
-                //                 <img src="' . $photoFront . '" alt="' . $productName . '">
-                //             </div>
-                //             <div class="product-info">
-                //                 <h3 class="product-name">' . $productName . '</h3>
-                //                 <span class="product-price">₱ ' . $productPrice . '</span>
-                //                 <span class="product-sold">1.3k sold</span>
-                //             </div>
-                //         </a>
-                //     </div>';
-                // }
-                            
-                // ?> -->
-
                 <?php
                     // Connect to Database
                     include './db.php';
+                    include 'product_stats.php';
+
+                    // Get all products' sold counts
+                    $sold_counts = getAllProductsSoldCount();
 
                     // Fetch Products
                     $sql = "SELECT * FROM products";
@@ -697,6 +660,15 @@ if (!isset($_SESSION['email'])) {
                         $photoFront = "Admin Pages/" . $product['photoFront'];
                         $link = 'product_detail.php?id=' . $id;
                         $product_status = $product['product_status'];
+                        
+                        // Get the sold count for this product
+                        $sold_count = $sold_counts[$productName] ?? 0;
+                        
+                        // Format the sold count
+                        $formatted_sold_count = $sold_count;
+                        if ($sold_count >= 1000) {
+                            $formatted_sold_count = number_format($sold_count/1000, 1) . 'k';
+                        }
 
                             // Display The Product Box
                             if($product_status == "live"){
@@ -709,7 +681,7 @@ if (!isset($_SESSION['email'])) {
                                         <div class="product-info">
                                             <h3 class="product-name">' . $productName . '</h3>
                                             <span class="product-price">₱ ' . $productPrice . '</span>
-                                            <span class="product-sold">1.3k sold</span>
+                                            <span class="product-sold">' . $formatted_sold_count . ' sold</span>
                                         </div>
                                     </a>
                                 </div>';
@@ -718,9 +690,6 @@ if (!isset($_SESSION['email'])) {
                         }
                     }
                 ?>
-
-                
-
             </div>
             <a href="browse_all_collection.php" class="browse-all" id="browse-all-button">browse all collection</a>
         </section>
