@@ -124,9 +124,12 @@ if ($user_filter) {
                     <a href="customer_orders_page.php"><span>Customer Orders</span></a>
                 </li>
                 <li>
-                    <i class="fas fa-box"></i>
-                    <span>Inventory</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                    <i class="fas fa-tshirt"></i>
+                    <a href="all_product_page.php"><span>All Products</span></a>
+                </li>
+                <li>
+                    <i class="fas fa-plus-square"></i>
+                    <a href="add_new_product_page.php"><span>Add New Product</span></a>
                 </li>
                 <li>
                     <i class="fas fa-credit-card"></i>
