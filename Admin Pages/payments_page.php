@@ -23,16 +23,23 @@
             <ul class="sidebar-menu">
                 <li>
                     <i class="fas fa-chart-line"></i>
-                    <span>Dashboard</span>
+                    <a href="dashboard_page.php"><span>Dashboard</span></a>
                 </li>
                 <li>
                     <i class="fas fa-list"></i>
-                    <span>Manage Orders</span>
+                    <a href="manage_order_details_page.php"><span>Manage Orders</span></a>
                 </li>
                 <li>
-                    <i class="fas fa-box"></i>
-                    <span>Inventory</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                    <i class="fas fa-users"></i>
+                    <a href="customer_orders_page.php"><span>Customer Orders</span></a>
+                </li>
+                <li>
+                    <i class="fas fa-tshirt"></i>
+                    <a href="all_product_page.php"><span>All Products</span></a>
+                </li>
+                <li>
+                    <i class="fas fa-plus-square"></i>
+                    <a href="add_new_product_page.php"><span>Add New Product</span></a>
                 </li>
                 <li class="active">
                     <i class="fas fa-credit-card"></i>
@@ -40,7 +47,7 @@
                 </li>
                 <li>
                     <i class="fas fa-cog"></i>
-                    <span>Settings</span>
+                    <a href="settings.php"><span>Settings</span></a>
                 </li>
             </ul>
         </aside>

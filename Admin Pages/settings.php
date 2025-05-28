@@ -30,11 +30,10 @@
                     <a href="manage_order_details_page.php"><span>Manage Orders</span></a>
                 </li>
                 <li>
-                    <i class="fas fa-box"></i>
-                    <span>Inventory</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                    <i class="fas fa-users"></i>
+                    <a href="customer_orders_page.php"><span>Customer Orders</span></a>
                 </li>
-                <li class="active">
+                <li>
                     <i class="fas fa-tshirt"></i>
                     <a href="all_product_page.php"><span>All Products</span></a>
                 </li>
@@ -44,16 +43,21 @@
                 </li>
                 <li>
                     <i class="fas fa-credit-card"></i>
-                    <span>Payments</span>
+                    <a href="payments_page.php"><span>Payments</span></a>
                 </li>
-                <li>
+                <li class="active">
                     <i class="fas fa-cog"></i>
-                    <a href="settings.php"><span>Settings</span></a>
+                    <span>Settings</span>
                 </li>
             </ul>
         </aside>
         
-        <a href="../index.php">Logout</a>
+        <main class="main-content">
+            <h1 class="page-title">Settings</h1>
+            <div class="content-card">
+                <!-- Settings content will go here -->
+            </div>
+        </main>
     </div>
 </body>
 </html>

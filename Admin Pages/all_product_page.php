@@ -35,9 +35,8 @@ include '../db.php';
                     <a href="manage_order_details_page.php"><span>Manage Orders</span></a>
                 </li>
                 <li>
-                    <i class="fas fa-box"></i>
-                    <span>Inventory</span>
-                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                    <i class="fas fa-users"></i>
+                    <a href="customer_orders_page.php"><span>Customer Orders</span></a>
                 </li>
                 <li class="active">
                     <i class="fas fa-tshirt"></i>
@@ -49,7 +48,7 @@ include '../db.php';
                 </li>
                 <li>
                     <i class="fas fa-credit-card"></i>
-                    <span>Payments</span>
+                    <a href="payments_page.php"><span>Payments</span></a>
                 </li>
                 <li>
                     <i class="fas fa-cog"></i>
