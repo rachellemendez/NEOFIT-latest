@@ -21,33 +21,33 @@
     <div class="container">
         <aside class="sidebar">
             <ul class="sidebar-menu">
-                <li>
+                <li onclick="window.location.href='dashboard_page.php'">
                     <i class="fas fa-chart-line"></i>
-                    <a href="dashboard_page.php"><span>Dashboard</span></a>
+                    <span>Dashboard</span>
                 </li>
-                <li>
+                <li onclick="window.location.href='manage_order_details_page.php'">
                     <i class="fas fa-list"></i>
-                    <a href="manage_order_details_page.php"><span>Manage Orders</span></a>
+                    <span>Manage Orders</span>
                 </li>
-                <li>
+                <li onclick="window.location.href='customer_orders_page.php'">
                     <i class="fas fa-users"></i>
-                    <a href="customer_orders_page.php"><span>Customer Orders</span></a>
+                    <span>Customer Orders</span>
                 </li>
-                <li>
+                <li onclick="window.location.href='all_product_page.php'">
                     <i class="fas fa-tshirt"></i>
-                    <a href="all_product_page.php"><span>All Products</span></a>
+                    <span>All Products</span>
                 </li>
-                <li>
+                <li onclick="window.location.href='add_new_product_page.php'">
                     <i class="fas fa-plus-square"></i>
-                    <a href="add_new_product_page.php"><span>Add New Product</span></a>
+                    <span>Add New Product</span>
                 </li>
                 <li class="active">
                     <i class="fas fa-credit-card"></i>
                     <span>Payments</span>
                 </li>
-                <li>
+                <li onclick="window.location.href='settings.php'">
                     <i class="fas fa-cog"></i>
-                    <a href="settings.php"><span>Settings</span></a>
+                    <span>Settings</span>
                 </li>
             </ul>
         </aside>
@@ -60,4 +60,4 @@
         </main>
     </div>
 </body>
-</html>
+</html> 
