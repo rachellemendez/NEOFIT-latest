@@ -1,18 +1,32 @@
 <?php
 include '../db.php';
 
-// Get all unique customers with their order counts and total spent
+// Get customer statistics
+$stats_sql = "SELECT 
+    COUNT(DISTINCT user_name) as total_customers,
+    COUNT(*) as total_orders,
+    SUM(total) as total_revenue,
+    AVG(total) as avg_order_value,
+    COUNT(DISTINCT DATE(order_date)) as active_days
+FROM orders";
+$stats_result = $conn->query($stats_sql)->fetch_assoc();
+
+// Get customer list with their order summaries
 $sql = "SELECT 
-            user_name,
-            user_email,
-            COUNT(*) as total_orders,
-            SUM(total) as total_spent,
-            MAX(order_date) as last_order_date,
-            GROUP_CONCAT(DISTINCT contact_number) as contact_numbers,
-            GROUP_CONCAT(DISTINCT delivery_address) as delivery_addresses
-        FROM orders 
-        GROUP BY user_name, user_email
-        ORDER BY total_spent DESC";
+    user_name,
+    user_email,
+    COUNT(*) as order_count,
+    SUM(total) as total_spent,
+    MAX(order_date) as last_order_date,
+    GROUP_CONCAT(DISTINCT status) as order_statuses,
+    COUNT(CASE WHEN status = 'Pending' THEN 1 END) as pending_orders,
+    COUNT(CASE WHEN status = 'Processing' THEN 1 END) as processing_orders,
+    COUNT(CASE WHEN status = 'Shipped' THEN 1 END) as shipped_orders,
+    COUNT(CASE WHEN status = 'Delivered' THEN 1 END) as delivered_orders,
+    COUNT(CASE WHEN status = 'Cancelled' THEN 1 END) as cancelled_orders
+FROM orders 
+GROUP BY user_name, user_email
+ORDER BY order_count DESC";
 
 $result = $conn->query($sql);
 ?>
@@ -26,76 +40,190 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
         .customer-card {
             background: white;
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
         }
-        
+
+        .customer-card:hover {
+            transform: translateY(-2px);
+        }
+
         .customer-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
         }
-        
-        .customer-stats {
+
+        .customer-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .customer-avatar {
+            width: 50px;
+            height: 50px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            color: #666;
+        }
+
+        .customer-details h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .customer-email {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .order-metrics {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin-bottom: 15px;
         }
-        
-        .stat-item {
+
+        .metric-item {
             background: #f8f9fa;
             padding: 15px;
             border-radius: 6px;
+            text-align: center;
         }
-        
-        .stat-label {
-            color: #666;
-            font-size: 0.9em;
+
+        .metric-value {
+            font-size: 1.2em;
+            font-weight: 500;
             margin-bottom: 5px;
         }
-        
-        .stat-value {
-            font-size: 1.2em;
-            font-weight: bold;
+
+        .metric-label {
+            font-size: 0.85em;
+            color: #666;
         }
-        
-        .contact-info {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 6px;
+
+        .status-summary {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
         }
-        
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-processing { background: #cce5ff; color: #004085; }
+        .status-shipped { background: #d4edda; color: #155724; }
+        .status-delivered { background: #c3e6cb; color: #1e7e34; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+
+        .customer-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.2s;
+        }
+
         .view-orders-btn {
             background: #7ab55c;
             color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
         }
-        
-        .view-orders-btn:hover {
-            background: #689b4a;
+
+        .contact-btn {
+            background: #6c757d;
+            color: white;
         }
-        
+
         .search-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
             margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
+
         .search-input {
             width: 100%;
-            max-width: 300px;
-            padding: 8px;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            margin-right: 10px;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .order-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .customer-actions {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -146,49 +274,118 @@ $result = $conn->query($sql);
         
         <main class="main-content">
             <h1 class="page-title">Customer Orders</h1>
-            
-            <div class="search-section">
-                <input type="text" id="customerSearch" class="search-input" placeholder="Search customers...">
+
+            <!-- Customer Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value"><?php echo $stats_result['total_customers']; ?></div>
+                    <div class="stat-label">Total Customers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value"><?php echo $stats_result['total_orders']; ?></div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">₱<?php echo number_format($stats_result['total_revenue'], 2); ?></div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">₱<?php echo number_format($stats_result['avg_order_value'], 2); ?></div>
+                    <div class="stat-label">Average Order Value</div>
+                </div>
             </div>
-            
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <input type="text" id="customerSearch" class="search-input" 
+                       placeholder="Search customers by name or email...">
+            </div>
+
+            <!-- Customer List -->
             <div class="customer-list">
                 <?php
                 if ($result->num_rows > 0) {
                     while($row = $result->fetch_assoc()) {
+                        $initial = strtoupper(substr($row['user_name'], 0, 1));
                         ?>
                         <div class="customer-card">
                             <div class="customer-header">
-                                <h2><?php echo htmlspecialchars($row['user_name']); ?></h2>
-                                <button class="view-orders-btn" onclick="window.location.href='manage_order_details_page.php?user=<?php echo urlencode($row['user_email']); ?>'">
+                                <div class="customer-info">
+                                    <div class="customer-avatar">
+                                        <?php echo $initial; ?>
+                                    </div>
+                                    <div class="customer-details">
+                                        <h3><?php echo htmlspecialchars($row['user_name']); ?></h3>
+                                        <div class="customer-email"><?php echo htmlspecialchars($row['user_email']); ?></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="order-metrics">
+                                <div class="metric-item">
+                                    <div class="metric-value"><?php echo $row['order_count']; ?></div>
+                                    <div class="metric-label">Total Orders</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-value">₱<?php echo number_format($row['total_spent'], 2); ?></div>
+                                    <div class="metric-label">Total Spent</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-value"><?php echo date('M d, Y', strtotime($row['last_order_date'])); ?></div>
+                                    <div class="metric-label">Last Order</div>
+                                </div>
+                            </div>
+
+                            <div class="status-summary">
+                                <?php if ($row['pending_orders'] > 0): ?>
+                                    <span class="status-badge status-pending">
+                                        <i class="fas fa-clock"></i>
+                                        <?php echo $row['pending_orders']; ?> Pending
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($row['processing_orders'] > 0): ?>
+                                    <span class="status-badge status-processing">
+                                        <i class="fas fa-cog"></i>
+                                        <?php echo $row['processing_orders']; ?> Processing
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($row['shipped_orders'] > 0): ?>
+                                    <span class="status-badge status-shipped">
+                                        <i class="fas fa-truck"></i>
+                                        <?php echo $row['shipped_orders']; ?> Shipped
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($row['delivered_orders'] > 0): ?>
+                                    <span class="status-badge status-delivered">
+                                        <i class="fas fa-check"></i>
+                                        <?php echo $row['delivered_orders']; ?> Delivered
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($row['cancelled_orders'] > 0): ?>
+                                    <span class="status-badge status-cancelled">
+                                        <i class="fas fa-times"></i>
+                                        <?php echo $row['cancelled_orders']; ?> Cancelled
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="customer-actions">
+                                <button class="action-btn view-orders-btn" 
+                                        onclick="window.location.href='manage_order_details_page.php?user=<?php echo urlencode($row['user_email']); ?>'">
+                                    <i class="fas fa-shopping-bag"></i>
                                     View Orders
                                 </button>
-                            </div>
-                            
-                            <div class="customer-stats">
-                                <div class="stat-item">
-                                    <div class="stat-label">Total Orders</div>
-                                    <div class="stat-value"><?php echo $row['total_orders']; ?></div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Total Spent</div>
-                                    <div class="stat-value">$<?php echo number_format($row['total_spent'], 2); ?></div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-label">Last Order</div>
-                                    <div class="stat-value"><?php echo date('M d, Y', strtotime($row['last_order_date'])); ?></div>
-                                </div>
-                            </div>
-                            
-                            <div class="contact-info">
-                                <p><strong>Email:</strong> <?php echo htmlspecialchars($row['user_email']); ?></p>
-                                <p><strong>Contact:</strong> <?php echo htmlspecialchars($row['contact_numbers']); ?></p>
-                                <p><strong>Address:</strong> <?php echo htmlspecialchars($row['delivery_addresses']); ?></p>
+                                <button class="action-btn contact-btn" 
+                                        onclick="contactCustomer('<?php echo htmlspecialchars($row['user_email']); ?>')">
+                                    <i class="fas fa-envelope"></i>
+                                    Contact Customer
+                                </button>
                             </div>
                         </div>
                         <?php
                     }
                 } else {
-                    echo "<p>No customers found with orders.</p>";
+                    echo "<p>No customers found</p>";
                 }
                 ?>
             </div>
@@ -200,18 +397,27 @@ $result = $conn->query($sql);
         document.getElementById('customerSearch').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const customerCards = document.querySelectorAll('.customer-card');
-            
+
             customerCards.forEach(card => {
-                const customerName = card.querySelector('h2').textContent.toLowerCase();
-                const customerEmail = card.querySelector('.contact-info p:first-child').textContent.toLowerCase();
-                
-                if (customerName.includes(searchTerm) || customerEmail.includes(searchTerm)) {
-                    card.style.display = '';
+                const name = card.querySelector('.customer-details h3').textContent.toLowerCase();
+                const email = card.querySelector('.customer-email').textContent.toLowerCase();
+
+                if (name.includes(searchTerm) || email.includes(searchTerm)) {
+                    card.style.display = 'block';
                 } else {
                     card.style.display = 'none';
                 }
             });
         });
+
+        function contactCustomer(email) {
+            // Open default email client
+            window.location.href = `mailto:${email}`;
+        }
     </script>
 </body>
-</html> 
+</html>
+
+<?php
+$conn->close();
+?> 

@@ -30,7 +30,7 @@ include '../db.php';
             margin-bottom: 30px;
             padding-bottom: 15px;
             border-bottom: 2px solid #4d8d8b;
-        }
+    }
 
         .form-section {
             margin-bottom: 40px;
@@ -57,7 +57,7 @@ include '../db.php';
         .form-group {
             margin-bottom: 25px;
             position: relative;
-        }
+    }
 
         .form-label {
         display: flex;
@@ -79,7 +79,7 @@ include '../db.php';
             color: #6c757d;
             margin-top: 4px;
             margin-bottom: 8px;
-        }
+    }
 
         .form-input {
             width: 100%;
@@ -106,7 +106,7 @@ include '../db.php';
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
             margin-top: 10px;
-        }
+    }
 
         .input-group-item {
         display: flex;
@@ -118,14 +118,14 @@ include '../db.php';
             font-size: 14px;
             color: #495057;
             font-weight: 500;
-        }
+    }
 
         .custom-select-trigger {
             padding: 12px;
             border: 2px solid #e9ecef;
             border-radius: 6px;
             background: white;
-        }
+    }
 
         .error-message {
             font-size: 13px;
@@ -135,12 +135,12 @@ include '../db.php';
             padding: 4px 8px;
             background-color: rgba(220, 53, 69, 0.1);
             border-radius: 4px;
-        }
+    }
 
         .error-message.show {
             display: block;
             animation: fadeIn 0.3s ease;
-        }
+    }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-5px); }
@@ -154,7 +154,7 @@ include '../db.php';
             text-align: center;
             transition: all 0.3s ease;
             cursor: pointer;
-        }
+    }
 
         .drag-drop-zone:hover, .drag-drop-zone.dragover {
             background-color: rgba(77, 141, 139, 0.1);
@@ -165,43 +165,43 @@ include '../db.php';
             font-size: 24px;
             color: #4d8d8b;
             margin-bottom: 10px;
-        }
+    }
 
         .drag-drop-zone p {
             color: #495057;
             font-size: 14px;
             margin: 0;
-        }
+    }
 
         .btn-container {
             margin-top: 40px;
             padding-top: 20px;
             border-top: 1px solid #e9ecef;
-        }
+    }
 
         .btn {
             padding: 12px 24px;
             font-size: 15px;
             font-weight: 500;
             letter-spacing: 0.3px;
-        }
+    }
 
         .btn-primary {
             background-color: #4d8d8b;
             box-shadow: 0 2px 4px rgba(77, 141, 139, 0.2);
-        }
+    }
 
         .btn-primary:hover {
             background-color: #3c7c7a;
             transform: translateY(-1px);
-        }
+    }
 
         .image-preview-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 15px;
             margin-top: 15px;
-        }
+    }
 
         .image-preview {
             position: relative;
@@ -227,13 +227,13 @@ include '../db.php';
 
         .image-preview:hover img {
             transform: scale(1.05);
-        }
+    }
 
         .image-preview .placeholder {
             color: #666;
             text-align: center;
             padding: 10px;
-        }
+    }
 
         .image-preview .remove-image {
             position: absolute;
@@ -249,7 +249,7 @@ include '../db.php';
             display: none;
             align-items: center;
             justify-content: center;
-        }
+    }
 
         .image-preview:hover .remove-image {
             display: flex;
@@ -265,7 +265,7 @@ include '../db.php';
             opacity: 0;
             transition: opacity 0.3s ease;
             z-index: 1000;
-        }
+    }
 
         .notification.success {
             background-color: #28a745;
@@ -273,11 +273,11 @@ include '../db.php';
 
         .notification.error {
             background-color: #dc3545;
-        }
+    }
 
         .notification.show {
             opacity: 1;
-        }
+    }
 
         /* Enhanced Dropdown Styles */
         .select-wrapper {
@@ -296,7 +296,7 @@ include '../db.php';
             color: #666;
             pointer-events: none;
             transition: transform 0.3s ease;
-        }
+    }
 
         .select-wrapper.active::after {
             transform: translateY(-50%) rotate(180deg);
@@ -318,12 +318,12 @@ include '../db.php';
             padding: 10px;
             background-color: white;
         color: #333;
-        }
-
+    }
+    
         .form-input.select option:hover {
             background-color: #f8f9fa;
-        }
-
+    }
+    
         .form-input.select::-ms-expand {
             display: none;
         }
@@ -378,8 +378,8 @@ include '../db.php';
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
-        }
-
+    }
+    
         .custom-option {
             padding: 10px 12px;
             cursor: pointer;
@@ -388,8 +388,8 @@ include '../db.php';
 
         .custom-option:hover {
             background-color: rgba(77, 141, 139, 0.1);
-        }
-
+    }
+    
         .custom-option.selected {
             background-color: rgba(77, 141, 139, 0.2);
             color: #4d8d8b;
@@ -408,15 +408,15 @@ include '../db.php';
         .custom-options::-webkit-scrollbar-thumb {
             background: #4d8d8b;
             border-radius: 3px;
-        }
-
+    }
+    
         .custom-options::-webkit-scrollbar-thumb:hover {
             background: #3c7c7a;
-        }
+    }
 
         /* Modal for larger image preview */
         .image-preview-modal {
-            display: none;
+        display: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -444,8 +444,8 @@ include '../db.php';
             object-fit: contain;
             border-radius: 4px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-        }
-
+    }
+    
         .close-modal {
             position: absolute;
             top: -30px;
@@ -739,7 +739,7 @@ include '../db.php';
             }
             if (/^\d+$/.test(name)) {
                 return 'Product name cannot be numbers only';
-            }
+        }
             return '';
         }
 

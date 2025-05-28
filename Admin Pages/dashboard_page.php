@@ -1,9 +1,12 @@
 <?php
 include '../db.php';
 
-// Get today's sales
+// Get today's sales and orders
 $today = date('Y-m-d');
-$sql_today_sales = "SELECT COALESCE(SUM(total), 0) as today_sales, COUNT(*) as today_orders 
+$sql_today_sales = "SELECT 
+                    COALESCE(SUM(total), 0) as today_sales, 
+                    COUNT(*) as today_orders,
+                    COUNT(DISTINCT user_name) as unique_customers
                     FROM orders 
                     WHERE DATE(order_date) = ?";
 $stmt = $conn->prepare($sql_today_sales);
@@ -13,7 +16,9 @@ $today_result = $stmt->get_result()->fetch_assoc();
 
 // Get yesterday's sales for comparison
 $yesterday = date('Y-m-d', strtotime('-1 day'));
-$sql_yesterday_sales = "SELECT COALESCE(SUM(total), 0) as yesterday_sales 
+$sql_yesterday_sales = "SELECT 
+                       COALESCE(SUM(total), 0) as yesterday_sales,
+                       COUNT(*) as yesterday_orders 
                        FROM orders 
                        WHERE DATE(order_date) = ?";
 $stmt = $conn->prepare($sql_yesterday_sales);
@@ -21,36 +26,92 @@ $stmt->bind_param("s", $yesterday);
 $stmt->execute();
 $yesterday_result = $stmt->get_result()->fetch_assoc();
 
-// Calculate sales trend
+// Calculate sales and orders trends
 $sales_trend = 0;
+$orders_trend = 0;
 if ($yesterday_result['yesterday_sales'] > 0) {
     $sales_trend = (($today_result['today_sales'] - $yesterday_result['yesterday_sales']) / $yesterday_result['yesterday_sales']) * 100;
 }
+if ($yesterday_result['yesterday_orders'] > 0) {
+    $orders_trend = (($today_result['today_orders'] - $yesterday_result['yesterday_orders']) / $yesterday_result['yesterday_orders']) * 100;
+}
 
-// Get total orders for last 30 days
+// Get total orders and revenue for last 30 days
 $last_month = date('Y-m-d', strtotime('-30 days'));
-$sql_month_orders = "SELECT COUNT(*) as total_orders, COALESCE(SUM(total), 0) as total_sales 
+$sql_month_stats = "SELECT 
+                    COUNT(*) as total_orders, 
+                    COALESCE(SUM(total), 0) as total_sales,
+                    COUNT(DISTINCT user_name) as unique_customers,
+                    COUNT(DISTINCT DATE(order_date)) as active_days
                     FROM orders 
                     WHERE order_date >= ?";
-$stmt = $conn->prepare($sql_month_orders);
+$stmt = $conn->prepare($sql_month_stats);
 $stmt->bind_param("s", $last_month);
 $stmt->execute();
 $month_result = $stmt->get_result()->fetch_assoc();
 
-// Calculate average order value
+// Calculate key metrics
 $avg_order_value = 0;
+$daily_sales_avg = 0;
+$customer_frequency = 0;
+
 if ($month_result['total_orders'] > 0) {
     $avg_order_value = $month_result['total_sales'] / $month_result['total_orders'];
 }
+if ($month_result['active_days'] > 0) {
+    $daily_sales_avg = $month_result['total_sales'] / $month_result['active_days'];
+}
+if ($month_result['unique_customers'] > 0) {
+    $customer_frequency = $month_result['total_orders'] / $month_result['unique_customers'];
+}
 
 // Get recent activity (last 10 orders/events)
-$sql_recent = "SELECT id, user_name, product_name, status, order_date, total 
-               FROM orders 
-               ORDER BY order_date DESC 
+$sql_recent = "SELECT 
+               o.id, 
+               o.user_name, 
+               o.product_name, 
+               o.status, 
+               o.order_date, 
+               o.total,
+               o.size,
+               o.quantity
+               FROM orders o
+               ORDER BY o.order_date DESC 
                LIMIT 10";
 $recent_result = $conn->query($sql_recent);
 
-// Get low stock items
+// Get low stock items with more details
+$sql_low_stock = "SELECT 
+                  id,
+                  product_name,
+                  product_price,
+                  quantity_small,
+                  quantity_medium,
+                  quantity_large,
+                  (quantity_small + quantity_medium + quantity_large) as total_stock,
+                  product_status,
+                  product_category
+                  FROM products 
+                  WHERE (quantity_small + quantity_medium + quantity_large) <= 5
+                  ORDER BY (quantity_small + quantity_medium + quantity_large) ASC
+                  LIMIT 5";
+$low_stock_result = $conn->query($sql_low_stock);
+
+// Get best selling products
+$sql_best_sellers = "SELECT 
+                     product_name,
+                     COUNT(*) as order_count,
+                     SUM(quantity) as units_sold,
+                     SUM(total) as revenue
+                     FROM orders 
+                     WHERE order_date >= ?
+                     GROUP BY product_name
+                     ORDER BY units_sold DESC
+                     LIMIT 5";
+$stmt = $conn->prepare($sql_best_sellers);
+$stmt->bind_param("s", $last_month);
+$stmt->execute();
+$best_sellers_result = $stmt->get_result();
 $sql_low_stock = "SELECT product_name, 
                          quantity_small + quantity_medium + quantity_large as total_stock,
                          product_status,
@@ -85,6 +146,12 @@ $low_stock_result = $conn->query($sql_low_stock);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             position: relative;
             overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
         .stat-card h3 {
@@ -117,6 +184,56 @@ $low_stock_result = $conn->query($sql_low_stock);
             opacity: 0.1;
         }
 
+        .dashboard-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .best-sellers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .product-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            transition: transform 0.2s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .product-info h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 1em;
+        }
+
+        .product-stats {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.9em;
+        }
+
         .activity-feed {
             background: white;
             border-radius: 8px;
@@ -138,9 +255,14 @@ $low_stock_result = $conn->query($sql_low_stock);
 
         .activity-item {
             display: flex;
-            align-items: center;
-            padding: 15px 0;
+            align-items: flex-start;
+            padding: 15px;
             border-bottom: 1px solid #eee;
+            transition: background-color 0.2s ease;
+        }
+
+        .activity-item:hover {
+            background-color: #f8f9fa;
         }
 
         .activity-icon {
@@ -152,59 +274,121 @@ $low_stock_result = $conn->query($sql_low_stock);
             align-items: center;
             justify-content: center;
             margin-right: 15px;
+            flex-shrink: 0;
         }
 
         .activity-content {
             flex: 1;
         }
 
-        .activity-content p {
-            margin: 0;
-        }
-
-        .activity-time {
-            color: #666;
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-
-        .inventory-items {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .inventory-header {
+        .order-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
         }
 
-        .inventory-header h3 {
-            margin: 0;
+        .order-id {
+            font-weight: 500;
+            color: #333;
         }
 
-        .stock-level {
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-processing { background: #cce5ff; color: #004085; }
+        .status-shipped { background: #d4edda; color: #155724; }
+        .status-delivered { background: #c3e6cb; color: #1e7e34; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+
+        .activity-content p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .activity-time {
+            color: #999;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+
+        .low-stock-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .size-stock {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 8px;
+        }
+
+        .size-stock span {
+            background: #f8f9fa;
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 0.9em;
+            color: #666;
         }
 
-        .low-stock {
-            background: #fff3cd;
-            color: #856404;
+        .stock-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 500;
+            display: inline-block;
         }
 
-        .out-of-stock {
+        .stock-badge.out-of-stock {
             background: #f8d7da;
             color: #721c24;
         }
 
-        .in-stock {
-            background: #d4edda;
-            color: #155724;
+        .stock-badge.low-stock {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .category-badge {
+            background: #e9ecef;
+            color: #495057;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .price {
+            font-weight: 500;
+            color: #28a745;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+
+            .best-sellers-grid,
+            .low-stock-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -219,7 +403,7 @@ $low_stock_result = $conn->query($sql_low_stock);
         </div>
     </header>
 
-    <div class="container">
+        <div class="container">
         <aside class="sidebar">
             <ul class="sidebar-menu">
                 <li class="active">
@@ -252,134 +436,223 @@ $low_stock_result = $conn->query($sql_low_stock);
                 </li>
             </ul>
         </aside>
-
+        
         <main class="main-content">
-            <h1 class="page-title">Dashboard</h1>
+            <div class="page-header">
+                <h1 class="page-title">Dashboard Overview</h1>
+                <div class="date-range">
+                    <i class="fas fa-calendar"></i>
+                    <span><?php echo date('F j, Y'); ?></span>
+                </div>
+            </div>
 
             <!-- Stats Overview -->
             <div class="stats-grid">
+                <!-- Today's Performance -->
                 <div class="stat-card">
                     <h3>Today's Sales</h3>
-                    <div class="value">$<?php echo number_format($today_result['today_sales'], 2); ?></div>
+                    <div class="value">₱<?php echo number_format($today_result['today_sales'], 2); ?></div>
                     <div class="trend <?php echo $sales_trend >= 0 ? 'up' : 'down'; ?>">
-                        <i class="fas fa-arrow-<?php echo $sales_trend >= 0 ? 'up' : 'down'; ?>"></i>
-                        <?php echo abs(round($sales_trend, 1)); ?>% from yesterday
+                        <i class="fas fa-<?php echo $sales_trend >= 0 ? 'arrow-up' : 'arrow-down'; ?>"></i>
+                        <?php echo abs(round($sales_trend, 1)); ?>% vs yesterday
                     </div>
                     <div class="stat-icon">
                         <i class="fas fa-dollar-sign"></i>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
-                    <h3>Total Orders (30 days)</h3>
-                    <div class="value"><?php echo $month_result['total_orders']; ?></div>
-                    <div class="trend up">
-                        <i class="fas fa-shopping-bag"></i>
-                        Last 30 days
+                    <h3>Today's Orders</h3>
+                    <div class="value"><?php echo $today_result['today_orders']; ?></div>
+                    <div class="trend <?php echo $orders_trend >= 0 ? 'up' : 'down'; ?>">
+                        <i class="fas fa-<?php echo $orders_trend >= 0 ? 'arrow-up' : 'arrow-down'; ?>"></i>
+                        <?php echo abs(round($orders_trend, 1)); ?>% vs yesterday
                     </div>
                     <div class="stat-icon">
-                        <i class="fas fa-shopping-bag"></i>
+                        <i class="fas fa-shopping-cart"></i>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
-                    <h3>Average Order Value</h3>
-                    <div class="value">$<?php echo number_format($avg_order_value, 2); ?></div>
+                    <h3>Unique Customers</h3>
+                    <div class="value"><?php echo $today_result['unique_customers']; ?></div>
                     <div class="trend">
-                        <i class="fas fa-calculator"></i>
+                        <i class="fas fa-users"></i>
+                        Today's customers
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Avg Order Value</h3>
+                    <div class="value">₱<?php echo number_format($avg_order_value, 2); ?></div>
+                    <div class="trend">
+                        <i class="fas fa-chart-bar"></i>
                         30-day average
                     </div>
                     <div class="stat-icon">
                         <i class="fas fa-calculator"></i>
                     </div>
                 </div>
-                
+
+                <!-- Monthly Performance -->
                 <div class="stat-card">
-                    <h3>Today's Orders</h3>
-                    <div class="value"><?php echo $today_result['today_orders']; ?></div>
+                    <h3>30-Day Revenue</h3>
+                    <div class="value">₱<?php echo number_format($month_result['total_sales'], 2); ?></div>
                     <div class="trend">
-                        <i class="fas fa-clock"></i>
-                        Today's count
+                        <i class="fas fa-calendar"></i>
+                        ₱<?php echo number_format($daily_sales_avg, 2); ?> daily avg
                     </div>
                     <div class="stat-icon">
-                        <i class="fas fa-shopping-cart"></i>
+                        <i class="fas fa-chart-line"></i>
                     </div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>30-Day Orders</h3>
+                    <div class="value"><?php echo $month_result['total_orders']; ?></div>
+                    <div class="trend">
+                        <i class="fas fa-shopping-bag"></i>
+                        <?php echo $month_result['active_days']; ?> active days
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Customer Base</h3>
+                    <div class="value"><?php echo $month_result['unique_customers']; ?></div>
+                    <div class="trend">
+                        <i class="fas fa-repeat"></i>
+                        <?php echo number_format($customer_frequency, 1); ?> orders per customer
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Best Sellers Section -->
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h3>Best Selling Products (30 Days)</h3>
+                    <a href="all_product_page.php" style="text-decoration: none; color: #7ab55c;">View All Products</a>
+                </div>
+                <div class="best-sellers-grid">
+                    <?php
+                    if ($best_sellers_result->num_rows > 0) {
+                        while ($product = $best_sellers_result->fetch_assoc()) {
+                            ?>
+                            <div class="product-card">
+                                <div class="product-info">
+                                    <h4><?php echo htmlspecialchars($product['product_name']); ?></h4>
+                                    <div class="product-stats">
+                                        <span><i class="fas fa-box"></i> <?php echo $product['units_sold']; ?> units</span>
+                                        <span><i class="fas fa-dollar-sign"></i> ₱<?php echo number_format($product['revenue'], 2); ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php
+                        }
+                    } else {
+                        echo "<p>No sales data available</p>";
+                    }
+                    ?>
                 </div>
             </div>
 
             <!-- Recent Activity -->
             <div class="activity-feed">
                 <div class="activity-header">
-                    <h3>Recent Activity</h3>
-                    <a href="manage_order_details_page.php" style="text-decoration: none; color: #7ab55c;">View All</a>
+                    <h3>Recent Orders</h3>
+                    <a href="manage_order_details_page.php" style="text-decoration: none; color: #7ab55c;">View All Orders</a>
                 </div>
                 
                 <?php
                 if ($recent_result->num_rows > 0) {
                     while ($row = $recent_result->fetch_assoc()) {
                         $time_ago = time_elapsed_string($row['order_date']);
+                        $status_class = strtolower($row['status']);
                         ?>
                         <div class="activity-item">
                             <div class="activity-icon">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>
                             <div class="activity-content">
-                                <p>Order #<?php echo $row['id']; ?> - <?php echo htmlspecialchars($row['user_name']); ?> 
-                                   ordered <?php echo htmlspecialchars($row['product_name']); ?> 
-                                   ($<?php echo number_format($row['total'], 2); ?>)</p>
+                                <div class="order-header">
+                                    <span class="order-id">Order #<?php echo $row['id']; ?></span>
+                                    <span class="status-badge <?php echo $status_class; ?>"><?php echo $row['status']; ?></span>
+                                </div>
+                                <p>
+                                    <strong><?php echo htmlspecialchars($row['user_name']); ?></strong> ordered 
+                                    <?php echo $row['quantity']; ?>x <?php echo htmlspecialchars($row['product_name']); ?> 
+                                    (<?php echo strtoupper($row['size']); ?>) - 
+                                    ₱<?php echo number_format($row['total'], 2); ?>
+                                </p>
                                 <div class="activity-time"><?php echo $time_ago; ?></div>
                             </div>
                         </div>
                         <?php
                     }
                 } else {
-                    echo "<p>No recent activity</p>";
+                    echo "<p>No recent orders</p>";
                 }
                 ?>
             </div>
 
             <!-- Low Stock Items -->
-            <div class="inventory-items">
-                <div class="inventory-header">
+            <div class="dashboard-section">
+                <div class="section-header">
                     <h3>Low Stock Items</h3>
-                    <a href="all_product_page.php" class="btn-apply">Manage Inventory</a>
+                    <a href="all_product_page.php" style="text-decoration: none; color: #7ab55c;">Manage Inventory</a>
                 </div>
-                
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Current Stock</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        if ($low_stock_result->num_rows > 0) {
-                            while ($row = $low_stock_result->fetch_assoc()) {
-                                $stock_class = $row['total_stock'] == 0 ? 'out-of-stock' : 'low-stock';
-                                $stock_text = $row['total_stock'] == 0 ? 'Out of Stock' : 'Low Stock';
-                                ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($row['product_name']); ?></td>
-                                    <td><?php echo $row['total_stock']; ?></td>
-                                    <td><span class="stock-level <?php echo $stock_class; ?>"><?php echo $stock_text; ?></span></td>
-                                    <td>
-                                        <a href="edit_product.php?id=<?php echo $row['id']; ?>" class="btn-track">Update Stock</a>
-                                    </td>
-                                </tr>
-                                <?php
-                            }
-                        } else {
-                            echo "<tr><td colspan='4'>No low stock items</td></tr>";
+                <div class="low-stock-grid">
+                    <?php
+                    if ($low_stock_result->num_rows > 0) {
+                        while ($product = $low_stock_result->fetch_assoc()) {
+                            $stock_status = $product['total_stock'] === 0 ? 'out-of-stock' : 'low-stock';
+                            ?>
+                            <div class="product-card">
+                                <div class="product-info">
+                                    <h4><?php echo htmlspecialchars($product['product_name']); ?></h4>
+                                    <div class="product-stats">
+                                        <div class="size-stock">
+                                            <span>S: <?php echo $product['quantity_small']; ?></span>
+                                            <span>M: <?php echo $product['quantity_medium']; ?></span>
+                                            <span>L: <?php echo $product['quantity_large']; ?></span>
+                                        </div>
+                                        <span class="stock-badge <?php echo $stock_status; ?>">
+                                            <?php echo $product['total_stock']; ?> total units
+                                        </span>
+                                    </div>
+                                    <div class="product-footer">
+                                        <span class="category-badge">
+                                            <i class="fas fa-tag"></i>
+                                            <?php echo ucfirst($product['product_category']); ?>
+                                        </span>
+                                        <span class="price">
+                                            ₱<?php echo number_format($product['product_price'], 2); ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php
                         }
-                        ?>
-                    </tbody>
-                </table>
+                    } else {
+                        echo "<p>No low stock items</p>";
+                    }
+                    ?>
+                </div>
             </div>
         </main>
     </div>
+
+    <script>
+        // Add any JavaScript functionality here
+    </script>
 </body>
 </html>
 
