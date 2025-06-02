@@ -1,0 +1,49 @@
+<?php
+function get_db_connection() {
+    $host = 'localhost';
+    $username = 'root';
+    $password = '';
+    $database = 'neofit';
+    
+    $conn = new mysqli($host, $username, $password, $database);
+    
+    if ($conn->connect_error) {
+        throw new Exception("Connection failed: " . $conn->connect_error);
+    }
+    
+    return $conn;
+}
+
+// Create password_resets table if it doesn't exist
+try {
+    $conn = get_db_connection();
+    
+    $sql = "CREATE TABLE IF NOT EXISTS password_resets (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        token VARCHAR(255) NOT NULL,
+        expiry DATETIME NOT NULL,
+        used TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )";
+    
+    if (!$conn->query($sql)) {
+        throw new Exception("Error creating password_resets table: " . $conn->error);
+    }
+    
+    // Add index on token for faster lookups
+    $sql = "CREATE INDEX IF NOT EXISTS idx_token ON password_resets(token)";
+    $conn->query($sql);
+    
+    // Add index on email for faster lookups
+    $sql = "CREATE INDEX IF NOT EXISTS idx_email ON password_resets(email)";
+    $conn->query($sql);
+    
+} catch (Exception $e) {
+    error_log($e->getMessage());
+} finally {
+    if (isset($conn)) {
+        $conn->close();
+    }
+}
+?> 
