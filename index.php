@@ -292,6 +292,75 @@ if(isset($_SESSION['email'])){
                 height: 580px;
             }
         }
+
+        .password-requirements {
+            display: none;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            padding: 10px;
+            border: 1px solid #eaeaea;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .requirement {
+            margin: 3px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .requirement.valid {
+            color: #28a745;
+        }
+
+        .requirement.invalid {
+            color: #dc3545;
+        }
+
+        .requirement::before {
+            content: '✕';
+            color: #dc3545;
+        }
+
+        .requirement.valid::before {
+            content: '✓';
+            color: #28a745;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.pending {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .input-error {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -328,7 +397,7 @@ if(isset($_SESSION['email'])){
                                 <input type="password" id="password" name="password" class="form-input" placeholder="Password">
                             </div>
                             <div class="form-footer">
-                                <a href="#" class="forgot-link">Forgot Password?</a>
+                                <a href="forgot_password.php" class="forgot-link">Forgot Password?</a>
                             </div>
                             <div class="terms-text">
                                 By signing up, I accept NeoFit's <a href="#">Privacy Policy</a> and <a href="#">Legal Statement</a>
@@ -341,26 +410,38 @@ if(isset($_SESSION['email'])){
                     <!-- SIGNUP FORM -->
                     <div class="tab-content" id="signup-tab">
                         <p class="welcome-text">Create your NeoFit account to get started.</p>
-                        <form class="auth-form" method="POST" action="signup_backend.php">
+                        <form class="auth-form" id="signup-form" method="POST" action="signup_backend.php">
                             <div class="form-group">
-                                <input type="text" id="fullname" name="first_name" class="form-input" placeholder="First Name">
+                                <input type="text" id="first_name" name="first_name" class="form-input" placeholder="First Name" 
+                                    pattern="[A-Za-z ]+" title="First name can only contain letters and spaces" required>
+                                <div class="input-error" id="first-name-error"></div>
                             </div>
                             <div class="form-group">
-                                <input type="text" id="lastname" name="last_name" class="form-input" placeholder="Last Name">
+                                <input type="text" id="last_name" name="last_name" class="form-input" placeholder="Last Name" 
+                                    pattern="[A-Za-z ]+" title="Last name can only contain letters and spaces" required>
+                                <div class="input-error" id="last-name-error"></div>
                             </div>
                             <div class="form-group">
-                                <input type="email" id="signup-email" name="email" class="form-input" placeholder="Email">
+                                <input type="email" id="signup-email" name="email" class="form-input" placeholder="Email" required>
                             </div>
                             <div class="form-group">
-                                <input type="password" id="signup-password" name="password" class="form-input" placeholder="Password">
+                                <input type="password" id="signup-password" name="password" class="form-input" placeholder="Password" required>
+                                <div class="password-requirements" id="password-requirements">
+                                    <div class="requirement" id="length">At least 8 characters long</div>
+                                    <div class="requirement" id="letter">Contains at least one letter</div>
+                                    <div class="requirement" id="number">Contains at least one number</div>
+                                    <div class="requirement" id="special">Contains at least one special character</div>
+                                </div>
                             </div>
                             <div class="form-group">
-                                <input type="password" id="confirm-password" name="confirm_password" class="form-input" placeholder="Confirm Password">
+                                <input type="password" id="confirm-password" name="confirm_password" class="form-input" placeholder="Confirm Password" required>
                             </div>
+                            <div id="signup-message" class="message" style="display: none;"></div>
                             <div class="terms-text">
                                 By signing up, I accept NeoFit's <a href="#">Privacy Policy</a> and <a href="#">Legal Statement</a>
                             </div>
-                            <button type="submit" name="submit" class="auth-button">Sign Up</button>
+                            <input type="hidden" name="signup_submit" value="1">
+                            <button type="submit" class="auth-button">Sign Up</button>
                         </form>
                     </div>
                     <!-- END OF SIGNUP FORM -->
@@ -392,6 +473,167 @@ if(isset($_SESSION['email'])){
                 btn.classList.add('active');
                 const tabId = btn.getAttribute('data-tab');
                 document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+
+        // Password validation
+        const passwordInput = document.getElementById('signup-password');
+        const requirements = document.getElementById('password-requirements');
+        const length = document.getElementById('length');
+        const letter = document.getElementById('letter');
+        const number = document.getElementById('number');
+        const special = document.getElementById('special');
+
+        // Show password requirements when password field is focused
+        passwordInput.addEventListener('focus', function() {
+            requirements.style.display = 'block';
+        });
+
+        // Hide password requirements when password field loses focus
+        passwordInput.addEventListener('blur', function() {
+            requirements.style.display = 'none';
+        });
+
+        // Check password requirements in real-time
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            
+            // Check length
+            if(password.length >= 8) {
+                length.classList.add('valid');
+            } else {
+                length.classList.remove('valid');
+            }
+            
+            // Check for letters
+            if(/[a-zA-Z]/.test(password)) {
+                letter.classList.add('valid');
+            } else {
+                letter.classList.remove('valid');
+            }
+            
+            // Check for numbers
+            if(/[0-9]/.test(password)) {
+                number.classList.add('valid');
+            } else {
+                number.classList.remove('valid');
+            }
+            
+            // Check for special characters
+            if(/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+                special.classList.add('valid');
+            } else {
+                special.classList.remove('valid');
+            }
+        });
+
+        // Name validation
+        const firstNameInput = document.getElementById('first_name');
+        const lastNameInput = document.getElementById('last_name');
+        const firstNameError = document.getElementById('first-name-error');
+        const lastNameError = document.getElementById('last-name-error');
+
+        function validateName(input, errorDiv) {
+            const nameRegex = /^[A-Za-z ]+$/;
+            const value = input.value.trim();
+            
+            if (!nameRegex.test(value) && value !== '') {
+                errorDiv.textContent = input.title;
+                errorDiv.style.display = 'block';
+                input.setCustomValidity(input.title);
+            } else {
+                errorDiv.style.display = 'none';
+                input.setCustomValidity('');
+            }
+        }
+
+        firstNameInput.addEventListener('input', function() {
+            validateName(this, firstNameError);
+        });
+
+        lastNameInput.addEventListener('input', function() {
+            validateName(this, lastNameError);
+        });
+
+        // Handle signup form submission
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const messageDiv = document.getElementById('signup-message');
+            const submitButton = this.querySelector('button[type="submit"]');
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            // Validate names
+            const firstNameValid = /^[A-Za-z ]+$/.test(firstNameInput.value.trim());
+            const lastNameValid = /^[A-Za-z ]+$/.test(lastNameInput.value.trim());
+
+            if (!firstNameValid || !lastNameValid) {
+                messageDiv.textContent = 'Names can only contain letters and spaces.';
+                messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+                return;
+            }
+            
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                messageDiv.textContent = 'Passwords do not match.';
+                messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+                return;
+            }
+            
+            // Check if all password requirements are met
+            const requirements = document.querySelectorAll('.requirement');
+            let allValid = true;
+            requirements.forEach(req => {
+                if (!req.classList.contains('valid')) {
+                    allValid = false;
+                }
+            });
+            
+            if (!allValid) {
+                messageDiv.textContent = 'Please meet all password requirements.';
+                messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+                return;
+            }
+            
+            // Disable submit button and show loading state
+            submitButton.disabled = true;
+            submitButton.textContent = 'Signing up...';
+            
+            // Send form data
+            fetch('signup_backend.php', {
+                method: 'POST',
+                body: new FormData(this)
+            })
+            .then(response => response.json())
+            .then(data => {
+                messageDiv.textContent = data.message;
+                messageDiv.className = `message ${data.status}`;
+                messageDiv.style.display = 'block';
+                
+                if (data.status === 'success') {
+                    // Clear form
+                    this.reset();
+                    requirements.forEach(req => req.classList.remove('valid'));
+                    
+                    // Show success message briefly before redirect
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                messageDiv.textContent = 'An error occurred. Please try again.';
+                messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Sign Up';
             });
         });
     </script>
