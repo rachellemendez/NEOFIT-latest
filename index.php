@@ -95,11 +95,10 @@ if(isset($_SESSION['email'])){
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
             border-radius: 8px;
             margin: 20px;
-            overflow: hidden;
+            overflow-y: auto;
             height: auto;
-            min-height: 620px;
-            margin-top: -150px; 
-            
+            max-height: 90vh;
+            margin-top: -50px;
         }
 
         .auth-title {
@@ -151,12 +150,33 @@ if(isset($_SESSION['email'])){
 
         .tab-content {
             display: none;
-            height: 100%;
+            height: auto;
+            overflow-y: auto;
+            padding-right: 5px;
         }
 
         .tab-content.active {
             display: flex;
             flex-direction: column;
+        }
+
+        /* Add scrollbar styling */
+        .tab-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tab-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .tab-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .tab-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
 
         .welcome-text {
@@ -285,11 +305,8 @@ if(isset($_SESSION['email'])){
             }
             
             .auth-container {
-                width: 100%;
-                max-width: 400px;
-                padding: 30px 20px;
-                margin: 0;
-                height: 580px;
+                margin-top: 20px;
+                max-height: 80vh;
             }
         }
 
@@ -361,7 +378,121 @@ if(isset($_SESSION['email'])){
             margin-top: 5px;
             display: none;
         }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+            font-size: 14px;
+            padding: 5px;
+            z-index: 2;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+        }
+
+        .password-toggle:hover {
+            color: #333;
+        }
+
+        .password-toggle i {
+            font-size: 14px;
+            font-style: normal;
+        }
+
+        /* Adjust positioning for signup form password fields */
+        #signup-tab .password-toggle {
+            top: 21px;
+            transform: none;
+        }
+
+        /* Add these styles for the popup message */
+        .popup-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+            text-align: center;
+            min-width: 300px;
+            color: #333;
+        }
+
+        .popup-message.error {
+            border-left: 4px solid #dc3545;
+        }
+
+        .popup-message.success {
+            border-left: 4px solid #28a745;
+        }
+
+        .popup-message .close-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #666;
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        /* Add system message styles */
+        .system-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 1000;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .system-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .system-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translate(-50%, -100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <header>
@@ -395,9 +526,10 @@ if(isset($_SESSION['email'])){
                             </div>
                             <div class="form-group">
                                 <input type="password" id="password" name="password" class="form-input" placeholder="Password">
+                                <span class="password-toggle" onmousedown="showPassword('password')" onmouseup="hidePassword('password')" onmouseleave="hidePassword('password')"><i class="fa-solid fa-eye-slash"></i></span>
                             </div>
                             <div class="form-footer">
-                                <a href="forgot_password.php" class="forgot-link">Forgot Password?</a>
+                                <a href="forgot_password_new.php" class="forgot-link">Forgot Password?</a>
                             </div>
                             <div class="terms-text">
                                 By signing up, I accept NeoFit's <a href="#">Privacy Policy</a> and <a href="#">Legal Statement</a>
@@ -426,6 +558,7 @@ if(isset($_SESSION['email'])){
                             </div>
                             <div class="form-group">
                                 <input type="password" id="signup-password" name="password" class="form-input" placeholder="Password" required>
+                                <span class="password-toggle" onmousedown="showPassword('signup-password')" onmouseup="hidePassword('signup-password')" onmouseleave="hidePassword('signup-password')"><i class="fa-solid fa-eye-slash"></i></span>
                                 <div class="password-requirements" id="password-requirements">
                                     <div class="requirement" id="length">At least 8 characters long</div>
                                     <div class="requirement" id="letter">Contains at least one letter</div>
@@ -435,6 +568,21 @@ if(isset($_SESSION['email'])){
                             </div>
                             <div class="form-group">
                                 <input type="password" id="confirm-password" name="confirm_password" class="form-input" placeholder="Confirm Password" required>
+                                <span class="password-toggle" onmousedown="showPassword('confirm-password')" onmouseup="hidePassword('confirm-password')" onmouseleave="hidePassword('confirm-password')"><i class="fa-solid fa-eye-slash"></i></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="security_question" style="display: block; margin-bottom: 5px; color: #666; font-size: 14px;">Security Question</label>
+                                <select id="security_question" name="security_question" class="form-input" required>
+                                    <option value="fav_food">What is your favorite food?</option>
+                                    <option value="fav_color">What is your favorite color?</option>
+                                    <option value="first_pet">What was your first pet's name?</option>
+                                    <option value="fav_flower">What is your favorite flower?</option>
+                                    <option value="fav_place">What is your favorite place?</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="security_answer" style="display: block; margin-bottom: 5px; color: #666; font-size: 14px;">Your Answer</label>
+                                <input type="text" id="security_answer" name="security_answer" class="form-input" required>
                             </div>
                             <div id="signup-message" class="message" style="display: none;"></div>
                             <div class="terms-text">
@@ -457,6 +605,16 @@ if(isset($_SESSION['email'])){
             <a href="#">About NEOFIT</a>
         </div>
     </footer>
+
+    <!-- Add this right after the <body> tag -->
+    <div class="popup-overlay" id="popupOverlay"></div>
+    <div class="popup-message" id="popupMessage">
+        <span class="close-btn" onclick="closePopup()">&times;</span>
+        <p id="popupText"></p>
+    </div>
+
+    <!-- Add this after the header -->
+    <div id="systemMessage" class="system-message"></div>
 
     <script>
         // Tab switching functionality
@@ -555,11 +713,48 @@ if(isset($_SESSION['email'])){
             validateName(this, lastNameError);
         });
 
-        // Handle signup form submission
+        // Add these new popup functions
+        function showPopup(message, type = 'error') {
+            const popup = document.getElementById('popupMessage');
+            const overlay = document.getElementById('popupOverlay');
+            const popupText = document.getElementById('popupText');
+            
+            popup.className = 'popup-message ' + type;
+            popupText.textContent = message;
+            
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+            
+            // Auto close after 3 seconds for success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    closePopup();
+                }, 3000);
+            }
+        }
+
+        function closePopup() {
+            document.getElementById('popupMessage').style.display = 'none';
+            document.getElementById('popupOverlay').style.display = 'none';
+        }
+
+        // Add system message functions
+        function showSystemMessage(message, type = 'error') {
+            const msgElement = document.getElementById('systemMessage');
+            msgElement.textContent = message;
+            msgElement.className = 'system-message ' + type;
+            msgElement.style.display = 'block';
+
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                msgElement.style.display = 'none';
+            }, 3000);
+        }
+
+        // Modify the signup form submission handler
         document.getElementById('signup-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const messageDiv = document.getElementById('signup-message');
             const submitButton = this.querySelector('button[type="submit"]');
             const password = document.getElementById('signup-password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
@@ -569,17 +764,13 @@ if(isset($_SESSION['email'])){
             const lastNameValid = /^[A-Za-z ]+$/.test(lastNameInput.value.trim());
 
             if (!firstNameValid || !lastNameValid) {
-                messageDiv.textContent = 'Names can only contain letters and spaces.';
-                messageDiv.className = 'message error';
-                messageDiv.style.display = 'block';
+                showSystemMessage('Names can only contain letters and spaces.');
                 return;
             }
             
             // Check if passwords match
             if (password !== confirmPassword) {
-                messageDiv.textContent = 'Passwords do not match.';
-                messageDiv.className = 'message error';
-                messageDiv.style.display = 'block';
+                showSystemMessage('Passwords do not match.');
                 return;
             }
             
@@ -593,9 +784,7 @@ if(isset($_SESSION['email'])){
             });
             
             if (!allValid) {
-                messageDiv.textContent = 'Please meet all password requirements.';
-                messageDiv.className = 'message error';
-                messageDiv.style.display = 'block';
+                showSystemMessage('Please meet all password requirements.');
                 return;
             }
             
@@ -610,25 +799,22 @@ if(isset($_SESSION['email'])){
             })
             .then(response => response.json())
             .then(data => {
-                messageDiv.textContent = data.message;
-                messageDiv.className = `message ${data.status}`;
-                messageDiv.style.display = 'block';
-                
                 if (data.status === 'success') {
+                    showSystemMessage(data.message, 'success');
                     // Clear form
                     this.reset();
                     requirements.forEach(req => req.classList.remove('valid'));
                     
-                    // Show success message briefly before redirect
+                    // Switch to login tab after successful signup
                     setTimeout(() => {
-                        window.location.href = data.redirect;
+                        document.querySelector('[data-tab="login"]').click();
                     }, 1500);
+                } else {
+                    showSystemMessage(data.message);
                 }
             })
             .catch(error => {
-                messageDiv.textContent = 'An error occurred. Please try again.';
-                messageDiv.className = 'message error';
-                messageDiv.style.display = 'block';
+                showSystemMessage('An error occurred. Please try again.');
             })
             .finally(() => {
                 // Re-enable submit button
@@ -636,6 +822,60 @@ if(isset($_SESSION['email'])){
                 submitButton.textContent = 'Sign Up';
             });
         });
+
+        // Update the login form submission code
+        document.querySelector('#login-tab form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const submitButton = this.querySelector('button[type="submit"]');
+            
+            // Disable submit button and show loading state
+            submitButton.disabled = true;
+            submitButton.textContent = 'Logging in...';
+            
+            fetch('login_backend.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // For admin login
+                    if (data.message.includes('Admin')) {
+                        window.location.href = 'Admin Pages/all_product_page.php';
+                    } else {
+                        // For regular user login
+                        window.location.href = 'landing_page.php';
+                    }
+                } else {
+                    showSystemMessage(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Login error:', error);
+                showSystemMessage('An error occurred during login. Please try again.');
+            })
+            .finally(() => {
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.textContent = 'Login';
+            });
+        });
+
+        // Replace the old togglePassword function with these two functions
+        function showPassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggle = input.nextElementSibling;
+            input.type = 'text';
+            toggle.innerHTML = '<i class="fa-solid fa-eye"></i>';
+        }
+
+        function hidePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggle = input.nextElementSibling;
+            input.type = 'password';
+            toggle.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+        }
     </script>
 </body>
 </html>

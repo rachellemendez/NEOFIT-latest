@@ -5,29 +5,33 @@ session_start();
 //Database Connection
 include 'db.php';
 
+// Function to send JSON response
+function sendJsonResponse($status, $message) {
+    header('Content-Type: application/json');
+    echo json_encode(['status' => $status, 'message' => $message]);
+    exit();
+}
+
 // Check if form is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login_submit'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get email and password from the POST request
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
 
     // **Admin login exception**  
     if ($email === "admin@1" && $password === "admin") {
         $_SESSION['admin@1'] = true;
-        header("Location: Admin Pages/all_product_page.php"); // Redirect to the admin panel
-        exit();
+        sendJsonResponse('success', 'Admin login successful');
     }
 
     // Check if email contains '@' (except for admin)
     if (!filter_var($email, FILTER_VALIDATE_EMAIL) && $email !== "admin") {
-        echo "Invalid email format.";
-        exit();
+        sendJsonResponse('error', 'Invalid email format');
     }
 
     // Check if both fields are filled
     if (empty($email) || empty($password)) {
-        echo "Email and password are required.";
-        exit();
+        sendJsonResponse('error', 'Email and password are required');
     }
 
     // Prepare and execute the SQL query to find the user by email
@@ -59,15 +63,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login_submit'])) {
             $user_name = $first_name . ' ' . $last_name;
             $_SESSION['user_name'] = $user_name;
 
-
-            // Redirect to the user dashboard
-            header("Location: landing_page.php");
-            exit();
+            // Send success response
+            sendJsonResponse('success', 'Login successful');
         } else {
-            echo "Invalid email or password.";
+            sendJsonResponse('error', 'Invalid email or password');
         }
     } else {
-        echo "Invalid email or password.";
+        sendJsonResponse('error', 'Invalid email or password');
     }
 
     // Close the statement and connection
