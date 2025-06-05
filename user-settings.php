@@ -126,6 +126,7 @@ if (isset($_GET['saved'])) {
 
         .form-group {
             margin-bottom: 20px;
+            position: relative;
         }
 
         label {
@@ -139,7 +140,7 @@ if (isset($_GET['saved'])) {
         input[type="tel"],
         input[type="password"] {
             width: 100%;
-            padding: 12px;
+            padding: 12px 35px 12px 12px;
             border: 1px solid #ddd;
             border-radius: 6px;
             font-size: 14px;
@@ -151,6 +152,33 @@ if (isset($_GET['saved'])) {
         input[type="password"]:focus {
             border-color: #4a90e2;
             outline: none;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 45px;
+            transform: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 14px;
+            padding: 5px;
+            z-index: 2;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            display: flex;
+            align-items: center;
+            height: 20px;
+        }
+
+        .password-toggle:hover {
+            color: #333;
+        }
+
+        .password-toggle i {
+            font-size: 14px;
+            font-style: normal;
         }
 
         .btn {
@@ -291,16 +319,19 @@ if (isset($_GET['saved'])) {
                 <div class="form-group">
                     <label for="current_password">Current Password</label>
                     <input type="password" id="current_password" name="current_password" required>
+                    <span class="password-toggle" onmousedown="showPassword('current_password')" onmouseup="hidePassword('current_password')" onmouseleave="hidePassword('current_password')"><i class="fa-solid fa-eye-slash"></i></span>
                 </div>
 
                 <div class="form-group">
                     <label for="new_password">New Password</label>
                     <input type="password" id="new_password" name="new_password" required>
+                    <span class="password-toggle" onmousedown="showPassword('new_password')" onmouseup="hidePassword('new_password')" onmouseleave="hidePassword('new_password')"><i class="fa-solid fa-eye-slash"></i></span>
                 </div>
 
                 <div class="form-group">
                     <label for="confirm_password">Confirm New Password</label>
                     <input type="password" id="confirm_password" name="confirm_password" required>
+                    <span class="password-toggle" onmousedown="showPassword('confirm_password')" onmouseup="hidePassword('confirm_password')" onmouseleave="hidePassword('confirm_password')"><i class="fa-solid fa-eye-slash"></i></span>
                 </div>
 
                 <button type="submit" class="btn">Update Password</button>
@@ -356,6 +387,25 @@ if (isset($_GET['saved'])) {
                 alert('New password and confirmation password do not match!');
             }
         });
+
+        // Add these functions for password toggle
+        function showPassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggle = input.nextElementSibling;
+            input.type = 'text';
+            toggle.innerHTML = '<i class="fa-solid fa-eye"></i>';
+        }
+
+        function hidePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggle = input.nextElementSibling;
+            input.type = 'password';
+            toggle.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+        }
+
+        // Make the functions globally available
+        window.showPassword = showPassword;
+        window.hidePassword = hidePassword;
     });
     </script>
 </body>

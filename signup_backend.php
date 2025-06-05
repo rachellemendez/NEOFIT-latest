@@ -1,32 +1,29 @@
 <?php
 session_start();
+header('Content-Type: application/json');
+
 include 'db.php';
 
 // Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if (isset($_POST['signup_submit'])) {
     // Debug: Log the received data
     error_log("Received POST data: " . print_r($_POST, true));
 
-    // Check if form was submitted
-    if (!isset($_POST['signup_submit'])) {
-        error_log("signup_submit not set in POST data");
-        echo json_encode(['status' => 'error', 'message' => 'Invalid form submission']);
-        exit();
-    }
-
-    $first_name = trim($_POST['first_name'] ?? '');
-    $last_name = trim($_POST['last_name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
+    $first_name = mysqli_real_escape_string($conn, $_POST['first_name']);
+    $last_name = mysqli_real_escape_string($conn, $_POST['last_name']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $security_question = mysqli_real_escape_string($conn, $_POST['security_question']);
+    $security_answer = mysqli_real_escape_string($conn, $_POST['security_answer']);
 
     // Debug: Log the extracted values
     error_log("Extracted values - First Name: $first_name, Last Name: $last_name, Email: $email");
 
     // Validate all fields are filled
-    if (empty($first_name) || empty($last_name) || empty($email) || empty($password)) {
+    if (empty($first_name) || empty($last_name) || empty($email) || empty($password) || empty($security_question) || empty($security_answer)) {
         echo json_encode(['status' => 'error', 'message' => 'All fields are required.']);
         exit();
     }
@@ -79,56 +76,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    try {
-        // Check if email already exists
-        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-        if (!$stmt) {
-            throw new Exception("Failed to prepare statement: " . $conn->error);
-        }
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $stmt->store_result();
-        
-        if ($stmt->num_rows > 0) {
-            echo json_encode(['status' => 'error', 'message' => 'Email already registered.']);
-            exit();
-        }
+    // Check if email already exists
+    $check_email = "SELECT * FROM users WHERE email = '$email'";
+    $result = mysqli_query($conn, $check_email);
 
-        // Hash password
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        
-        // Create user account directly
-        $stmt = $conn->prepare("INSERT INTO users (email, password, first_name, last_name) VALUES (?, ?, ?, ?)");
-        if (!$stmt) {
-            throw new Exception("Failed to prepare insert statement: " . $conn->error);
-        }
-        $stmt->bind_param("ssss", $email, $hashed_password, $first_name, $last_name);
-        
-        if ($stmt->execute()) {
-            // Set session variables
-            $_SESSION['user_id'] = $stmt->insert_id;
-            $_SESSION['email'] = $email;
-            $_SESSION['first_name'] = $first_name;
-            $_SESSION['last_name'] = $last_name;
-            
-            echo json_encode([
-                'status' => 'success', 
-                'message' => 'Registration successful! Redirecting to your account...',
-                'redirect' => 'landing_page.php'
-            ]);
-        } else {
-            throw new Exception("Failed to create account: " . $stmt->error);
-        }
-    } catch (Exception $e) {
-        error_log("Error in signup process: " . $e->getMessage());
-        echo json_encode(['status' => 'error', 'message' => 'Registration failed. Please try again later.']);
+    if (mysqli_num_rows($result) > 0) {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Email already exists!'
+        ]);
+        exit();
     }
 
-    if (isset($stmt)) {
-        $stmt->close();
+    // Insert new user with security question and answer
+    $sql = "INSERT INTO users (first_name, last_name, email, password, security_question, security_answer) 
+            VALUES ('$first_name', '$last_name', '$email', '$password', '$security_question', '$security_answer')";
+
+    if (mysqli_query($conn, $sql)) {
+        $_SESSION['email'] = $email;
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Registration successful!',
+            'redirect' => 'landing_page.php'
+        ]);
+    } else {
+        // Log the actual MySQL error for debugging
+        error_log("MySQL Error: " . mysqli_error($conn));
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Error occurred during registration. Please try again.'
+        ]);
     }
-    $conn->close();
 } else {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid request method.']);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Invalid request'
+    ]);
 }
+
+mysqli_close($conn);
 ?>
