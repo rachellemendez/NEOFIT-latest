@@ -615,6 +615,32 @@ if (!isset($_SESSION['email'])) {
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Add these styles to your existing CSS */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: #000;
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .product-section {
+            scroll-margin-top: 100px; /* Adjust this value based on your header height */
+        }
     </style>
 </head>
 <body>
@@ -657,8 +683,8 @@ if (!isset($_SESSION['email'])) {
         </section>
 
         <!-- Featured Products Section -->
-        <section class="product-section" id="featured-products">
-            <h2 class="section-title" style="color: #1e1e1e;">ALL PRODUCTS</h2>
+        <section class="product-section" id="trending-section">
+            <h2 class="section-title" style="color: #1e1e1e;">TRENDING</h2>
             <div class="product-grid">
                 <?php
                     // Connect to Database
@@ -668,47 +694,135 @@ if (!isset($_SESSION['email'])) {
                     // Get all products' sold counts
                     $sold_counts = getAllProductsSoldCount();
 
-                    // Fetch Products
-                    $sql = "SELECT * FROM products";
+                    // Fetch Trending Products (products with highest sold count)
+                    $sql = "SELECT p.*, COALESCE(SUM(o.quantity), 0) as total_sold 
+                            FROM products p 
+                            LEFT JOIN orders o ON p.product_name = o.product_name 
+                            WHERE p.product_status = 'live'
+                            GROUP BY p.id 
+                            ORDER BY total_sold DESC 
+                            LIMIT 4";
                     $result = $conn->query($sql);
 
-                    // If Product Exists
-                    if ($result->num_rows > 0){
-                        // Loop Through All Products
-                        while($product = $result->fetch_assoc()){
-                        $id = $product['id'];
-                        $productName = $product['product_name'];
-                        $productPrice = $product['product_price'];
-                        $photoFront = "Admin Pages/" . $product['photoFront'];
-                        $link = 'product_detail.php?id=' . $id;
-                        $product_status = $product['product_status'];
-                        
-                        // Get the sold count for this product
-                        $sold_count = $sold_counts[$productName] ?? 0;
-                        
-                        // Format the sold count
-                        $formatted_sold_count = $sold_count;
-                        if ($sold_count >= 1000) {
-                            $formatted_sold_count = number_format($sold_count/1000, 1) . 'k';
-                        }
-
-                            // Display The Product Box
-                            if($product_status == "live"){
-                                echo '
-                                <div class="product-card" id="product-box-' . $id . '">
-                                    <a href="' . $link . '" class="product-link">
-                                        <div class="product-image">
-                                            <img src="' . $photoFront . '" alt="' . $productName . '">
-                                        </div>
-                                        <div class="product-info">
-                                            <h3 class="product-name">' . $productName . '</h3>
-                                            <span class="product-price">₱ ' . $productPrice . '</span>
-                                            <span class="product-sold">' . $formatted_sold_count . ' sold</span>
-                                        </div>
-                                    </a>
-                                </div>';
-                            }
+                    // Display Trending Products
+                    if ($result->num_rows > 0) {
+                        while($product = $result->fetch_assoc()) {
+                            $id = $product['id'];
+                            $productName = $product['product_name'];
+                            $productPrice = $product['product_price'];
+                            $photoFront = "Admin Pages/" . $product['photoFront'];
+                            $link = 'product_detail.php?id=' . $id;
+                            $sold_count = $product['total_sold'];
                             
+                            // Format the sold count
+                            $formatted_sold_count = $sold_count;
+                            if ($sold_count >= 1000) {
+                                $formatted_sold_count = number_format($sold_count/1000, 1) . 'k';
+                            }
+
+                            echo '
+                            <div class="product-card" id="product-box-' . $id . '">
+                                <a href="' . $link . '" class="product-link">
+                                    <div class="product-image">
+                                        <img src="' . $photoFront . '" alt="' . $productName . '">
+                                    </div>
+                                    <div class="product-info">
+                                        <h3 class="product-name">' . $productName . '</h3>
+                                        <span class="product-price">₱ ' . $productPrice . '</span>
+                                        <span class="product-sold">' . $formatted_sold_count . ' sold</span>
+                                    </div>
+                                </a>
+                            </div>';
+                        }
+                    }
+                ?>
+            </div>
+        </section>
+
+        <section class="product-section" id="men-section">
+            <h2 class="section-title" style="color: #1e1e1e;">MEN'S COLLECTION</h2>
+            <div class="product-grid">
+                <?php
+                    // Fetch Men's Products
+                    $sql = "SELECT * FROM products WHERE product_category = 'men' AND product_status = 'live'";
+                    $result = $conn->query($sql);
+
+                    // Display Men's Products
+                    if ($result->num_rows > 0) {
+                        while($product = $result->fetch_assoc()) {
+                            $id = $product['id'];
+                            $productName = $product['product_name'];
+                            $productPrice = $product['product_price'];
+                            $photoFront = "Admin Pages/" . $product['photoFront'];
+                            $link = 'product_detail.php?id=' . $id;
+                            
+                            // Get the sold count for this product
+                            $sold_count = $sold_counts[$productName] ?? 0;
+                            
+                            // Format the sold count
+                            $formatted_sold_count = $sold_count;
+                            if ($sold_count >= 1000) {
+                                $formatted_sold_count = number_format($sold_count/1000, 1) . 'k';
+                            }
+
+                            echo '
+                            <div class="product-card" id="product-box-' . $id . '">
+                                <a href="' . $link . '" class="product-link">
+                                    <div class="product-image">
+                                        <img src="' . $photoFront . '" alt="' . $productName . '">
+                                    </div>
+                                    <div class="product-info">
+                                        <h3 class="product-name">' . $productName . '</h3>
+                                        <span class="product-price">₱ ' . $productPrice . '</span>
+                                        <span class="product-sold">' . $formatted_sold_count . ' sold</span>
+                                    </div>
+                                </a>
+                            </div>';
+                        }
+                    }
+                ?>
+            </div>
+        </section>
+
+        <section class="product-section" id="women-section">
+            <h2 class="section-title" style="color: #1e1e1e;">WOMEN'S COLLECTION</h2>
+            <div class="product-grid">
+                <?php
+                    // Fetch Women's Products
+                    $sql = "SELECT * FROM products WHERE product_category = 'women' AND product_status = 'live'";
+                    $result = $conn->query($sql);
+
+                    // Display Women's Products
+                    if ($result->num_rows > 0) {
+                        while($product = $result->fetch_assoc()) {
+                            $id = $product['id'];
+                            $productName = $product['product_name'];
+                            $productPrice = $product['product_price'];
+                            $photoFront = "Admin Pages/" . $product['photoFront'];
+                            $link = 'product_detail.php?id=' . $id;
+                            
+                            // Get the sold count for this product
+                            $sold_count = $sold_counts[$productName] ?? 0;
+                            
+                            // Format the sold count
+                            $formatted_sold_count = $sold_count;
+                            if ($sold_count >= 1000) {
+                                $formatted_sold_count = number_format($sold_count/1000, 1) . 'k';
+                            }
+
+                            echo '
+                            <div class="product-card" id="product-box-' . $id . '">
+                                <a href="' . $link . '" class="product-link">
+                                    <div class="product-image">
+                                        <img src="' . $photoFront . '" alt="' . $productName . '">
+                                    </div>
+                                    <div class="product-info">
+                                        <h3 class="product-name">' . $productName . '</h3>
+                                        <span class="product-price">₱ ' . $productPrice . '</span>
+                                        <span class="product-sold">' . $formatted_sold_count . ' sold</span>
+                                    </div>
+                                </a>
+                            </div>';
                         }
                     }
                 ?>
@@ -823,61 +937,44 @@ if (!isset($_SESSION['email'])) {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    const headerOffset = 100; // Adjust this value based on your header height
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
             });
         });
         
-        // Simple slider functionality
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.slide');
-        const dots = document.querySelectorAll('.dot');
-        
-        function showSlide(n) {
-            slides.forEach(slide => {
-                slide.classList.remove('active');
-                slide.style.opacity = 0;
-            });
-            dots.forEach(dot => dot.classList.remove('active'));
+        // Add active class to nav links based on scroll position
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.product-section');
+            const navLinks = document.querySelectorAll('.nav-link');
             
-            slides[n].classList.add('active');
-            slides[n].style.opacity = 1;
-            dots[n].classList.add('active');
-            currentSlide = n;
-        }
-        
-        function nextSlide() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            showSlide(currentSlide);
-        }
-        
-        function prevSlide() {
-            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-            showSlide(currentSlide);
-        }
-        
-        // Add event listeners for dots
-        dots.forEach((dot, index) => {
-            dot.addEventListener('click', () => {
-                showSlide(index);
+            let currentSection = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop - 150) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').substring(1) === currentSection) {
+                    link.classList.add('active');
+                }
             });
         });
-        
-        // Add event listeners for previous and next buttons
-        const prevBtn = document.querySelector('.prev-btn');
-        const nextBtn = document.querySelector('.next-btn');
-        
-        if (prevBtn && nextBtn) {
-            prevBtn.addEventListener('click', prevSlide);
-            nextBtn.addEventListener('click', nextSlide);
-        }
-        
-        // Automatic slider
-        const slideInterval = setInterval(nextSlide, 5000);
-        
-        // Initialize first slide
-        showSlide(0);
     </script>
 
     <script>
