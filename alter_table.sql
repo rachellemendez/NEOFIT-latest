@@ -1,0 +1,3 @@
+ALTER TABLE users 
+ADD COLUMN security_question VARCHAR(50) NOT NULL,
+ADD COLUMN security_answer VARCHAR(255) NOT NULL; 
