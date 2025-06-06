@@ -23,12 +23,38 @@ $sql = "CREATE TABLE IF NOT EXISTS `users` (
     `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
     `address` varchar(255) DEFAULT NULL,
     `contact` varchar(11) DEFAULT NULL,
+    `neocreds` DECIMAL(10,2) DEFAULT 0.00,
     PRIMARY KEY (`id`),
     UNIQUE KEY `unique_email` (`email`)
 )";
 
 if (!$conn->query($sql)) {
     die("Error creating users table: " . $conn->error);
+}
+
+// Add neocreds column if it doesn't exist
+$sql = "ALTER TABLE users ADD COLUMN IF NOT EXISTS neocreds DECIMAL(10,2) DEFAULT 0.00";
+if (!$conn->query($sql)) {
+    die("Error adding neocreds column: " . $conn->error);
+}
+
+// Create neocreds_transactions table if it doesn't exist
+$sql = "CREATE TABLE IF NOT EXISTS `neocreds_transactions` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL,
+    `user_name` VARCHAR(100) NOT NULL,
+    `user_email` VARCHAR(100) NOT NULL,
+    `amount` DECIMAL(10,2) NOT NULL,
+    `status` ENUM('pending', 'approved', 'denied') DEFAULT 'pending',
+    `request_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `process_date` TIMESTAMP NULL,
+    `processed_by` VARCHAR(50) NULL,
+    `admin_notes` TEXT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)";
+
+if (!$conn->query($sql)) {
+    die("Error creating neocreds_transactions table: " . $conn->error);
 }
 
 // Drop the unverified_users table if it exists

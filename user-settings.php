@@ -398,7 +398,7 @@ if (isset($_GET['saved'])) {
             background-color: #fff;
             cursor: pointer;
             font-size: 16px;
-            transition: all 0.3s ease;
+            transition: all 0.1s ease;
         }
 
         .amount-btn:hover {
@@ -407,10 +407,11 @@ if (isset($_GET['saved'])) {
             color: #007bff;
         }
 
-        .amount-btn.selected {
+        .amount-btn:active {
             background-color: #007bff;
             color: #fff;
             border-color: #007bff;
+            transform: scale(0.98);
         }
 
         .custom-amount {
@@ -429,21 +430,308 @@ if (isset($_GET['saved'])) {
             border: 1px solid #ddd;
             border-radius: 6px;
             font-size: 16px;
+            text-align: right;
+        }
+
+        .custom-amount input::-webkit-inner-spin-button,
+        .custom-amount input::-webkit-outer-spin-button {
+            opacity: 1;
         }
 
         .modal-actions {
             display: flex;
-            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            background-color: #4a90e2;
+            color: #fff;
+            min-width: 200px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #357abd;
+        }
+
+        /* Add pending requests styles */
+        .pending-requests {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .pending-amount {
+            font-size: 18px;
+            color: #ffa500;
+            font-weight: bold;
+            display: block;
+        }
+
+        .transaction-history {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .transaction-history h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .transaction-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-details {
+            flex-grow: 1;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+        }
+
+        .transaction-date {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .transaction-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .status-pending {
+            background-color: #ffeeba;
+            color: #856404;
+        }
+
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-denied {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Add styles for transaction details */
+        .transaction-processor,
+        .transaction-notes {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .transaction-notes {
+            font-style: italic;
+        }
+
+        .pending-total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #eee;
+        }
+
+        .transaction-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .transaction-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .transaction-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .transaction-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .wallet-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
         }
 
         .btn-secondary {
             background-color: #6c757d;
-            color: #fff;
+            color: white;
         }
 
         .btn-secondary:hover {
             background-color: #5a6268;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 0;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .close-modal {
+            font-size: 24px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        /* Transaction List Styles */
+        .transaction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+
+        .transaction-item:hover {
+            transform: translateX(5px);
+        }
+
+        .transaction-details {
+            flex-grow: 1;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+            font-size: 16px;
+            color: #2ecc71;
+        }
+
+        .transaction-date {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .transaction-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-denied {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-history i {
+            font-size: 48px;
+            color: #ddd;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+
+            .wallet-actions {
+                flex-direction: column;
+            }
+
+            .wallet-actions button {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -505,7 +793,10 @@ if (isset($_GET['saved'])) {
                     <span class="balance-label">Current Balance</span>
                     <span class="balance-amount">₱0.00</span>
                 </div>
-                <button type="button" class="btn btn-primary" id="addCreditsBtn">Add Credits</button>
+                <div class="wallet-actions">
+                    <button type="button" class="btn btn-primary" id="addCreditsBtn">Add Credits</button>
+                    <button type="button" class="btn btn-secondary" id="viewHistoryBtn">View History</button>
+                </div>
             </div>
         </div>
 
@@ -526,12 +817,26 @@ if (isset($_GET['saved'])) {
                         <button class="amount-btn" data-amount="1500">₱1,500</button>
                     </div>
                     <div class="custom-amount">
-                        <label for="customAmount">Custom Amount (₱)</label>
-                        <input type="number" id="customAmount" min="1" step="1" placeholder="Enter amount">
+                        <label for="customAmount">Amount (₱)</label>
+                        <input type="text" id="customAmount" placeholder="0.00" onkeypress="return isNumberOrPeriod(event)">
                     </div>
                     <div class="modal-actions">
-                        <button class="btn btn-primary" id="confirmAddCredits">Add Credits</button>
                         <button class="btn btn-secondary" id="requestCredits">Request Credits</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History Modal -->
+        <div class="modal" id="historyModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Transaction History</h2>
+                    <span class="close-modal" data-modal="historyModal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="transaction-list" id="transactionList">
+                        <!-- Transactions will be loaded here -->
                     </div>
                 </div>
             </div>
@@ -629,7 +934,6 @@ if (isset($_GET['saved'])) {
             const closeModal = document.querySelector('.close-modal');
             const amountBtns = document.querySelectorAll('.amount-btn');
             const customAmountInput = document.getElementById('customAmount');
-            const confirmAddCreditsBtn = document.getElementById('confirmAddCredits');
             const requestCreditsBtn = document.getElementById('requestCredits');
 
             // Open modal
@@ -656,48 +960,235 @@ if (isset($_GET['saved'])) {
             // Handle preset amount buttons
             amountBtns.forEach(btn => {
                 btn.onclick = function() {
-                    amountBtns.forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                    customAmountInput.value = '';
+                    const amount = parseFloat(btn.dataset.amount);
+                    const currentAmount = parseFloat(customAmountInput.value) || 0;
+                    const newAmount = (currentAmount + amount).toFixed(2);
+                    customAmountInput.value = newAmount;
                 };
             });
 
-            // Clear selected buttons when custom amount is entered
-            if (customAmountInput) {
-                customAmountInput.oninput = function() {
-                    amountBtns.forEach(btn => btn.classList.remove('selected'));
-                };
+            // Function to allow only numbers and period
+            function isNumberOrPeriod(evt) {
+                const charCode = (evt.which) ? evt.which : evt.keyCode;
+                const inputValue = evt.target.value;
+
+                // Allow only one period
+                if (charCode === 46) {
+                    if (inputValue.indexOf('.') === -1) {
+                        return true;
+                    }
+                    return false;
+                }
+                
+                // Allow only numbers
+                if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+                    return false;
+                }
+                
+                return true;
             }
 
-            // Handle Add Credits button click
-            if (confirmAddCreditsBtn) {
-                confirmAddCreditsBtn.onclick = function() {
-                    let amount = customAmountInput.value;
-                    if (!amount) {
-                        const selectedBtn = document.querySelector('.amount-btn.selected');
-                        if (selectedBtn) {
-                            amount = selectedBtn.dataset.amount;
+            // Format custom input to always show 2 decimal places
+            if (customAmountInput) {
+                customAmountInput.addEventListener('input', function(e) {
+                    // Remove any characters that aren't numbers or period
+                    this.value = this.value.replace(/[^\d.]/g, '');
+                    
+                    // Ensure only one decimal point
+                    const parts = this.value.split('.');
+                    if (parts.length > 2) {
+                        this.value = parts[0] + '.' + parts.slice(1).join('');
+                    }
+
+                    // Limit to 2 decimal places if there's a decimal point
+                    if (parts[1] && parts[1].length > 2) {
+                        this.value = parts[0] + '.' + parts[1].substring(0, 2);
+                    }
+                });
+
+                customAmountInput.addEventListener('blur', function() {
+                    if (this.value) {
+                        // Ensure proper decimal format when leaving the field
+                        const num = parseFloat(this.value);
+                        if (!isNaN(num)) {
+                            this.value = num.toFixed(2);
+                        } else {
+                            this.value = '';
                         }
                     }
-                    
-                    if (amount) {
-                        // Here you can add the logic to process the payment
-                        alert('Processing payment for ₱' + amount);
-                        // Temporarily just close the modal
-                        modal.style.display = 'none';
-                    } else {
-                        alert('Please select an amount or enter a custom amount');
+                });
+
+                // Prevent paste of invalid characters
+                customAmountInput.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                    if (/^[\d.]*$/.test(text)) {
+                        const parts = text.split('.');
+                        if (parts.length <= 2) {
+                            this.value = text;
+                            // Trigger input event to format properly
+                            this.dispatchEvent(new Event('input'));
+                        }
                     }
-                };
+                });
             }
 
             // Handle Request Credits button click
             if (requestCreditsBtn) {
                 requestCreditsBtn.onclick = function() {
-                    alert('Credit request feature coming soon!');
-                    modal.style.display = 'none';
+                    const amount = parseFloat(customAmountInput.value);
+                    if (!amount || amount <= 0) {
+                        alert('Please enter a valid amount');
+                        return;
+                    }
+
+                    // Submit request to backend
+                    const formData = new FormData();
+                    formData.append('amount', amount);
+
+                    fetch('request_neocreds.php', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert('Your NeoCreds request has been submitted for approval');
+                            modal.style.display = 'none';
+                            customAmountInput.value = '';
+                            loadBalance();
+                            loadTransactionHistory();
+                        } else {
+                            throw new Error(data.message || 'An error occurred');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert(error.message || 'An error occurred while submitting your request');
+                    });
                 };
             }
+
+            // Load current balance and transaction history
+            function loadBalance() {
+                fetch('process_neocreds.php?action=balance')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            document.querySelector('.balance-amount').textContent = 
+                                '₱' + parseFloat(data.balance).toFixed(2);
+                            
+                            // Show pending total if there are pending transactions
+                            if (data.pending_total) {
+                                const pendingDisplay = document.createElement('div');
+                                pendingDisplay.className = 'pending-total';
+                                pendingDisplay.innerHTML = `
+                                    <span class="balance-label">Pending Requests Total</span>
+                                    <span class="pending-amount">₱${parseFloat(data.pending_total).toFixed(2)}</span>
+                                `;
+                                
+                                // Remove existing pending total if any
+                                const existingPendingTotal = document.querySelector('.pending-total');
+                                if (existingPendingTotal) {
+                                    existingPendingTotal.remove();
+                                }
+                                
+                                document.querySelector('.balance-display').appendChild(pendingDisplay);
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            // Load transaction history
+            function loadTransactionHistory() {
+                const transactionList = document.getElementById('transactionList');
+                transactionList.innerHTML = '<div class="loading">Loading transactions...</div>';
+
+                fetch('process_neocreds.php?action=history')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success' && data.transactions) {
+                            if (data.transactions.length === 0) {
+                                transactionList.innerHTML = `
+                                    <div class="empty-history">
+                                        <i class="fas fa-history"></i>
+                                        <p>No transaction history yet</p>
+                                    </div>
+                                `;
+                                return;
+                            }
+
+                            transactionList.innerHTML = data.transactions.map(transaction => `
+                                <div class="transaction-item">
+                                    <div class="transaction-details">
+                                        <div class="transaction-amount">₱${parseFloat(transaction.amount).toFixed(2)}</div>
+                                        <div class="transaction-date">${new Date(transaction.request_date).toLocaleString()}</div>
+                                    </div>
+                                    <span class="transaction-status status-${transaction.status.toLowerCase()}">
+                                        ${transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                                    </span>
+                                </div>
+                            `).join('');
+                        } else {
+                            throw new Error(data.message || 'Failed to load transactions');
+                        }
+                    })
+                    .catch(error => {
+                        transactionList.innerHTML = `
+                            <div class="empty-history">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <p>Error loading transactions</p>
+                            </div>
+                        `;
+                        console.error('Error:', error);
+                    });
+            }
+
+            // Initial load
+            loadBalance();
+            loadTransactionHistory();
+            
+            // Refresh data every 30 seconds
+            setInterval(() => {
+                loadBalance();
+                loadTransactionHistory();
+            }, 30000);
+
+            // Add new history modal functionality
+            const historyModal = document.getElementById('historyModal');
+            const viewHistoryBtn = document.getElementById('viewHistoryBtn');
+            const closeHistoryBtn = document.querySelector('[data-modal="historyModal"]');
+
+            if (viewHistoryBtn) {
+                viewHistoryBtn.onclick = function() {
+                    historyModal.style.display = 'block';
+                    loadTransactionHistory(); // Load history when modal opens
+                };
+            }
+
+            if (closeHistoryBtn) {
+                closeHistoryBtn.onclick = function() {
+                    historyModal.style.display = 'none';
+                };
+            }
+
+            // Update window click handler to handle both modals
+            window.onclick = function(event) {
+                if (event.target == addCreditsModal) {
+                    addCreditsModal.style.display = 'none';
+                } else if (event.target == historyModal) {
+                    historyModal.style.display = 'none';
+                }
+            };
         });
 
         // Password toggle functions
