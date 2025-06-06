@@ -246,6 +246,43 @@ if (isset($_GET['saved'])) {
             display: none;
         }
 
+        /* Add password requirements styles */
+        .password-requirements {
+            display: none;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            padding: 10px;
+            border: 1px solid #eaeaea;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .requirement {
+            margin: 3px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .requirement.valid {
+            color: #28a745;
+        }
+
+        .requirement.invalid {
+            color: #dc3545;
+        }
+
+        .requirement::before {
+            content: '✕';
+            color: #dc3545;
+        }
+
+        .requirement.valid::before {
+            content: '✓';
+            color: #28a745;
+        }
+
         @media (max-width: 768px) {
             .main-content {
                 margin-top: 80px;
@@ -259,6 +296,154 @@ if (isset($_GET['saved'])) {
                 width: 100%;
                 margin-bottom: 10px;
             }
+        }
+
+        /* Add NeoCreds Wallet styles */
+        .wallet-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .balance-display {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        .balance-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .balance-amount {
+            font-size: 32px;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        /* Add Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 0;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .close-modal {
+            font-size: 24px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .preset-amounts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .amount-btn {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .amount-btn:hover {
+            background-color: #f8f9fa;
+            border-color: #007bff;
+            color: #007bff;
+        }
+
+        .amount-btn.selected {
+            background-color: #007bff;
+            color: #fff;
+            border-color: #007bff;
+        }
+
+        .custom-amount {
+            margin-bottom: 20px;
+        }
+
+        .custom-amount label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .custom-amount input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
         }
     </style>
 </head>
@@ -312,6 +497,46 @@ if (isset($_GET['saved'])) {
             </form>
         </div>
 
+        <!-- NeoCreds Wallet Section -->
+        <div class="settings-section">
+            <h2 class="section-title">NeoCreds Wallet</h2>
+            <div class="wallet-container">
+                <div class="balance-display">
+                    <span class="balance-label">Current Balance</span>
+                    <span class="balance-amount">₱0.00</span>
+                </div>
+                <button type="button" class="btn btn-primary" id="addCreditsBtn">Add Credits</button>
+            </div>
+        </div>
+
+        <!-- Add Credits Modal -->
+        <div class="modal" id="addCreditsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Add NeoCreds</h2>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="preset-amounts">
+                        <button class="amount-btn" data-amount="50">₱50</button>
+                        <button class="amount-btn" data-amount="100">₱100</button>
+                        <button class="amount-btn" data-amount="200">₱200</button>
+                        <button class="amount-btn" data-amount="500">₱500</button>
+                        <button class="amount-btn" data-amount="1000">₱1,000</button>
+                        <button class="amount-btn" data-amount="1500">₱1,500</button>
+                    </div>
+                    <div class="custom-amount">
+                        <label for="customAmount">Custom Amount (₱)</label>
+                        <input type="number" id="customAmount" min="1" step="1" placeholder="Enter amount">
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" id="confirmAddCredits">Add Credits</button>
+                        <button class="btn btn-secondary" id="requestCredits">Request Credits</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Password Section -->
         <div class="settings-section">
             <h2 class="section-title">Security Settings</h2>
@@ -326,6 +551,12 @@ if (isset($_GET['saved'])) {
                     <label for="new_password">New Password</label>
                     <input type="password" id="new_password" name="new_password" required>
                     <span class="password-toggle" onmousedown="showPassword('new_password')" onmouseup="hidePassword('new_password')" onmouseleave="hidePassword('new_password')"><i class="fa-solid fa-eye-slash"></i></span>
+                    <div class="password-requirements" id="password-requirements">
+                        <div class="requirement" id="length">At least 8 characters long</div>
+                        <div class="requirement" id="letter">Contains at least one letter</div>
+                        <div class="requirement" id="number">Contains at least one number</div>
+                        <div class="requirement" id="special">Contains at least one special character</div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -347,48 +578,129 @@ if (isset($_GET['saved'])) {
     </main>
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Handle URL parameters for success/error messages
-        const urlParams = new URLSearchParams(window.location.search);
-        const successMessage = document.getElementById('successMessage');
-        const errorMessage = document.getElementById('errorMessage');
+        document.addEventListener('DOMContentLoaded', () => {
+            // URL parameters for success/error messages
+            const urlParams = new URLSearchParams(window.location.search);
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
 
-        if (urlParams.has('saved')) {
-            successMessage.style.display = 'block';
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 3000);
-        }
+            if (urlParams.has('saved')) {
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            }
 
-        if (urlParams.has('error')) {
-            errorMessage.style.display = 'block';
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-            }, 3000);
-        }
+            if (urlParams.has('error')) {
+                errorMessage.style.display = 'block';
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 3000);
+            }
 
-        // Contact number validation
-        const contactInput = document.querySelector('input[name="contact"]');
-        contactInput.addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^0-9]/g, '');
-            if (this.value.length > 11) {
-                this.value = this.value.slice(0, 11);
+            // Contact number validation
+            const contactInput = document.querySelector('input[name="contact"]');
+            if (contactInput) {
+                contactInput.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    if (this.value.length > 11) {
+                        this.value = this.value.slice(0, 11);
+                    }
+                });
+            }
+
+            // Password confirmation validation
+            const passwordForm = document.getElementById('passwordForm');
+            if (passwordForm) {
+                passwordForm.addEventListener('submit', function(e) {
+                    const newPassword = document.getElementById('new_password').value;
+                    const confirmPassword = document.getElementById('confirm_password').value;
+
+                    if (newPassword !== confirmPassword) {
+                        e.preventDefault();
+                        alert('New password and confirmation password do not match!');
+                    }
+                });
+            }
+
+            // Add Credits Modal Functionality
+            const modal = document.getElementById('addCreditsModal');
+            const addCreditsBtn = document.getElementById('addCreditsBtn');
+            const closeModal = document.querySelector('.close-modal');
+            const amountBtns = document.querySelectorAll('.amount-btn');
+            const customAmountInput = document.getElementById('customAmount');
+            const confirmAddCreditsBtn = document.getElementById('confirmAddCredits');
+            const requestCreditsBtn = document.getElementById('requestCredits');
+
+            // Open modal
+            if (addCreditsBtn) {
+                addCreditsBtn.onclick = function() {
+                    modal.style.display = 'block';
+                };
+            }
+
+            // Close modal
+            if (closeModal) {
+                closeModal.onclick = function() {
+                    modal.style.display = 'none';
+                };
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            };
+
+            // Handle preset amount buttons
+            amountBtns.forEach(btn => {
+                btn.onclick = function() {
+                    amountBtns.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    customAmountInput.value = '';
+                };
+            });
+
+            // Clear selected buttons when custom amount is entered
+            if (customAmountInput) {
+                customAmountInput.oninput = function() {
+                    amountBtns.forEach(btn => btn.classList.remove('selected'));
+                };
+            }
+
+            // Handle Add Credits button click
+            if (confirmAddCreditsBtn) {
+                confirmAddCreditsBtn.onclick = function() {
+                    let amount = customAmountInput.value;
+                    if (!amount) {
+                        const selectedBtn = document.querySelector('.amount-btn.selected');
+                        if (selectedBtn) {
+                            amount = selectedBtn.dataset.amount;
+                        }
+                    }
+                    
+                    if (amount) {
+                        // Here you can add the logic to process the payment
+                        alert('Processing payment for ₱' + amount);
+                        // Temporarily just close the modal
+                        modal.style.display = 'none';
+                    } else {
+                        alert('Please select an amount or enter a custom amount');
+                    }
+                };
+            }
+
+            // Handle Request Credits button click
+            if (requestCreditsBtn) {
+                requestCreditsBtn.onclick = function() {
+                    alert('Credit request feature coming soon!');
+                    modal.style.display = 'none';
+                };
             }
         });
 
-        // Password confirmation validation
-        const passwordForm = document.getElementById('passwordForm');
-        passwordForm.addEventListener('submit', function(e) {
-            const newPassword = document.getElementById('new_password').value;
-            const confirmPassword = document.getElementById('confirm_password').value;
-
-            if (newPassword !== confirmPassword) {
-                e.preventDefault();
-                alert('New password and confirmation password do not match!');
-            }
-        });
-
-        // Add these functions for password toggle
+        // Password toggle functions
         function showPassword(inputId) {
             const input = document.getElementById(inputId);
             const toggle = input.nextElementSibling;
@@ -403,10 +715,9 @@ if (isset($_GET['saved'])) {
             toggle.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
         }
 
-        // Make the functions globally available
+        // Make these functions globally available
         window.showPassword = showPassword;
         window.hidePassword = hidePassword;
-    });
     </script>
 </body>
 </html>

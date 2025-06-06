@@ -175,6 +175,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="submit" name="update_preferences" class="btn-save">Save Preferences</button>
                     </form>
                 </div>
+
+                <!-- Logout Section -->
+                <div class="settings-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </h2>
+                    <form action="../logout.php" method="POST">
+                        <button type="submit" class="btn-save" style="background-color: #dc3545;">Logout</button>
+                    </form>
+                </div>
             </div>
         </main>
     </div>
