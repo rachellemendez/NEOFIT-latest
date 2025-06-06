@@ -430,6 +430,10 @@ $low_stock_result = $conn->query($sql_low_stock);
                     <i class="fas fa-credit-card"></i>
                     <span>Payments</span>
                 </li>
+                <li onclick="window.location.href='neocreds_page.php'">
+                    <i class="fas fa-coins"></i>
+                    <span>NeoCreds</span>
+                </li>
                 <li onclick="window.location.href='settings.php'">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
@@ -531,6 +535,29 @@ $low_stock_result = $conn->query($sql_low_stock);
                     </div>
                     <div class="stat-icon">
                         <i class="fas fa-users"></i>
+                    </div>
+                </div>
+
+                <!-- NeoCreds Stats -->
+                <div class="stat-card">
+                    <h3>Total NeoCreds</h3>
+                    <?php
+                    // Get NeoCreds stats
+                    $neocreds_result = $conn->query("
+                        SELECT 
+                            COUNT(*) as total_requests,
+                            COALESCE(SUM(CASE WHEN status = 'approved' THEN amount ELSE 0 END), 0) as total_processed
+                        FROM neocreds_transactions
+                    ");
+                    $neocreds_stats = $neocreds_result->fetch_assoc();
+                    ?>
+                    <div class="value">₱<?php echo number_format($neocreds_stats['total_processed'], 2); ?></div>
+                    <div class="trend">
+                        <i class="fas fa-coins"></i>
+                        <?php echo $neocreds_stats['total_requests']; ?> total requests
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-coins"></i>
                     </div>
                 </div>
             </div>
