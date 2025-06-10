@@ -70,6 +70,17 @@ try {
         // Calculate total
         $total = $item['quantity'] * $item['product_price'];
 
+        // Validate size
+        $size = $item['size'] ?? 'N/A';
+        if (empty($size) || $size === '0') {
+            $size = 'N/A';
+        }
+
+        // Validate payment method
+        if (empty($payment_method) || $payment_method === '0') {
+            throw new Exception('Please select a valid payment method');
+        }
+
         // Insert order
         $order_sql = "INSERT INTO orders (
             user_id, user_name, user_email,
@@ -88,7 +99,7 @@ try {
             $item['product_id'],
             $item['product_name'],
             $item['product_price'],
-            $item['size'],
+            $size,
             $item['quantity'],
             $total,
             $payment_method,

@@ -527,15 +527,9 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                             </div>
 
                             <div class="order-actions">
-                                <button class="action-btn view-btn" onclick="viewOrderDetails(<?php echo $row['id']; ?>)">
+                                <a href="view_order.php?id=<?php echo $row['id']; ?>" class="action-btn view-btn">
                                     <i class="fas fa-eye"></i> View Details
-                                </button>
-                                <button class="action-btn edit-btn" onclick="editOrder(<?php echo $row['id']; ?>)">
-                                    <i class="fas fa-edit"></i> Edit Order
-                                </button>
-                                <button class="action-btn delete-btn" onclick="deleteOrder(<?php echo $row['id']; ?>)">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
+                                </a>
                             </div>
                         </div>
                         <?php

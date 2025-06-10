@@ -11,7 +11,10 @@ $order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $sql = "SELECT o.*, 
                p.product_name as product_display_name,
                p.product_price, 
-               p.photoFront as product_image 
+               p.photoFront as product_image,
+               (o.total / o.quantity) as unit_price,
+               COALESCE(o.size, 'N/A') as size,
+               COALESCE(o.payment_method, 'N/A') as payment_method
         FROM orders o 
         LEFT JOIN products p ON o.product_id = p.id 
         WHERE o.id = ?";
@@ -27,6 +30,21 @@ if ($result->num_rows === 0) {
 }
 
 $order = $result->fetch_assoc();
+
+// Format the unit price
+$unit_price = $order['price'] ?? $order['unit_price'];
+$total_amount = $order['total'];
+
+// Format size and payment method for display
+$size = $order['size'];
+if (empty($size) || $size === '0' || $size === 'N/A') {
+    $size = 'Not Specified';
+}
+
+$payment_method = $order['payment_method'];
+if (empty($payment_method) || $payment_method === '0') {
+    $payment_method = 'Not Specified';
+}
 ?>
 
 <!DOCTYPE html>
@@ -380,11 +398,13 @@ $order = $result->fetch_assoc();
                 <div class="waybill-product">
                     <h3>Package Details</h3>
                     <p><strong>Product:</strong> <?php echo htmlspecialchars($order['product_display_name']); ?></p>
-                    <p><strong>Size:</strong> <?php echo strtoupper(htmlspecialchars($order['size'])); ?></p>
+                    <p><strong>Size:</strong> <?php echo strtoupper($size); ?></p>
                     <p><strong>Quantity:</strong> <?php echo (int)$order['quantity']; ?> pc(s)</p>
-                    <p><strong>Payment Method:</strong> <?php echo htmlspecialchars($order['payment_method']); ?></p>
-                    <?php if ($order['payment_method'] === 'COD'): ?>
-                    <p><strong>Amount to Collect:</strong> ₱<?php echo number_format($order['total'], 2); ?></p>
+                    <p><strong>Unit Price:</strong> ₱<?php echo number_format($unit_price, 2); ?></p>
+                    <p><strong>Total Amount:</strong> ₱<?php echo number_format($total_amount, 2); ?></p>
+                    <p><strong>Payment Method:</strong> <?php echo htmlspecialchars($payment_method); ?></p>
+                    <?php if (strtolower($payment_method) === 'cod'): ?>
+                    <p><strong>Amount to Collect:</strong> ₱<?php echo number_format($total_amount, 2); ?></p>
                     <?php endif; ?>
                 </div>
 
@@ -439,7 +459,7 @@ $order = $result->fetch_assoc();
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">Size</span>
-                                    <span class="detail-value"><?php echo strtoupper($order['size']); ?></span>
+                                    <span class="detail-value"><?php echo strtoupper($size); ?></span>
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">Quantity</span>
@@ -447,11 +467,11 @@ $order = $result->fetch_assoc();
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">Unit Price</span>
-                                    <span class="detail-value">₱<?php echo number_format($order['unit_price'] ?? 0, 2); ?></span>
+                                    <span class="detail-value">₱<?php echo number_format($unit_price, 2); ?></span>
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">Total Amount</span>
-                                    <span class="detail-value">₱<?php echo number_format($order['total'], 2); ?></span>
+                                    <span class="detail-value">₱<?php echo number_format($total_amount, 2); ?></span>
                                 </div>
                             </div>
                         </div>
@@ -485,7 +505,7 @@ $order = $result->fetch_assoc();
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Payment Method</span>
-                            <span class="detail-value"><?php echo htmlspecialchars($order['payment_method']); ?></span>
+                            <span class="detail-value"><?php echo htmlspecialchars($payment_method); ?></span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Status</span>
@@ -495,9 +515,6 @@ $order = $result->fetch_assoc();
                 </div>
 
                 <div class="action-buttons">
-                    <button class="action-btn edit-btn" onclick="window.location.href='edit_order.php?id=<?php echo $order['id']; ?>'">
-                        <i class="fas fa-edit"></i> Edit Order
-                    </button>
                     <button class="action-btn print-btn" onclick="window.print()">
                         <i class="fas fa-print"></i> Print Order
                     </button>

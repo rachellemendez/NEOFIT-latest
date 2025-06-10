@@ -325,8 +325,14 @@ $total_amount = 0;
     <script>
         document.getElementById('place-order-btn').addEventListener('click', function() {
             if (!this.disabled) {
+                const paymentMethod = document.getElementById('payment-method').value;
+                if (!paymentMethod) {
+                    alert('Please select a payment method');
+                    return;
+                }
+
                 const formData = new FormData();
-                formData.append('payment_method', document.getElementById('payment-method').value);
+                formData.append('payment_method', paymentMethod);
                 formData.append('delivery_address', <?php echo json_encode($address); ?>);
                 formData.append('contact_number', <?php echo json_encode($contact); ?>);
                 <?php if ($cart_id): ?>
