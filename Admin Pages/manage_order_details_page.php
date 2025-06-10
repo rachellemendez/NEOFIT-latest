@@ -10,9 +10,10 @@ $date_to = isset($_GET['date_to']) ? $_GET['date_to'] : null;
 
 // Base query
 $sql = "SELECT o.*, 
+               p.product_name as product_display_name,
                p.photoFront as product_image 
         FROM orders o 
-        LEFT JOIN products p ON o.product_name = p.product_name WHERE 1=1";
+        LEFT JOIN products p ON o.product_id = p.id WHERE 1=1";
 $params = [];
 $types = "";
 
@@ -31,7 +32,7 @@ if ($status_filter) {
 
 if ($search_term) {
     $search_term = "%$search_term%";
-    $sql .= " AND (o.user_name LIKE ? OR o.product_name LIKE ? OR o.id LIKE ?)";
+    $sql .= " AND (o.user_name LIKE ? OR p.product_name LIKE ? OR o.id LIKE ?)";
     $params = array_merge($params, [$search_term, $search_term, $search_term]);
     $types .= "sss";
 }
@@ -503,7 +504,7 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                                                  alt="Product" class="product-image">
                                         <?php endif; ?>
                                         <div>
-                                            <div class="detail-value"><?php echo htmlspecialchars($row['product_name']); ?></div>
+                                            <div class="detail-value"><?php echo htmlspecialchars($row['product_display_name']); ?></div>
                                             <div class="detail-sub">Size: <?php echo strtoupper($row['size']); ?></div>
                                         </div>
                                     </div>
