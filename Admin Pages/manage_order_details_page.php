@@ -190,58 +190,132 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
 
         .order-details {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .product-info, .customer-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
         }
 
         .product-info {
             display: flex;
-            align-items: center;
             gap: 15px;
         }
 
         .product-image {
-            width: 60px;
-            height: 60px;
-            border-radius: 4px;
+            width: 100px;
+            height: 100px;
             object-fit: cover;
+            border-radius: 4px;
         }
 
-        .detail-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-        }
-
-        .detail-label {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-
-        .detail-value {
-            font-size: 1.1em;
-            font-weight: 500;
-        }
-
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: 500;
+        .print-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
             cursor: pointer;
-            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .status-badge:hover {
-            opacity: 0.8;
+        .print-btn:hover {
+            background: #5a6268;
         }
 
-        .status-pending { background: #fff3cd; color: #856404; }
-        .status-processing { background: #cce5ff; color: #004085; }
-        .status-shipped { background: #d4edda; color: #155724; }
-        .status-delivered { background: #c3e6cb; color: #1e7e34; }
-        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .status-select {
+            padding: 8px 32px 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="6"><path d="M0 0h12L6 6z" fill="%23666"/></svg>') no-repeat;
+            background-position: right 12px center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+
+        .status-select:focus {
+            outline: none;
+            border-color: #7ab55c;
+            box-shadow: 0 0 0 3px rgba(122, 181, 92, 0.1);
+        }
+
+        .status-select:hover {
+            border-color: #7ab55c;
+        }
+
+        /* Status-specific colors */
+        .status-select option[value="Pending"] {
+            color: #856404;
+            background-color: #fff3cd;
+        }
+
+        .status-select option[value="Processing"] {
+            color: #004085;
+            background-color: #cce5ff;
+        }
+
+        .status-select option[value="Shipped"] {
+            color: #155724;
+            background-color: #d4edda;
+        }
+
+        .status-select option[value="Delivered"] {
+            color: #1e7e34;
+            background-color: #c3e6cb;
+        }
+
+        .status-select option[value="Cancelled"] {
+            color: #721c24;
+            background-color: #f8d7da;
+        }
+
+        /* Status colors for the select itself */
+        .status-select.status-pending {
+            color: #856404;
+            border-color: #ffeeba;
+            background-color: #fff3cd;
+        }
+
+        .status-select.status-processing {
+            color: #004085;
+            border-color: #b8daff;
+            background-color: #cce5ff;
+        }
+
+        .status-select.status-shipped {
+            color: #155724;
+            border-color: #c3e6cb;
+            background-color: #d4edda;
+        }
+
+        .status-select.status-delivered {
+            color: #1e7e34;
+            border-color: #a3d7a8;
+            background-color: #c3e6cb;
+        }
+
+        .status-select.status-cancelled {
+            color: #721c24;
+            border-color: #f5c6cb;
+            background-color: #f8d7da;
+        }
+
+        .order-date {
+            color: #666;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
 
         .order-actions {
             display: flex;
@@ -470,66 +544,49 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                 <?php
                 if ($result->num_rows > 0) {
                     while($row = $result->fetch_assoc()) {
-                        $status_class = 'status-' . strtolower($row['status']);
                         ?>
                         <div class="order-card">
                             <div class="order-header">
-                                <h2>Order #<?php echo $row['id']; ?></h2>
-                                <div class="status-container" data-order-id="<?php echo $row['id']; ?>">
-                                    <span class="status-badge <?php echo $status_class; ?>" onclick="toggleStatusMenu(<?php echo $row['id']; ?>)">
-                                        <?php echo htmlspecialchars($row['status']); ?>
-                                        <i class="fas fa-chevron-down"></i>
-                                    </span>
-                                    <div class="status-menu" id="statusMenu_<?php echo $row['id']; ?>">
-                                        <div class="status-option" onclick="updateStatus(<?php echo $row['id']; ?>, 'Pending')">Pending</div>
-                                        <div class="status-option" onclick="updateStatus(<?php echo $row['id']; ?>, 'Processing')">Processing</div>
-                                        <div class="status-option" onclick="updateStatus(<?php echo $row['id']; ?>, 'Shipped')">Shipped</div>
-                                        <div class="status-option" onclick="updateStatus(<?php echo $row['id']; ?>, 'Delivered')">Delivered</div>
-                                        <div class="status-option" onclick="updateStatus(<?php echo $row['id']; ?>, 'Cancelled')">Cancelled</div>
-                                    </div>
+                                <div>
+                                    <strong>Order #<?php echo $row['id']; ?></strong>
+                                    <span class="order-date"><?php echo date('F d, Y', strtotime($row['order_date'])); ?></span>
                                 </div>
+                                <select class="status-select" 
+                                        onchange="updateOrderStatus(<?php echo $row['id']; ?>, this.value)"
+                                        data-order-id="<?php echo $row['id']; ?>">
+                                    <?php
+                                    $statuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+                                    foreach ($statuses as $status) {
+                                        $selected = ($status === $row['status']) ? 'selected' : '';
+                                        echo "<option value=\"$status\" $selected>$status</option>";
+                                    }
+                                    ?>
+                                </select>
                             </div>
-                            
                             <div class="order-details">
-                                <div class="detail-item">
-                                    <div class="detail-label">Customer</div>
-                                    <div class="detail-value"><?php echo htmlspecialchars($row['user_name']); ?></div>
-                                    <div class="detail-sub"><?php echo htmlspecialchars($row['user_email']); ?></div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="detail-label">Product</div>
-                                    <div class="product-info">
-                                        <?php if ($row['product_image']): ?>
-                                            <img src="<?php echo htmlspecialchars($row['product_image']); ?>" 
-                                                 alt="Product" class="product-image">
-                                        <?php endif; ?>
-                                        <div>
-                                            <div class="detail-value"><?php echo htmlspecialchars($row['product_display_name']); ?></div>
-                                            <div class="detail-sub">Size: <?php echo strtoupper($row['size']); ?></div>
-                                        </div>
+                                <div class="product-info">
+                                    <img src="<?php echo $row['product_image']; ?>" alt="Product" class="product-image">
+                                    <div>
+                                        <h4><?php echo htmlspecialchars($row['product_display_name']); ?></h4>
+                                        <p>Size: <?php echo strtoupper($row['size'] ?? 'N/A'); ?></p>
+                                        <p>Quantity: <?php echo $row['quantity']; ?></p>
+                                        <p>Unit Price: ₱<?php echo number_format($row['price'], 2); ?></p>
+                                        <p>Total: ₱<?php echo number_format($row['total'], 2); ?></p>
+                                        <p>Payment: <?php echo htmlspecialchars($row['payment_method'] ?? 'N/A'); ?></p>
                                     </div>
                                 </div>
-                                <div class="detail-item">
-                                    <div class="detail-label">Order Details</div>
-                                    <div class="detail-value">₱<?php echo number_format($row['total'], 2); ?></div>
-                                    <div class="detail-sub">Quantity: <?php echo $row['quantity']; ?></div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="detail-label">Shipping Info</div>
-                                    <div class="detail-value"><?php echo htmlspecialchars($row['delivery_address']); ?></div>
-                                    <div class="detail-sub"><?php echo htmlspecialchars($row['contact_number']); ?></div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="detail-label">Payment</div>
-                                    <div class="detail-value"><?php echo htmlspecialchars($row['payment_method']); ?></div>
-                                    <div class="detail-sub">Order Date: <?php echo date('M d, Y', strtotime($row['order_date'])); ?></div>
+                                <div class="customer-info">
+                                    <h4>Customer Details</h4>
+                                    <p><strong>Name:</strong> <?php echo htmlspecialchars($row['user_name']); ?></p>
+                                    <p><strong>Email:</strong> <?php echo htmlspecialchars($row['user_email']); ?></p>
+                                    <p><strong>Contact:</strong> <?php echo htmlspecialchars($row['contact_number']); ?></p>
+                                    <p><strong>Address:</strong> <?php echo htmlspecialchars($row['delivery_address']); ?></p>
                                 </div>
                             </div>
-
                             <div class="order-actions">
-                                <a href="view_order.php?id=<?php echo $row['id']; ?>" class="action-btn view-btn">
-                                    <i class="fas fa-eye"></i> View Details
-                                </a>
+                                <button class="action-btn print-btn" onclick="printWaybill(<?php echo $row['id']; ?>)">
+                                    <i class="fas fa-print"></i> Print Waybill
+                                </button>
                             </div>
                         </div>
                         <?php
@@ -550,17 +607,15 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
             document.getElementById('filterForm').submit();
         }
 
-        function toggleStatusMenu(orderId) {
-            const menu = document.getElementById(`statusMenu_${orderId}`);
-            document.querySelectorAll('.status-menu').forEach(m => {
-                if (m.id !== `statusMenu_${orderId}`) {
-                    m.classList.remove('active');
-                }
-            });
-            menu.classList.toggle('active');
+        function printWaybill(orderId) {
+            // Open the waybill in a new window for printing
+            const printWindow = window.open(`view_order.php?id=${orderId}&print=true`, '_blank');
+            printWindow.onload = function() {
+                printWindow.print();
+            };
         }
 
-        function updateStatus(orderId, newStatus) {
+        function updateOrderStatus(orderId, newStatus) {
             // Send AJAX request to update status
             fetch('update_order_status.php', {
                 method: 'POST',
@@ -572,25 +627,37 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update UI
-                    const statusBadge = document.querySelector(`[data-order-id="${orderId}"] .status-badge`);
-                    statusBadge.className = `status-badge status-${newStatus.toLowerCase()}`;
-                    statusBadge.innerHTML = newStatus + ' <i class="fas fa-chevron-down"></i>';
-                    
-                    // Hide menu
-                    document.getElementById(`statusMenu_${orderId}`).classList.remove('active');
+                    // Update the select element's class based on the new status
+                    const select = document.querySelector(`select[data-order-id="${orderId}"]`);
+                    if (select) {
+                        // Remove all existing status classes
+                        select.classList.remove('status-pending', 'status-processing', 'status-shipped', 'status-delivered', 'status-cancelled');
+                        // Add the new status class
+                        select.classList.add(`status-${newStatus.toLowerCase()}`);
+                    }
                     
                     // Show success message
                     alert('Order status updated successfully');
                 } else {
-                    alert('Failed to update order status');
+                    alert(data.message || 'Error updating order status');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while updating the order status');
+                alert('Error updating order status');
             });
         }
+
+        // Add this function to set initial status colors
+        function initializeStatusColors() {
+            document.querySelectorAll('.status-select').forEach(select => {
+                const currentStatus = select.value.toLowerCase();
+                select.classList.add(`status-${currentStatus}`);
+            });
+        }
+
+        // Call this when the page loads
+        document.addEventListener('DOMContentLoaded', initializeStatusColors);
 
         function viewOrderDetails(orderId) {
             // Implement view details functionality
