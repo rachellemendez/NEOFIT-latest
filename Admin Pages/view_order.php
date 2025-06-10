@@ -6,6 +6,7 @@ include '../db.php';
 
 // Get order ID from URL
 $order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$print_mode = isset($_GET['print']) && $_GET['print'] === 'true';
 
 // Fetch order details with product information
 $sql = "SELECT o.*, 
@@ -30,6 +31,220 @@ if ($result->num_rows === 0) {
 }
 
 $order = $result->fetch_assoc();
+
+// Format values
+$tracking_number = str_pad($order['id'], 8, '0', STR_PAD_LEFT);
+$order_date = date('F d, Y', strtotime($order['order_date']));
+$total_amount = $order['total'];
+$unit_price = $order['price'] ?? $order['unit_price'];
+
+// Format size and payment method
+$size = $order['size'];
+if (empty($size) || $size === '0' || $size === 'N/A') {
+    $size = 'Not Specified';
+}
+
+$payment_method = $order['payment_method'];
+if (empty($payment_method) || $payment_method === '0') {
+    $payment_method = 'Not Specified';
+}
+
+// If in print mode, show only the waybill
+if ($print_mode):
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEOFIT - Waybill #<?php echo $tracking_number; ?></title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .waybill {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 0 auto;
+            box-sizing: border-box;
+            border: 2px solid #000;
+        }
+        .waybill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .waybill-logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .waybill-title {
+            font-size: 28px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+        .waybill-tracking {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .waybill-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .waybill-section {
+            border: 1px solid #000;
+            padding: 15px;
+        }
+        .waybill-section h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+        .waybill-section p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .package-details {
+            border: 1px solid #000;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        .package-details h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+        }
+        .signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-top: 50px;
+        }
+        .signature-box {
+            text-align: center;
+        }
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            padding-top: 5px;
+            font-size: 12px;
+        }
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .qr-code img {
+            max-width: 100px;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .waybill {
+                border: 2px solid #000 !important;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="waybill">
+        <div class="waybill-header">
+            <div class="waybill-logo">NEOFIT</div>
+            <div class="waybill-title">WAYBILL</div>
+            <div class="waybill-tracking">Tracking #: <?php echo $tracking_number; ?></div>
+        </div>
+
+        <div class="waybill-sections">
+            <div class="waybill-section">
+                <h3>Sender</h3>
+                <p><strong>NEOFIT</strong></p>
+                <p>123 Main Street</p>
+                <p>Manila, Philippines</p>
+                <p>Contact: (02) 123-4567</p>
+            </div>
+
+            <div class="waybill-section">
+                <h3>Recipient</h3>
+                <p><strong><?php echo htmlspecialchars($order['user_name']); ?></strong></p>
+                <p><?php echo htmlspecialchars($order['delivery_address']); ?></p>
+                <p>Contact: <?php echo htmlspecialchars($order['contact_number']); ?></p>
+                <p>Email: <?php echo htmlspecialchars($order['user_email']); ?></p>
+            </div>
+        </div>
+
+        <div class="package-details">
+            <h3>Package Details</h3>
+            <p><strong>Product:</strong> <?php echo htmlspecialchars($order['product_display_name']); ?></p>
+            <p><strong>Size:</strong> <?php echo strtoupper($size); ?></p>
+            <p><strong>Quantity:</strong> <?php echo (int)$order['quantity']; ?> pc(s)</p>
+            <p><strong>Unit Price:</strong> ₱<?php echo number_format($unit_price, 2); ?></p>
+            <p><strong>Total Amount:</strong> ₱<?php echo number_format($total_amount, 2); ?></p>
+            <p><strong>Payment Method:</strong> <?php echo htmlspecialchars($payment_method); ?></p>
+            <?php if (strtolower($payment_method) === 'cod'): ?>
+            <p><strong>Amount to Collect:</strong> ₱<?php echo number_format($total_amount, 2); ?></p>
+            <?php endif; ?>
+        </div>
+
+        <div class="qr-code">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=<?php echo urlencode('NEOFIT-ORDER-' . $tracking_number); ?>" alt="Tracking QR Code">
+            <p>Order #<?php echo $tracking_number; ?></p>
+        </div>
+
+        <div class="signatures">
+            <div class="signature-box">
+                <div class="signature-line">
+                    <p>Received in Good Condition:</p>
+                    <p>_________________________</p>
+                    <p>Recipient's Signature</p>
+                </div>
+            </div>
+            <div class="signature-box">
+                <div class="signature-line">
+                    <p>Delivered by:</p>
+                    <p>_________________________</p>
+                    <p>Courier's Signature</p>
+                </div>
+            </div>
+            <div class="signature-box">
+                <div class="signature-line">
+                    <p>Date Received:</p>
+                    <p>_________________________</p>
+                    <p>DD/MM/YYYY</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Auto-print when loaded
+        window.onload = function() {
+            window.print();
+        };
+    </script>
+</body>
+</html>
+<?php 
+exit();
+endif;
 
 // Format the unit price
 $unit_price = $order['price'] ?? $order['unit_price'];
