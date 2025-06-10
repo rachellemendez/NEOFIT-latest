@@ -53,10 +53,45 @@
             font-weight: 600;
             color: #333;
         }
-        .payment-details {
+        .payment-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+
+        .payment-actions button {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-            color: #007bff;
-            text-decoration: underline;
+            transition: background-color 0.2s;
+            color: white;
+        }
+
+        .btn-view {
+            background-color: #6c757d;
+        }
+
+        .btn-approve {
+            background-color: #28a745;
+        }
+
+        .btn-reject {
+            background-color: #dc3545;
+        }
+
+        .btn-view:hover { background-color: #5a6268; }
+        .btn-approve:hover { background-color: #218838; }
+        .btn-reject:hover { background-color: #c82333; }
+
+        .payment-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+            text-align: center;
+            display: inline-block;
+            min-width: 100px;
         }
         .pagination {
             display: flex;
@@ -103,7 +138,15 @@
     </style>
 </head>
 <body>
-    <?php include 'payment_functions.php'; ?>
+    <?php 
+include 'payment_functions.php';
+// Check if admin is logged in
+session_start();
+if (!isset($_SESSION['admin@1'])) {
+    header('Location: ../landing_page.php');
+    exit;
+}
+?>
     
     <div id="loading-overlay">
         <div class="spinner"></div>
@@ -221,19 +264,28 @@
                                     break;
                             }
                             ?>
-                            <tr>
-                                <td><?php echo $payment['transaction_id']; ?></td>
-                                <td><?php echo $payment['order_id']; ?></td>
-                                <td><?php echo $payment['customer_name']; ?></td>
-                                <td><?php echo date('M d, Y H:i', strtotime($payment['payment_date'])); ?></td>
-                                <td>₱<?php echo number_format($payment['amount'], 2); ?></td>
-                                <td><?php echo ucfirst($payment['payment_method']); ?></td>
-                                <td><span class="payment-status <?php echo $statusClass; ?>"><?php echo ucfirst($payment['status']); ?></span></td>
-                                <td>
-                                    <span class="payment-details" onclick="viewPaymentDetails('<?php echo $payment['transaction_id']; ?>')">
-                                        View Details
-                                    </span>
-                                </td>
+                            <tr>                        <td><?php echo htmlspecialchars($payment['transaction_id']); ?></td>
+                        <td><?php echo htmlspecialchars($payment['order_id']); ?></td>
+                        <td><?php echo htmlspecialchars($payment['user_name']); ?></td>
+                        <td><?php echo date('M d, Y H:i', strtotime($payment['payment_date'])); ?></td>
+                        <td>₱<?php echo number_format($payment['amount'], 2); ?></td>
+                        <td><?php echo htmlspecialchars(ucfirst($payment['payment_method'])); ?></td>
+                        <td><span class="payment-status <?php echo $statusClass; ?>"><?php echo htmlspecialchars(ucfirst($payment['status'])); ?></span></td>
+                        <td>
+                            <div class="payment-actions">
+                                <button onclick="viewPaymentDetails('<?php echo htmlspecialchars($payment['transaction_id']); ?>')" class="btn-view">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <?php if ($payment['status'] === 'pending'): ?>
+                                <button onclick="updatePaymentStatus('<?php echo htmlspecialchars($payment['transaction_id']); ?>', 'success')" class="btn-approve">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button onclick="updatePaymentStatus('<?php echo htmlspecialchars($payment['transaction_id']); ?>', 'failed')" class="btn-reject">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <?php endif; ?>
+                            </div>
+                        </td>
                             </tr>
                             <?php
                         }
@@ -364,10 +416,93 @@
         });
 
         // Function to view payment details
+        function updatePaymentStatus(transactionId, newStatus) {
+            if (!confirm(`Are you sure you want to mark this payment as ${newStatus}?`)) {
+                return;
+            }
+            
+            showLoading();
+            
+            fetch('update_payment_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `transaction_id=${encodeURIComponent(transactionId)}&status=${encodeURIComponent(newStatus)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadPayments();
+                    alert('Payment status updated successfully');
+                } else {
+                    alert(data.message || 'Error updating payment status');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating payment status');
+            })
+            .finally(() => {
+                hideLoading();
+            });
+        }
+
         function viewPaymentDetails(transactionId) {
-            // Implement payment details view logic here
-            console.log('Viewing details for transaction:', transactionId);
-            // You can implement a modal or redirect to a details page
+            showLoading();
+            
+            fetch(`get_payment_details.php?transaction_id=${encodeURIComponent(transactionId)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('payment-details-content');
+                    
+                    const details = `
+                        <div class="payment-detail-row">
+                            <div class="payment-detail-label">Transaction ID</div>
+                            <div class="payment-detail-value">${data.transaction_id}</div>
+                        </div>
+                        <div class="payment-detail-row">
+                            <div class="payment-detail-label">Order ID</div>
+                            <div class="payment-detail-value">${data.order_id}</div>
+                        </div>
+                        <div class="payment-detail-row">
+                            <div class="payment-detail-label">Customer</div>
+                            <div class="payment-detail-value">${data.customer_name}</div>
+                        </div>
+                        <div class="payment-detail-row">
+                            <div class="payment-detail-label">Email</div>
+                            <div class="payment-detail-value">${data.customer_email}</div>
+                        </div>
+                        <div class="payment-detail-row">
+                            <div class="payment-detail-label">Amount</div>
+                            <div class="payment-detail-value">₱${data.amount}</div>
+                        </div>
+                        <div class="payment-detail-row">
+                            <div class="payment-detail-label">Payment Method</div>
+                            <div class="payment-detail-value">${data.payment_method}</div>
+                        </div>
+                        <div class="payment-detail-row">
+                            <div class="payment-detail-label">Date</div>
+                            <div class="payment-detail-value">${data.payment_date}</div>
+                        </div>
+                        <div class="payment-detail-row">
+                            <div class="payment-detail-label">Status</div>
+                            <div class="payment-detail-value">
+                                <span class="payment-status ${data.status_class}">${data.status}</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    content.innerHTML = details;
+                    document.getElementById('payment-modal').style.display = 'flex';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading payment details');
+                })
+                .finally(() => {
+                    hideLoading();
+                });
         }
     </script>
 </body>

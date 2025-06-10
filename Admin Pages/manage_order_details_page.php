@@ -116,6 +116,38 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
             font-size: 0.9em;
         }
 
+        /* Filter status dropdown styling to match group */
+        .filter-input[name="status"] {
+            padding: 8px 32px 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+            background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="6"><path d="M0 0h12L6 6z" fill="%23666"/></svg>') no-repeat;
+            background-position: right 12px center;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+
+        .filter-input[name="status"]:focus {
+            outline: none;
+            border-color: #7ab55c;
+            box-shadow: 0 0 0 2px rgba(122, 181, 92, 0.1);
+        }
+
+        .filter-input[name="status"]:hover {
+            border-color: #7ab55c;
+        }
+
+        .filter-input[name="status"] option {
+            padding: 8px;
+            background: white;
+            color: #333;
+        }
+
         .filter-buttons {
             display: flex;
             gap: 10px;
