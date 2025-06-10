@@ -665,6 +665,11 @@ if (!isset($_SESSION['email'])) {
                         <span class="cart-count">0</span>
                     </a>
                 </div>
+                <div class="shopping-bag-icon">
+                    <a href="orders.php">
+                        <img src="shopping-bag.png" alt="Shopping Bag Icon" width="24" height="24">
+                    </a>
+                </div>
             </div>
         </div>
     </header>

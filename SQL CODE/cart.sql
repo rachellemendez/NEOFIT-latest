@@ -1,3 +1,5 @@
+USE neofit;
+
 CREATE TABLE `cart` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,

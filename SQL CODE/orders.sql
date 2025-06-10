@@ -10,7 +10,6 @@ CREATE TABLE `orders` (
   `product_name` varchar(255) DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
   `size` varchar(50) DEFAULT NULL,
-  `color` varchar(50) DEFAULT NULL,
   `quantity` int(11) DEFAULT NULL,
   `total` decimal(10,2) DEFAULT NULL
 )
