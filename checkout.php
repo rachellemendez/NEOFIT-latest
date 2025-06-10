@@ -322,6 +322,7 @@ $total_amount = 0;
         </div>
     </div>
 
+    <?php include 'footer.php'; ?>
     <script>
         document.getElementById('place-order-btn').addEventListener('click', function() {
             if (!this.disabled) {

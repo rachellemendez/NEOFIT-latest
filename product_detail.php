@@ -532,271 +532,220 @@ if ($result->num_rows > 0) {
         </div>
     </div>
 
-    <footer>
-    <div class="footer-container">
-        <div class="footer-column">
-            <h3>About Us</h3>
-            <ul>
-                <li><a href="#">Our Story</a></li>
-                <li><a href="#">Mission and Vision</a></li>
-            </ul>
-        </div>
-        
-        <div class="footer-column">
-            <h3>Shop</h3>
-            <ul>
-                <li><a href="#">Trending</a></li>
-                <li><a href="#">Men</a></li>
-                <li><a href="#">Women</a></li>
-            </ul>
-        </div>
-        
-        <div class="footer-column">
-            <h3>Support</h3>
-            <ul>
-                <li><a href="#">FAQs</a></li>
-                <li><a href="#">Contact Us</a></li>
-            </ul>
-        </div>
-        
-        <div class="footer-column">
-            <h3>Legal</h3>
-            <ul>
-                <li><a href="#">Terms and Conditions</a></li>
-                <li><a href="#">Privacy Policy</a></li>
-            </ul>
-        </div>
-    </div>
-    
-    <div class="footer-container">
-        <div class="footer-column">
-            <h3>Follow Us</h3>
-            <div class="social-icons">
-                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <p>© 2025 Neofit. All rights reserved.</p>
-        </div>
-    </div>
-</footer>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const quantityInput = document.getElementById("quantity");
-    const decreaseBtn = document.getElementById("decrease");
-    const increaseBtn = document.getElementById("increase");
-    const inventoryCount = document.getElementById("inventory-count");
-    const sizeSelect = document.getElementById("size");
-    const addToCartBtn = document.getElementById("addToCartBtn");
-    const wishlistBtn = document.getElementById("wishlistBtn");
+    <?php include 'footer.php'; ?>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const quantityInput = document.getElementById("quantity");
+        const decreaseBtn = document.getElementById("decrease");
+        const increaseBtn = document.getElementById("increase");
+        const inventoryCount = document.getElementById("inventory-count");
+        const sizeSelect = document.getElementById("size");
+        const addToCartBtn = document.getElementById("addToCartBtn");
+        const wishlistBtn = document.getElementById("wishlistBtn");
 
-    // Set initial inventory data
-    let availableQuantities = {
-        small: <?php echo $quantitySmall; ?>,
-        medium: <?php echo $quantityMedium; ?>,
-        large: <?php echo $quantityLarge; ?>
-    };
+        // Set initial inventory data
+        let availableQuantities = {
+            small: <?php echo $quantitySmall; ?>,
+            medium: <?php echo $quantityMedium; ?>,
+            large: <?php echo $quantityLarge; ?>
+        };
 
-    // Function to update the available inventory count and enable/disable buttons
-    function updateInventory() {
-        const selectedSize = sizeSelect.value;
-        const available = availableQuantities[selectedSize];
+        // Function to update the available inventory count and enable/disable buttons
+        function updateInventory() {
+            const selectedSize = sizeSelect.value;
+            const available = availableQuantities[selectedSize];
 
-        inventoryCount.textContent = `${available} pieces available`;
+            inventoryCount.textContent = `${available} pieces available`;
 
-        // Set max value and adjust quantity if necessary
-        quantityInput.setAttribute("max", available);
-        quantityInput.value = Math.min(quantityInput.value, available);
+            // Set max value and adjust quantity if necessary
+            quantityInput.setAttribute("max", available);
+            quantityInput.value = Math.min(quantityInput.value, available);
 
-        // Enable/disable buttons based on available stock
-        increaseBtn.disabled = available <= 0 || quantityInput.value >= available;
-        decreaseBtn.disabled = quantityInput.value <= 1;
-    }
-
-    // Event listener for size change
-    sizeSelect.addEventListener("change", updateInventory);
-
-    // Increase quantity
-    increaseBtn.addEventListener("click", function() {
-        let current = parseInt(quantityInput.value);
-        const max = parseInt(quantityInput.getAttribute("max"));
-        if (current < max) {
-            quantityInput.value = current + 1;
+            // Enable/disable buttons based on available stock
+            increaseBtn.disabled = available <= 0 || quantityInput.value >= available;
+            decreaseBtn.disabled = quantityInput.value <= 1;
         }
-        updateInventory();
-    });
 
-    // Decrease quantity
-    decreaseBtn.addEventListener("click", function() {
-        let current = parseInt(quantityInput.value);
-        if (current > 1) {
-            quantityInput.value = current - 1;
-        }
-        updateInventory();
-    });
+        // Event listener for size change
+        sizeSelect.addEventListener("change", updateInventory);
 
-    // Handle manual input in quantity field
-    quantityInput.addEventListener("input", function() {
-        let value = parseInt(quantityInput.value);
-        const max = parseInt(quantityInput.getAttribute("max"));
-
-        if (isNaN(value) || value < 1) {
-            quantityInput.value = "";
-        } else if (value > max) {
-            alert("Desired quantity exceeds available stock.");
-            quantityInput.value = max;
-        }
-        updateInventory();
-    });
-
-    // Initialize on page load
-    updateInventory();
-
-    // Redirect logo to landing page
-    document.getElementById("neofitLogo").addEventListener("click", function() {
-        window.location.href = 'landing_page.php';
-    });
-
-    // Handle thumbnail clicks
-    document.querySelectorAll('.thumbnail').forEach(thumb => {
-        thumb.addEventListener('click', function() {
-            const mainImage = document.querySelector('.main-image img');
-            const thumbImage = this.querySelector('img');
-            if (mainImage && thumbImage) {
-                mainImage.src = thumbImage.src;
+        // Increase quantity
+        increaseBtn.addEventListener("click", function() {
+            let current = parseInt(quantityInput.value);
+            const max = parseInt(quantityInput.getAttribute("max"));
+            if (current < max) {
+                quantityInput.value = current + 1;
             }
+            updateInventory();
         });
-    });
 
-    // Add to Cart functionality
-    addToCartBtn.addEventListener("click", function() {
-        <?php if (!$is_logged_in): ?>
-            window.location.href = 'login.php';
-            return;
-        <?php endif; ?>
-
-        const formData = new FormData();
-        formData.append("product_id", <?php echo $product_id; ?>);
-        formData.append("size", sizeSelect.value);
-        formData.append("quantity", quantityInput.value);
-
-        fetch("add_to_cart.php", {
-            method: "POST",
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                updateCartCount();
-            } else {
-                alert(data.message || "Error adding item to cart");
+        // Decrease quantity
+        decreaseBtn.addEventListener("click", function() {
+            let current = parseInt(quantityInput.value);
+            if (current > 1) {
+                quantityInput.value = current - 1;
             }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("Error adding item to cart");
+            updateInventory();
         });
-    });
 
-    // Buy Now functionality
-    const buyNowBtn = document.getElementById("buyNowBtn");
-    buyNowBtn.addEventListener("click", function() {
-        <?php if (!$is_logged_in): ?>
-            window.location.href = 'login.php';
-            return;
-        <?php endif; ?>
+        // Handle manual input in quantity field
+        quantityInput.addEventListener("input", function() {
+            let value = parseInt(quantityInput.value);
+            const max = parseInt(quantityInput.getAttribute("max"));
 
-        const formData = new FormData();
-        formData.append("product_id", <?php echo $product_id; ?>);
-        formData.append("size", sizeSelect.value);
-        formData.append("quantity", quantityInput.value);
-
-        fetch("buy_now.php", {
-            method: "POST",
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = data.redirect;
-            } else {
-                alert(data.message || "Error processing request");
+            if (isNaN(value) || value < 1) {
+                quantityInput.value = "";
+            } else if (value > max) {
+                alert("Desired quantity exceeds available stock.");
+                quantityInput.value = max;
             }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("Error processing request");
+            updateInventory();
         });
-    });
 
-    // Toggle Favorite functionality
-    wishlistBtn.addEventListener("click", function() {
-        <?php if (!$is_logged_in): ?>
-            window.location.href = 'login.php';
-            return;
-        <?php endif; ?>
+        // Initialize on page load
+        updateInventory();
 
-        const formData = new FormData();
-        formData.append("product_id", <?php echo $product_id; ?>);
+        // Redirect logo to landing page
+        document.getElementById("neofitLogo").addEventListener("click", function() {
+            window.location.href = 'landing_page.php';
+        });
 
-        fetch("toggle_favorite.php", {
-            method: "POST",
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                if (data.action === 'added') {
-                    wishlistBtn.style.backgroundColor = '#ff4d4d';
-                    wishlistBtn.style.color = '#fff';
-                } else {
-                    wishlistBtn.style.backgroundColor = '#fff';
-                    wishlistBtn.style.color = '#ff4d4d';
+        // Handle thumbnail clicks
+        document.querySelectorAll('.thumbnail').forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                const mainImage = document.querySelector('.main-image img');
+                const thumbImage = this.querySelector('img');
+                if (mainImage && thumbImage) {
+                    mainImage.src = thumbImage.src;
                 }
-                alert(data.message);
-            } else {
-                alert(data.message || "Error updating favorites");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("Error updating favorites");
+            });
         });
-    });
 
-    // Check favorite status on load
-    <?php if ($is_logged_in): ?>
-    fetch("check_favorite.php?product_id=<?php echo $product_id; ?>")
-        .then(response => response.json())
-        .then(data => {
-            if (data.is_favorite) {
-                wishlistBtn.style.backgroundColor = '#ff4d4d';
-                wishlistBtn.style.color = '#fff';
-            }
-        })
-        .catch(error => console.error("Error:", error));
-    <?php endif; ?>
+        // Add to Cart functionality
+        addToCartBtn.addEventListener("click", function() {
+            <?php if (!$is_logged_in): ?>
+                window.location.href = 'login.php';
+                return;
+            <?php endif; ?>
 
-    // Update cart count
-    function updateCartCount() {
-        fetch('get_cart_count.php')
+            const formData = new FormData();
+            formData.append("product_id", <?php echo $product_id; ?>);
+            formData.append("size", sizeSelect.value);
+            formData.append("quantity", quantityInput.value);
+
+            fetch("add_to_cart.php", {
+                method: "POST",
+                body: formData
+            })
             .then(response => response.json())
             .then(data => {
-                const cartCount = document.querySelector('.cart-count');
-                if (cartCount) {
-                    cartCount.textContent = data.count;
-                    cartCount.style.display = data.count > 0 ? 'flex' : 'none';
+                if (data.success) {
+                    alert(data.message);
+                    updateCartCount();
+                } else {
+                    alert(data.message || "Error adding item to cart");
                 }
             })
-            .catch(error => console.error('Error:', error));
-    }
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Error adding item to cart");
+            });
+        });
 
-    // Update cart count on page load
-    updateCartCount();
-});
-</script>
+        // Buy Now functionality
+        const buyNowBtn = document.getElementById("buyNowBtn");
+        buyNowBtn.addEventListener("click", function() {
+            <?php if (!$is_logged_in): ?>
+                window.location.href = 'login.php';
+                return;
+            <?php endif; ?>
+
+            const formData = new FormData();
+            formData.append("product_id", <?php echo $product_id; ?>);
+            formData.append("size", sizeSelect.value);
+            formData.append("quantity", quantityInput.value);
+
+            fetch("buy_now.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect;
+                } else {
+                    alert(data.message || "Error processing request");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Error processing request");
+            });
+        });
+
+        // Toggle Favorite functionality
+        wishlistBtn.addEventListener("click", function() {
+            <?php if (!$is_logged_in): ?>
+                window.location.href = 'login.php';
+                return;
+            <?php endif; ?>
+
+            const formData = new FormData();
+            formData.append("product_id", <?php echo $product_id; ?>);
+
+            fetch("toggle_favorite.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.action === 'added') {
+                        wishlistBtn.style.backgroundColor = '#ff4d4d';
+                        wishlistBtn.style.color = '#fff';
+                    } else {
+                        wishlistBtn.style.backgroundColor = '#fff';
+                        wishlistBtn.style.color = '#ff4d4d';
+                    }
+                    alert(data.message);
+                } else {
+                    alert(data.message || "Error updating favorites");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Error updating favorites");
+            });
+        });
+
+        // Check favorite status on load
+        <?php if ($is_logged_in): ?>
+        fetch("check_favorite.php?product_id=<?php echo $product_id; ?>")
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_favorite) {
+                    wishlistBtn.style.backgroundColor = '#ff4d4d';
+                    wishlistBtn.style.color = '#fff';
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        <?php endif; ?>
+
+        // Update cart count
+        function updateCartCount() {
+            fetch('get_cart_count.php')
+                .then(response => response.json())
+                .then(data => {
+                    const cartCount = document.querySelector('.cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = data.count;
+                        cartCount.style.display = data.count > 0 ? 'flex' : 'none';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Update cart count on page load
+        updateCartCount();
+    });
+    </script>

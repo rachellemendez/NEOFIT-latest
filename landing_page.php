@@ -883,59 +883,7 @@ if (!isset($_SESSION['email'])) {
 
     </main>
 
-    <footer>
-    <div class="footer-container">
-        <div class="footer-column">
-            <h3>About Us</h3>
-            <ul>
-                <li><a href="#">Our Story</a></li>
-                <li><a href="#">Mission and Vision</a></li>
-            </ul>
-        </div>
-        
-        <div class="footer-column">
-            <h3>Shop</h3>
-            <ul>
-                <li><a href="#">Trending</a></li>
-                <li><a href="#">Men</a></li>
-                <li><a href="#">Women</a></li>
-            </ul>
-        </div>
-        
-        <div class="footer-column">
-            <h3>Support</h3>
-            <ul>
-                <li><a href="#">FAQs</a></li>
-                <li><a href="#">Contact Us</a></li>
-            </ul>
-        </div>
-        
-        <div class="footer-column">
-            <h3>Legal</h3>
-            <ul>
-                <li><a href="#">Terms and Conditions</a></li>
-                <li><a href="#">Privacy Policy</a></li>
-            </ul>
-        </div>
-    </div>
-    
-    <div class="footer-container">
-        <div class="footer-column">
-            <h3>Follow Us</h3>
-            <div class="social-icons">
-                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <p>© 2025 Neofit. All rights reserved.</p>
-        </div>
-    </div>
-</footer>
-
+    <?php include 'footer.php'; ?>
     <script>
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {

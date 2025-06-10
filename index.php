@@ -532,7 +532,7 @@ if(isset($_SESSION['email'])){
                                 <a href="forgot_password_new.php" class="forgot-link">Forgot Password?</a>
                             </div>
                             <div class="terms-text">
-                                By signing up, I accept NeoFit's <a href="#">Privacy Policy</a> and <a href="#">Legal Statement</a>
+                                By signing up, I accept NeoFit's <a href="#" onclick="openPopup('privacy&policy.php');return false;">Privacy Policy</a> and <a href="#" onclick="openPopup('legal_statement.php');return false;">Legal Statement</a>
                             </div>
                             <button type="submit" class="auth-button" name="login_submit">Login</button>
                         </form>
@@ -586,7 +586,7 @@ if(isset($_SESSION['email'])){
                             </div>
                             <div id="signup-message" class="message" style="display: none;"></div>
                             <div class="terms-text">
-                                By signing up, I accept NeoFit's <a href="#">Privacy Policy</a> and <a href="#">Legal Statement</a>
+                                By signing up, I accept NeoFit's <a href="#" onclick="openPopup('privacy&policy.php');return false;">Privacy Policy</a> and <a href="#" onclick="openPopup('legal_statement.php');return false;">Legal Statement</a>
                             </div>
                             <input type="hidden" name="signup_submit" value="1">
                             <button type="submit" class="auth-button">Sign Up</button>
@@ -598,13 +598,7 @@ if(isset($_SESSION['email'])){
         </div>
     </main>
 
-    <footer>
-        <div class="footer-links">
-            <a href="#">Contact Us</a>
-            <a href="#">Find a Store</a>
-            <a href="#">About NEOFIT</a>
-        </div>
-    </footer>
+    <?php include 'footer.php'; ?>
 
     <!-- Add this right after the <body> tag -->
     <div class="popup-overlay" id="popupOverlay"></div>
@@ -615,6 +609,14 @@ if(isset($_SESSION['email'])){
 
     <!-- Add this after the header -->
     <div id="systemMessage" class="system-message"></div>
+
+    <!-- Modal for policy display -->
+    <div id="policyModal" class="modal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+      <div class="modal-content" style="background:#fff;max-width:700px;width:90vw;max-height:80vh;overflow:auto;border-radius:8px;position:relative;padding:30px 20px;">
+        <span id="closePolicyModal" style="position:absolute;top:10px;right:18px;font-size:2rem;cursor:pointer;">&times;</span>
+        <div id="policyModalBody">Loading...</div>
+      </div>
+    </div>
 
     <script>
         // Tab switching functionality
@@ -875,6 +877,36 @@ if(isset($_SESSION['email'])){
             const toggle = input.nextElementSibling;
             input.type = 'password';
             toggle.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+        }
+
+        document.querySelectorAll('.open-policy').forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('data-policy');
+            const modal = document.getElementById('policyModal');
+            const body = document.getElementById('policyModalBody');
+            modal.style.display = 'flex';
+            body.innerHTML = 'Loading...';
+            fetch(url)
+              .then(res => res.text())
+              .then(html => {
+                // Extract just the <body> content if possible
+                const match = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+                body.innerHTML = match ? match[1] : html;
+              })
+              .catch(() => { body.innerHTML = 'Failed to load content.'; });
+          });
+        });
+        document.getElementById('closePolicyModal').onclick = function() {
+          document.getElementById('policyModal').style.display = 'none';
+        };
+        window.onclick = function(event) {
+          const modal = document.getElementById('policyModal');
+          if (event.target === modal) modal.style.display = 'none';
+        };
+
+        function openPopup(url) {
+            window.open(url, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
         }
     </script>
 </body>
