@@ -470,6 +470,10 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                     <i class="fas fa-credit-card"></i>
                     <span>Payments</span>
                 </li>
+                <li onclick="window.location.href='neocreds_page.php'">
+                    <i class="fas fa-coins"></i>
+                    <span>NeoCreds</span>
+                </li>
                 <li onclick="window.location.href='settings.php'">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
