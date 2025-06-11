@@ -69,18 +69,17 @@ try {
 
         // Calculate total
         $total = $item['quantity'] * $item['product_price'];
-
-        // Validate size
-        $size = $item['size'] ?? 'N/A';
-        if (empty($size) || $size === '0') {
-            $size = 'N/A';
-        }
+        $size = $item['size'];
+        $size = $size === 'small' ? 'Small' : ($size === 'medium' ? 'Medium' : 'Large');
 
         // Validate payment method
         if (empty($payment_method) || $payment_method === '0') {
             throw new Exception('Please select a valid payment method');
-        }
-
+        }        // Debug log values before insertion
+        error_log("Product Name: " . $item['product_name']);
+        error_log("Size: " . $size);
+        error_log("Payment Method: " . $payment_method);
+        
         // Insert order
         $order_sql = "INSERT INTO orders (
             user_id, user_name, user_email,
@@ -92,7 +91,7 @@ try {
 
         $order_stmt = $conn->prepare($order_sql);
         $order_stmt->bind_param(
-            "issiisdiddss",
+            "ississsidsss",  // Changed type string to match the correct data types
             $user_id,
             $_SESSION['user_name'],
             $_SESSION['email'],
