@@ -1,3 +1,7 @@
+<?php
+// Include header first to start the session
+include 'header.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -571,34 +575,7 @@
             .footer-container {
                 grid-template-columns: 1fr;
             }
-        }
-    </style>
-</head>
-        <body>
-        <header>
-        <div class="header-container">
-            <a href="landing_page.php" class="logo">NEOFIT</a>
-            <nav>
-                <ul>
-                    <li><a href="#men-section" class="nav-link" data-category="men">Men</a></li>
-                    <li><a href="#women-section" class="nav-link" data-category="women">Women</a></li>
-                </ul>
-            </nav>
-            <div class="header-right">
-                <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Search">
-                </div>
-                <div class="user-icon"><a href="user-settings.php"> <img src="profile.jpg" alt="Profile Icon" width="24" height="24"></a></div>
-                <div class="cart-icon">
-                    <a href="cart.php">
-                        <img src="cart.jpg" alt="Cart Icon" width="24" height="24">
-                        <span class="cart-count">0</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
-
+        }    </style>
 
 
         <section id="men-section">

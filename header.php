@@ -6,14 +6,18 @@ if (session_status() === PHP_SESSION_NONE) {
 ?>
 <header>
     <div class="header-container">
-        <a class="logo" href="landing_page.php">NEOFIT</a>        <nav>
+        <a class="logo" href="landing_page.php">NEOFIT</a>
+        <nav>
             <ul>
-                <li><a href="landing_page.php#trending-section" class="nav-link" data-category="trending">All Products</a></li>
-                <li><a href="landing_page.php#men-section" class="nav-link" data-category="men">Men</a></li>
-                <li><a href="landing_page.php#women-section" class="nav-link" data-category="women">Women</a></li>
+                <li><a href="landing_page.php" class="nav-link">Home</a></li>
+                <li><a href="browse_all_collection.php#men-section" class="nav-link">Men</a></li>
+                <li><a href="browse_all_collection.php#women-section" class="nav-link">Women</a></li>
             </ul>
         </nav>
         <div class="header-right">
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Search" autocomplete="off">
+            </div>
             <div class="user-icon"><a href="user-settings.php"> <img src="profile.jpg" alt="Profile Icon" width="24" height="24"></a></div>
             <div class="cart-icon">
                 <a href="cart.php">
@@ -37,7 +41,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 <style>
     header {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         background-color: #FFFFFF;
         color: #000;
         position: sticky;
@@ -75,16 +79,36 @@ if (session_status() === PHP_SESSION_NONE) {
         color: #1E1E1E;
         font-size: 14px;
         transition: color 0.3s;
+        text-transform: uppercase;
     }
 
     nav a:hover {
-        color: #666;
+        color: #55a39b;
     }
 
     .header-right {
         display: flex;
         align-items: center;
         gap: 20px;
+    }
+
+    .search-container {
+        position: relative;
+    }
+
+    .search-input {
+        padding: 8px 12px;
+        border-radius: 20px;
+        border: 1px solid #eee;
+        background-color: #f5f5f5;
+        width: 180px;
+        font-size: 14px;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #55a39b;
+        background-color: #fff;
     }
 
     .user-icon, .cart-icon, .shopping-bag-icon, .favorites-icon {
@@ -109,30 +133,9 @@ if (session_status() === PHP_SESSION_NONE) {
         font-weight: bold;
     }
 
-    .nav-link {
-        position: relative;
-        transition: color 0.3s;
-    }
-
-    .nav-link::after {
-        content: '';
-        position: absolute;
-        width: 0;
-        height: 2px;
-        bottom: -5px;
-        left: 0;
-        background-color: #000;
-        transition: width 0.3s;
-    }
-
-    .nav-link:hover::after,
-    .nav-link.active::after {
-        width: 100%;
-    }
-
     @media (max-width: 768px) {
-        nav ul {
-            gap: 15px;
+        .search-input {
+            width: 150px;
         }
         
         .header-right {
@@ -140,3 +143,59 @@ if (session_status() === PHP_SESSION_NONE) {
         }
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const allProducts = document.querySelectorAll('.product-card');
+    const productSections = document.querySelectorAll('.product-section, #men-section, #women-section');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            let hasResults = false;
+
+            // Show all sections initially
+            productSections.forEach(section => {
+                if (section) section.style.display = 'block';
+            });
+
+            if (searchTerm === '') {
+                // If search is empty, show all products
+                allProducts.forEach(product => {
+                    if (product) product.style.display = 'block';
+                });
+                return;
+            }
+
+            allProducts.forEach(product => {
+                if (product) {
+                    const productName = product.querySelector('.product-name')?.textContent.toLowerCase() || '';
+                    if (productName.includes(searchTerm)) {
+                        product.style.display = 'block';
+                        hasResults = true;
+                    } else {
+                        product.style.display = 'none';
+                    }
+                }
+            });
+
+            // Hide sections that have no visible products
+            productSections.forEach(section => {
+                if (section) {
+                    const visibleProducts = section.querySelectorAll('.product-card[style="display: block;"]');
+                    section.style.display = visibleProducts.length === 0 ? 'none' : 'block';
+                }
+            });
+
+            // Scroll to first visible section if there are results
+            if (hasResults) {
+                const firstVisibleSection = document.querySelector('.product-section[style="display: block;"], #men-section[style="display: block;"], #women-section[style="display: block;"]');
+                if (firstVisibleSection) {
+                    firstVisibleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        });
+    }
+});
+</script>
