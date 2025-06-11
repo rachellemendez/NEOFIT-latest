@@ -1,6 +1,14 @@
 <?php
+session_start();
+if (!isset($_SESSION['admin@1'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized']);
+    exit;
+}
+
 header('Content-Type: application/json');
-include 'payment_functions.php';
+require_once dirname(__FILE__) . '/../db_connection.php';
+require_once 'payment_functions.php';
 
 $search = $_GET['search'] ?? '';
 $status = $_GET['status'] ?? '';

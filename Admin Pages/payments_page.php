@@ -1,3 +1,15 @@
+<?php
+session_start();
+if (!isset($_SESSION['admin@1'])) {
+    header('Location: ../landing_page.php');
+    exit;
+}
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+require_once dirname(__FILE__) . '/../db_connection.php';
+require_once 'payment_functions.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -135,17 +147,37 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .payment-detail-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .payment-detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .payment-detail-label {
+            flex: 0 0 150px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .payment-detail-value {
+            flex: 1;
+            color: #333;
+        }
+
+        .modal-content {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
     <?php 
-include 'payment_functions.php';
-// Check if admin is logged in
-session_start();
-if (!isset($_SESSION['admin@1'])) {
-    header('Location: ../landing_page.php');
-    exit;
-}
+// Admin authentication has already been checked at the top of the file
 ?>
     
     <div id="loading-overlay">
@@ -504,6 +536,26 @@ if (!isset($_SESSION['admin@1'])) {
                     hideLoading();
                 });
         }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('payment-modal');
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
     </script>
+
+    <!-- Payment Details Modal -->
+    <div id="payment-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
+        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; position: relative;">
+            <span class="close-button" onclick="document.getElementById('payment-modal').style.display='none'" style="position: absolute; right: 15px; top: 10px; cursor: pointer; font-size: 20px;">&times;</span>
+            <h2 style="margin-bottom: 20px;">Payment Details</h2>
+            <div id="payment-details-content"></div>
+            <div class="modal-footer" style="margin-top: 20px; text-align: right;">
+                <button onclick="document.getElementById('payment-modal').style.display='none'" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Close</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

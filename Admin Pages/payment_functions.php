@@ -1,5 +1,5 @@
 <?php
-// No need to include db.php here as it's included in test_payment_functions.php
+require_once dirname(__FILE__) . '/../db_connection.php';
 
 // Get total revenue from successful payments
 function getTotalRevenue() {

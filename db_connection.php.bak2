@@ -1,0 +1,59 @@
+<?php
+if (!defined('DB_CONNECTION_INCLUDED')) {
+    define('DB_CONNECTION_INCLUDED', true);
+
+$conn = null;
+
+function get_db_connection() {
+    global $conn;
+    
+    if ($conn === null) {
+        $host = 'localhost';
+        $username = 'root';
+        $password = '';
+        $database = 'neofit';
+        
+        $new_conn = new mysqli($host, $username, $password, $database);
+        
+        if ($new_conn->connect_error) {
+            throw new Exception("Connection failed: " . $new_conn->connect_error);
+        }
+        
+        $conn = $new_conn;
+    }
+    
+    return $conn;
+}
+
+try {
+    $conn = get_db_connection();
+    
+    // Create password_resets table if it doesn't exist
+    $sql = "CREATE TABLE IF NOT EXISTS password_resets (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        token VARCHAR(255) NOT NULL,
+        expiry DATETIME NOT NULL,
+        used TINYINT(1) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )";
+    
+    if (!$conn->query($sql)) {
+        throw new Exception("Error creating password_resets table: " . $conn->error);
+    }
+    
+    // Add index on token for faster lookups
+    $sql = "CREATE INDEX IF NOT EXISTS idx_token ON password_resets(token)";
+    $conn->query($sql);
+    
+    // Add index on email for faster lookups
+    $sql = "CREATE INDEX IF NOT EXISTS idx_email ON password_resets(email)";
+    $conn->query($sql);
+    
+} catch (Exception $e) {
+    error_log($e->getMessage());
+}
+
+// Do NOT close the connection here as it needs to be used by other files
+} // end of if(!defined('DB_CONNECTION_INCLUDED'))
+?>
