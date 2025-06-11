@@ -654,9 +654,8 @@ if (!isset($_SESSION['email'])) {
                     <li><a href="#women-section" class="nav-link" data-category="women">Women</a></li>
                 </ul>
             </nav>
-            <div class="header-right">
-                <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Search">
+            <div class="header-right">                <div class="search-container">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search" autocomplete="off">
                 </div>
                 <div class="user-icon"><a href="user-settings.php"> <img src="profile.jpg" alt="Profile Icon" width="24" height="24"></a></div>
                 <div class="cart-icon">
@@ -948,10 +947,57 @@ if (!isset($_SESSION['email'])) {
                     }
                 })
                 .catch(error => console.error('Error:', error));
-        }
-
-        // Update cart count on page load
+        }        // Update cart count on page load
         updateCartCount();
+
+        // Real-time search functionality
+        const searchInput = document.getElementById('search-input');
+        const allProducts = document.querySelectorAll('.product-card');
+        const productSections = document.querySelectorAll('.product-section');
+
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            let hasResults = false;
+
+            // Show all sections initially
+            productSections.forEach(section => {
+                section.style.display = 'block';
+            });
+
+            if (searchTerm === '') {
+                // If search is empty, show all products
+                allProducts.forEach(product => {
+                    product.style.display = 'block';
+                });
+                return;
+            }
+
+            allProducts.forEach(product => {
+                const productName = product.querySelector('.product-name').textContent.toLowerCase();
+                if (productName.includes(searchTerm)) {
+                    product.style.display = 'block';
+                    hasResults = true;
+                } else {
+                    product.style.display = 'none';
+                }
+            });
+
+            // Hide sections that have no visible products
+            productSections.forEach(section => {
+                const visibleProducts = section.querySelectorAll('.product-card[style="display: block;"]');
+                if (visibleProducts.length === 0) {
+                    section.style.display = 'none';
+                }
+            });
+
+            // Scroll to first visible section if there are results
+            if (hasResults) {
+                const firstVisibleSection = document.querySelector('.product-section[style="display: block;"]');
+                if (firstVisibleSection) {
+                    firstVisibleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        });
     </script>
 </body>
 </html>
