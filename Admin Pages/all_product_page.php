@@ -191,6 +191,11 @@ $total_count = $count_result->fetch_assoc()['total'];
             background-color: #17a2b8;
             color: white;
         }
+        
+        .btn-toggle {
+            background-color: #6c757d;
+            color: white;
+        }
 
         .btn-action:hover {
             opacity: 0.9;
@@ -404,6 +409,9 @@ $total_count = $count_result->fetch_assoc()['total'];
                                     <button class="btn-action btn-view" onclick="viewProduct(<?php echo $row['id']; ?>)">
                                         <i class="fas fa-eye"></i>
                                     </button>
+                                    <button class="btn-action btn-toggle" onclick="toggleStatus(<?php echo $row['id']; ?>, '<?php echo $row['product_status']; ?>')" title="Toggle Status">
+                                        <i class="fas fa-toggle-on"></i>
+                                    </button>
                                     <button class="btn-action btn-edit" onclick="window.location.href='edit_product.php?id=<?php echo $row['id']; ?>'">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -443,6 +451,34 @@ $total_count = $count_result->fetch_assoc()['total'];
     </div>
 
     <script>
+        // Toggle Product Status Function
+        function toggleStatus(id, currentStatus) {
+            const newStatus = currentStatus.toLowerCase() === 'live' ? 'unpublished' : 'live';
+            
+            fetch('toggle_product_status.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: id,
+                    status: newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Error toggling product status');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error toggling product status');
+            });
+        }
+
         // Select All Functionality
         document.getElementById('selectAll').addEventListener('change', function() {
             const isChecked = this.checked;
