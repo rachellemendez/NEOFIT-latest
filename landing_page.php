@@ -649,7 +649,7 @@ if (!isset($_SESSION['email'])) {
             <a class="logo" href="landing_page.php">NEOFIT</a>
             <nav>
                 <ul>
-                    <li><a href="#trending-section" class="nav-link" data-category="trending">Trending</a></li>
+                    <li><a href="#trending-section" class="nav-link" data-category="trending">All Products</a></li>
                     <li><a href="#men-section" class="nav-link" data-category="men">Men</a></li>
                     <li><a href="#women-section" class="nav-link" data-category="women">Women</a></li>
                 </ul>
@@ -668,6 +668,11 @@ if (!isset($_SESSION['email'])) {
                 <div class="shopping-bag-icon">
                     <a href="orders.php">
                         <img src="shopping-bag.png" alt="Shopping Bag Icon" width="24" height="24">
+                    </a>
+                </div>
+                <div class="favorites-icon">
+                    <a href="favorites.php">
+                        <img src="favorites.png" alt="Favorites Icon" width="24" height="24">
                     </a>
                 </div>
             </div>
@@ -689,7 +694,7 @@ if (!isset($_SESSION['email'])) {
 
         <!-- Featured Products Section -->
         <section class="product-section" id="trending-section">
-            <h2 class="section-title" style="color: #1e1e1e;">TRENDING</h2>
+            <h2 class="section-title" style="color: #1e1e1e;">ALL PRODUCTS</h2>
             <div class="product-grid">
                 <?php
                     // Connect to Database
