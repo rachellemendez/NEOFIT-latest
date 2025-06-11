@@ -10,15 +10,27 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Get user's orders
+// Get active tab from URL parameter, default to 'all'
+$active_tab = isset($_GET['status']) ? $_GET['status'] : 'all';
+
+// Get user's orders based on status filter
 $sql = "SELECT o.*, p.photoFront
         FROM orders o
         LEFT JOIN products p ON o.product_id = p.id
-        WHERE o.user_id = ?
-        ORDER BY o.order_date DESC";
+        WHERE o.user_id = ?";
+
+// Add status filter if not showing all
+if ($active_tab !== 'all') {
+    $sql .= " AND o.status = ?";
+}
+$sql .= " ORDER BY o.order_date DESC";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $user_id);
+if ($active_tab !== 'all') {
+    $stmt->bind_param("is", $user_id, $active_tab);
+} else {
+    $stmt->bind_param("i", $user_id);
+}
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
@@ -233,6 +245,47 @@ $result = $stmt->get_result();
         .shop-now-btn:hover {
             background-color: #478c85;
         }
+
+        .order-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background-color: #f5f5f5;
+            border-radius: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .tab.active {
+            background-color: #55a39b;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .order-tabs {
+                padding-bottom: 10px;
+            }
+            
+            .tab {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -240,6 +293,27 @@ $result = $stmt->get_result();
         <div class="header">
             <h1 class="page-title">My Orders</h1>
             <a href="landing_page.php" class="continue-shopping">Continue Shopping</a>
+        </div>
+
+        <div class="order-tabs">
+            <a href="?status=all" class="tab <?php echo $active_tab === 'all' ? 'active' : ''; ?>">
+                All Orders
+            </a>
+            <a href="?status=pending" class="tab <?php echo $active_tab === 'pending' ? 'active' : ''; ?>">
+                Pending
+            </a>
+            <a href="?status=processing" class="tab <?php echo $active_tab === 'processing' ? 'active' : ''; ?>">
+                Processing
+            </a>
+            <a href="?status=shipped" class="tab <?php echo $active_tab === 'shipped' ? 'active' : ''; ?>">
+                Shipped
+            </a>
+            <a href="?status=delivered" class="tab <?php echo $active_tab === 'delivered' ? 'active' : ''; ?>">
+                Delivered
+            </a>
+            <a href="?status=cancelled" class="tab <?php echo $active_tab === 'cancelled' ? 'active' : ''; ?>">
+                Cancelled
+            </a>
         </div>
 
         <div class="orders-container">
