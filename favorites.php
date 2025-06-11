@@ -250,11 +250,11 @@ $result = $stmt->get_result();
                 if (data.success) {
                     // Remove the product card from the grid
                     const productBox = document.getElementById(`product-box-${productId}`);
-                    productBox.remove();
-
-                    // Check if there are any products left
+                    productBox.remove();                    // Check if there are any products left
                     const productGrid = document.querySelector('.product-grid');
-                    if (!productGrid.hasChildNodes()) {
+                    const remainingProducts = document.querySelectorAll('.product-card');
+                    
+                    if (remainingProducts.length === 0) {
                         // Replace the empty grid with the no-favorites message
                         const main = document.querySelector('main');
                         main.innerHTML = `
