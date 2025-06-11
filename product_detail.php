@@ -542,6 +542,15 @@ if ($result->num_rows > 0) {
         const sizeSelect = document.getElementById("size");
         const addToCartBtn = document.getElementById("addToCartBtn");
         const wishlistBtn = document.getElementById("wishlistBtn");
+        const buyForm = document.getElementById("buyForm");
+
+        // Prevent form submission on Enter key press
+        quantityInput.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                return false;
+            }
+        });
 
         // Set initial inventory data
         let availableQuantities = {
@@ -586,20 +595,34 @@ if ($result->num_rows > 0) {
                 quantityInput.value = current - 1;
             }
             updateInventory();
-        });
-
-        // Handle manual input in quantity field
+        });        // Handle manual input in quantity field
         quantityInput.addEventListener("input", function() {
             let value = parseInt(quantityInput.value);
             const max = parseInt(quantityInput.getAttribute("max"));
 
             if (isNaN(value) || value < 1) {
-                quantityInput.value = "";
+                quantityInput.value = "1";
             } else if (value > max) {
                 alert("Desired quantity exceeds available stock.");
                 quantityInput.value = max;
             }
             updateInventory();
+        });
+
+        // Prevent form submission on Enter key in quantity input
+        quantityInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                this.blur(); // Remove focus from the input
+            }
+        });
+
+        // Prevent zero or negative values when losing focus
+        quantityInput.addEventListener("blur", function() {
+            if (this.value === "" || parseInt(this.value) < 1) {
+                this.value = "1";
+                updateInventory();
+            }
         });
 
         // Initialize on page load
