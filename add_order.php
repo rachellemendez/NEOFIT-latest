@@ -29,49 +29,72 @@ $user_name = $_SESSION['user_name'];
 
 // Insert order into DB
 $sql = "INSERT INTO orders (
-            user_id, user_name, user_email,
-            product_id, product_name, price,
-            size, color, quantity, total,
-            payment_method, delivery_address, contact_number, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    user_id, user_name, user_email,
+    total_amount, payment_method, delivery_address,
+    contact_number, status
+) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("issiisdssidsss", 
-    $user_id, $user_name, $user_email, 
-    $product_id, $product_name, $product_price,
-    $size, $color, $quantity, $total_price,
-    $payment_method, $delivery_address, $contact_number, $status
+$stmt->bind_param("issdsss", 
+    $user_id, $user_name, $user_email,
+    $total_price, $payment_method, $delivery_address,
+    $contact_number
 );
 
-
-
-if ($stmt->execute()) {
-    // Update product stock
-    $update_stock_sql = "UPDATE products SET ";
-    switch ($size) {
-        case 'small':
-            $update_stock_sql .= "quantity_small = quantity_small - ?";
-            break;
-        case 'medium':
-            $update_stock_sql .= "quantity_medium = quantity_medium - ?";
-            break;
-        case 'large':
-            $update_stock_sql .= "quantity_large = quantity_large - ?";
-            break;
-    }
-    $update_stock_sql .= " WHERE id = ?";
-
-    $update_stock_stmt = $conn->prepare($update_stock_sql);
-    $update_stock_stmt->bind_param("ii", $quantity, $product_id);
-    $update_stock_stmt->execute();
-
-    echo "<script>
-            alert('Order placed successfully!');
-            window.location.href = 'product_detail.php?id=$product_id';
-          </script>";
-} else {
-    echo "Error: " . $stmt->error;
+if (!$stmt->execute()) {
+    die("Error creating order: " . $conn->error);
 }
+
+$order_id = $conn->insert_id;
+
+// Insert order item
+$item_sql = "INSERT INTO order_items (order_id, product_id, quantity, size, price) VALUES (?, ?, ?, ?, ?)";
+$item_stmt = $conn->prepare($item_sql);
+$item_stmt->bind_param("iiids", $order_id, $product_id, $quantity, $size, $product_price);
+
+if (!$item_stmt->execute()) {
+    die("Error creating order item: " . $conn->error);
+}
+
+// Update product stock
+$size_column = '';
+switch (strtolower($size)) {
+    case 'small':
+        $size_column = 'quantity_small';
+        break;
+    case 'medium':
+        $size_column = 'quantity_medium';
+        break;
+    case 'large':
+        $size_column = 'quantity_large';
+        break;
+    default:
+        die("Invalid size");
+}
+
+$update_stock_sql = "UPDATE products SET $size_column = $size_column - ? WHERE id = ?";
+$stock_stmt = $conn->prepare($update_stock_sql);
+$stock_stmt->bind_param("ii", $quantity, $product_id);
+
+if (!$stock_stmt->execute()) {
+    die("Error updating stock: " . $conn->error);
+}
+
+// Create payment record
+$transaction_id = 'TXN' . time() . mt_rand(1000, 9999);
+$initial_status = ($payment_method === 'NeoCreds') ? 'success' : 'pending';
+
+$payment_sql = "INSERT INTO payments (transaction_id, order_id, user_name, amount, payment_method, status) 
+                VALUES (?, ?, ?, ?, ?, ?)";
+$payment_stmt = $conn->prepare($payment_sql);
+$payment_stmt->bind_param("sisdss", $transaction_id, $order_id, $user_name, $total_price, $payment_method, $initial_status);
+
+if (!$payment_stmt->execute()) {
+    die("Error creating payment record: " . $conn->error);
+}
+
+// Success response
+echo json_encode(['success' => true, 'message' => 'Order placed successfully']);
 
 $stmt->close();
 $conn->close();

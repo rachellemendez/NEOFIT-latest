@@ -380,8 +380,8 @@ $total_amount = 0;
                 formData.append('payment_method', paymentMethod);
                 formData.append('delivery_address', <?php echo json_encode($address); ?>);
                 formData.append('contact_number', <?php echo json_encode($contact); ?>);
-                formData.append('user_name', <?php echo json_encode($user_name); ?>);
-                formData.append('user_email', <?php echo json_encode($user_email); ?>);
+                formData.append('user_name', '<?php echo htmlspecialchars($user_name); ?>');
+                formData.append('user_email', '<?php echo htmlspecialchars($user_email); ?>');
                 <?php if ($cart_id): ?>
                 formData.append('cart_id', <?php echo $cart_id; ?>);
                 <?php endif; ?>

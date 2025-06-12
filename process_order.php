@@ -118,11 +118,11 @@ try {
     }
 
     // ✅ Insert order
-    $order_stmt = $conn->prepare("INSERT INTO orders (user_id, user_name, user_email, total_amount, payment_method, delivery_address, contact_number, order_date) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+    $order_stmt = $conn->prepare("INSERT INTO orders (user_id, user_name, user_email, total_amount, payment_method, delivery_address, contact_number, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')");
     $order_stmt->bind_param("issdsss", $user_id, $user_name, $user_email, $total_amount, $payment_method, $delivery_address, $contact_number);
 
     if (!$order_stmt->execute()) {
-        throw new Exception("Error creating order");
+        throw new Exception("Error creating order: " . $conn->error);
     }
 
     $order_id = $conn->insert_id;
