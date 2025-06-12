@@ -109,20 +109,31 @@ $total_count = $count_result->fetch_assoc()['total'];
         .filters-row {
             display: flex;
             gap: 15px;
-            margin-bottom: 20px;
-            align-items: center;
-            flex-wrap: wrap;
+            margin: 0 auto 25px;
+            align-items: flex-start;
+            flex-wrap: nowrap;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            max-width: 1200px;
+            justify-content: flex-start;
         }
 
         .filter-group {
             display: flex;
-            align-items: center;
-            gap: 8px;
+            flex-direction: column;
+            gap: 6px;
+            flex: 0 1 auto;
+            min-width: 180px;
+            max-width: 200px;
         }
 
         .filter-label {
-            color: #666;
+            color: #2c3e50;
             font-weight: 500;
+            font-size: 13px;
+            margin-bottom: 2px;
         }
 
         .status-badge {
@@ -203,26 +214,73 @@ $total_count = $count_result->fetch_assoc()['total'];
 
         .search-filter {
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            margin: 0 auto 25px;
+            max-width: 1200px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .search-group {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .search-input {
-            width: 300px;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
             font-size: 14px;
+            width: 100%;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .search-input:hover {
+            border-color: #4d8d8b;
+            box-shadow: 0 2px 5px rgba(77, 141, 139, 0.1);
+        }
+
+        .search-input:focus {
+            border-color: #4d8d8b;
+            box-shadow: 0 0 0 3px rgba(77, 141, 139, 0.1);
+            outline: none;
         }
 
         .filter-select {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 10px 35px 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
             font-size: 14px;
             background-color: white;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234d8d8b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 14px;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .filter-select:hover {
+            border-color: #4d8d8b;
+            box-shadow: 0 2px 5px rgba(77, 141, 139, 0.1);
+        }
+
+        .filter-select:focus {
+            border-color: #4d8d8b;
+            box-shadow: 0 0 0 3px rgba(77, 141, 139, 0.1);
+            outline: none;
         }
 
         .table-footer {
@@ -249,6 +307,32 @@ $total_count = $count_result->fetch_assoc()['total'];
         .currency-symbol {
             font-family: 'Arial Unicode MS', 'Arial', sans-serif;
             margin-right: 1px;
+        }
+
+        .btn-apply {
+            padding: 10px 20px;
+            background-color: #4d8d8b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-apply:hover {
+            background-color: #3c7c7a;
+            transform: translateY(-1px);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin: 0 auto;
+            max-width: 1200px;
+            overflow-x: auto;
         }
     </style>
 </head>
@@ -310,43 +394,51 @@ $total_count = $count_result->fetch_assoc()['total'];
             </div>
 
             <div class="search-filter">
-                <div class="filters-row">
-                    <div class="filter-group">
-                        <label class="filter-label">Search:</label>
-                        <input type="text" class="search-input" id="searchInput" 
-                               placeholder="Search products..." 
-                               value="<?php echo htmlspecialchars($search); ?>">
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label class="filter-label">Category:</label>
-                        <select class="filter-select" id="categoryFilter">
-                            <option value="All" <?php echo $category === 'All' ? 'selected' : ''; ?>>All Categories</option>
-                            <option value="Men" <?php echo $category === 'Men' ? 'selected' : ''; ?>>Men</option>
-                            <option value="Women" <?php echo $category === 'Women' ? 'selected' : ''; ?>>Women</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label class="filter-label">Status:</label>
-                        <select class="filter-select" id="statusFilter">
-                            <option value="All" <?php echo $status === 'All' ? 'selected' : ''; ?>>All Status</option>
-                            <option value="live" <?php echo $status === 'live' ? 'selected' : ''; ?>>Live</option>
-                            <option value="unpublished" <?php echo $status === 'unpublished' ? 'selected' : ''; ?>>Unpublished</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label class="filter-label">Sort By:</label>
-                        <select class="filter-select" id="sortFilter">
-                            <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name (A-Z)</option>
-                            <option value="name_desc" <?php echo $sort === 'name_desc' ? 'selected' : ''; ?>>Name (Z-A)</option>
-                            <option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Price (Low-High)</option>
-                            <option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Price (High-Low)</option>
-                            <option value="stock_asc" <?php echo $sort === 'stock_asc' ? 'selected' : ''; ?>>Stock (Low-High)</option>
-                            <option value="stock_desc" <?php echo $sort === 'stock_desc' ? 'selected' : ''; ?>>Stock (High-Low)</option>
-                        </select>
-                    </div>
+                <div class="search-group">
+                    <label class="filter-label">Search:</label>
+                    <input type="text" class="search-input" id="searchInput" 
+                           placeholder="Search products..." 
+                           value="<?php echo htmlspecialchars($search); ?>">
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Category:</label>
+                    <select class="filter-select" id="categoryFilter">
+                        <option value="All" <?php echo $category === 'All' ? 'selected' : ''; ?>>All Categories</option>
+                        <option value="Men" <?php echo $category === 'Men' ? 'selected' : ''; ?>>Men</option>
+                        <option value="Women" <?php echo $category === 'Women' ? 'selected' : ''; ?>>Women</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Status:</label>
+                    <select class="filter-select" id="statusFilter">
+                        <option value="All" <?php echo $status === 'All' ? 'selected' : ''; ?>>All Status</option>
+                        <option value="live" <?php echo $status === 'live' ? 'selected' : ''; ?>>Live</option>
+                        <option value="unpublished" <?php echo $status === 'unpublished' ? 'selected' : ''; ?>>Unpublished</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Sort By:</label>
+                    <select class="filter-select" id="sortFilter">
+                        <option value="name_asc" <?php echo $sort === 'name_asc' ? 'selected' : ''; ?>>Name (A-Z)</option>
+                        <option value="name_desc" <?php echo $sort === 'name_desc' ? 'selected' : ''; ?>>Name (Z-A)</option>
+                        <option value="price_asc" <?php echo $sort === 'price_asc' ? 'selected' : ''; ?>>Price (Low-High)</option>
+                        <option value="price_desc" <?php echo $sort === 'price_desc' ? 'selected' : ''; ?>>Price (High-Low)</option>
+                        <option value="stock_asc" <?php echo $sort === 'stock_asc' ? 'selected' : ''; ?>>Stock (Low-High)</option>
+                        <option value="stock_desc" <?php echo $sort === 'stock_desc' ? 'selected' : ''; ?>>Stock (High-Low)</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Bulk Actions:</label>
+                    <select class="filter-select" id="bulkActionSelect">
+                        <option value="">Select Action</option>
+                        <option value="delete">Delete Selected</option>
+                        <option value="publish">Set as Live</option>
+                        <option value="unpublish">Set as Unpublished</option>
+                    </select>
                 </div>
             </div>
             
@@ -431,12 +523,6 @@ $total_count = $count_result->fetch_assoc()['total'];
 
                 <div class="table-footer">
                     <div class="bulk-actions">
-                        <select class="filter-select" id="bulkActionSelect">
-                            <option value="">Bulk Actions</option>
-                            <option value="delete">Delete Selected</option>
-                            <option value="publish">Set as Live</option>
-                            <option value="unpublish">Set as Unpublished</option>
-                        </select>
                         <button class="btn-apply" onclick="applyBulkAction()">Apply</button>
                     </div>
                     <div class="product-count" id="productCount">
