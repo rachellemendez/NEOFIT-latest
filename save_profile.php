@@ -1,75 +1,42 @@
 <?php
 session_start();
 
-// Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
     echo "Unauthorized access.";
     exit();
 }
 
-// Database connection
 $servername = "localhost";
 $username = "root";
 $password = "";
 $dbname = "neofit";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
-
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Retrieve the posted data
-$address = trim($_POST['address']);
+// Get form input
+$house_number = trim($_POST['house_number']);
+$street_name = trim($_POST['street_name']);
+$subdivision = trim($_POST['subdivision']);
+$barangay = trim($_POST['barangay']);
+$city = trim($_POST['city']);
+$region = trim($_POST['region']);
 $contact = trim($_POST['contact']);
 $user_id = $_SESSION['user_id'];
 
-// Build the SQL dynamically based on filled fields
-$fieldsToUpdate = [];
-$params = [];
-$types = "";
-
-if (!empty($address)) {
-    $fieldsToUpdate[] = "address = ?";
-    $params[] = $address;
-    $types .= "s";
+// Combine house details
+$house_details = $house_number . ' ' . $street_name;
+if (!empty($subdivision)) {
+    $house_details .= ', ' . $subdivision;
 }
 
-if (!empty($contact)) {
-    $fieldsToUpdate[] = "contact = ?";
-    $params[] = $contact;
-    $types .= "s";
-}
-
-// If nothing is filled, don't update
-if (empty($fieldsToUpdate)) {
-    echo "<script>
-        alert('No changes made.');
-        window.location.href = 'user-settings.php';
-    </script>";
-    exit();
-}
-
-// Build final query
-$sql = "UPDATE users SET " . implode(", ", $fieldsToUpdate) . " WHERE id = ?";
-$params[] = $user_id;
-$types .= "i";
-
-$stmt = $conn->prepare($sql);
-
-if (!$stmt) {
-    echo "Error preparing statement: " . $conn->error;
-    exit();
-}
-
-// Bind parameters dynamically
-$stmt->bind_param($types, ...$params);
+// Prepare SQL
+$stmt = $conn->prepare("UPDATE users SET house_details = ?, barangay = ?, city = ?, region = ?, contact = ? WHERE id = ?");
+$stmt->bind_param("sssssi", $house_details, $barangay, $city, $region, $contact, $user_id);
 
 if ($stmt->execute()) {
-    // Update session variables if updated
-    if (!empty($address)) $_SESSION['address'] = $address;
-    if (!empty($contact)) $_SESSION['contact'] = $contact;
-
     echo "<script>
         alert('Profile saved successfully!');
         window.location.href = 'user-settings.php?saved=true';
