@@ -2,7 +2,8 @@
 require_once '../db_connection.php';
 
 try {
-    // Create payments table if not exists    $query = "CREATE TABLE IF NOT EXISTS payments (
+    // Create payments table if not exists
+    $query = "CREATE TABLE IF NOT EXISTS payments (
         id INT AUTO_INCREMENT PRIMARY KEY,
         transaction_id VARCHAR(100) NOT NULL UNIQUE,
         order_id INT NOT NULL,
