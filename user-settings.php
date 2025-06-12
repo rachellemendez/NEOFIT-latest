@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 
 if (!isset($_SESSION['email'])) {
@@ -904,7 +908,7 @@ if (isset($_GET['saved'])) {
                         <label for="city">City/Municipality</label>
                         <input type="text" id="city" name="city" 
                                placeholder="Enter City/Municipality" 
-                               value="<?php echo htmlspecialchars($city); ?>"
+                               value="<?php echo htmlspecialchars($city ?? ''); ?>"
                                required>
                     </div>
 
@@ -913,7 +917,7 @@ if (isset($_GET['saved'])) {
                         <label for="barangay">Barangay</label>
                         <input type="text" id="barangay" name="barangay" 
                                placeholder="Enter Barangay" 
-                               value="<?php echo htmlspecialchars($barangay); ?>"
+                               value="<?php echo htmlspecialchars($barangay ?? ''); ?>"
                                required>
                     </div>
 
@@ -922,7 +926,7 @@ if (isset($_GET['saved'])) {
                         <label for="house_number">House/Unit Number</label>
                         <input type="text" id="house_number" name="house_number" 
                                placeholder="House/Unit Number" 
-                               value="<?php echo htmlspecialchars($house_number); ?>"
+                               value="<?php echo htmlspecialchars($house_number ?? ''); ?>"
                                required>
                     </div>
 
@@ -930,7 +934,7 @@ if (isset($_GET['saved'])) {
                         <label for="street">Street Name</label>
                         <input type="text" id="street" name="street" 
                                placeholder="Street Name" 
-                               value="<?php echo htmlspecialchars($street); ?>"
+                               value="<?php echo htmlspecialchars($street_name ?? ''); ?>"
                                required>
                     </div>
 
@@ -938,7 +942,7 @@ if (isset($_GET['saved'])) {
                         <label for="place_type">Subdivision/Village/Building (Optional)</label>
                         <input type="text" id="place_type" name="place_type" 
                                placeholder="Subdivision/Village/Building" 
-                               value="<?php echo htmlspecialchars($place_type); ?>">
+                               value="<?php echo htmlspecialchars($subdivision ?? ''); ?>">
                     </div>
 
                     <!-- Contact Field -->
