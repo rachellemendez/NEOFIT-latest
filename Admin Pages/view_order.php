@@ -3,6 +3,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 include '../db.php';
+include '../includes/address_functions.php';
 
 // Get order ID from URL
 $order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -33,6 +34,11 @@ if ($result->num_rows === 0) {
 }
 
 $order = $result->fetch_assoc();
+
+// Get user's address
+$address_data = get_user_address($order['user_id'], $conn);
+$delivery_address = get_complete_address($address_data);
+$order['delivery_address'] = $delivery_address;
 
 // Format values
 $tracking_number = str_pad($order['id'], 8, '0', STR_PAD_LEFT);
@@ -247,10 +253,6 @@ if ($print_mode):
 <?php 
 exit();
 endif;
-
-// Format the unit price
-$unit_price = $order['price'] ?? $order['unit_price'];
-$total_amount = $order['total'];
 
 // Format size and payment method for display
 $size = $order['size'];

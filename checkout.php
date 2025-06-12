@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'db.php';
+include 'includes/address_functions.php';
 
 $user_name = $_SESSION['user_name'] ?? 'Guest';
 $user_email = $_SESSION['email'];
@@ -14,16 +15,17 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Get user details
-$user_sql = "SELECT address, contact FROM users WHERE id = ?";
-$stmt = $conn->prepare($user_sql);
+// Get user's address
+$address_data = get_user_address($user_id, $conn);
+$address = $address_data ? get_complete_address($address_data) : '';
+
+// Get user's contact
+$stmt = $conn->prepare("SELECT contact FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
-$user_result = $stmt->get_result();
-$user = $user_result->fetch_assoc();
-
-$address = $user['address'] ?? '';
-$contact = $user['contact'] ?? '';
+$stmt->bind_result($contact);
+$stmt->fetch();
+$stmt->close();
 
 // Check if we're checking out a specific cart item or the entire cart
 $cart_id = $_GET['cart_id'] ?? null;

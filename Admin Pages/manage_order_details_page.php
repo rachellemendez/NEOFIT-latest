@@ -1,5 +1,6 @@
 <?php
 include '../db.php';
+include '../includes/address_functions.php';
 
 // Get filters from URL
 $user_filter = isset($_GET['user']) ? $_GET['user'] : null;
@@ -16,7 +17,8 @@ $sql = "SELECT o.*,
                oi.product_id,
                oi.size,
                p.product_price as price,
-               (oi.quantity * p.product_price) as item_total
+               (oi.quantity * p.product_price) as item_total,
+               o.user_id
         FROM orders o 
         LEFT JOIN order_items oi ON o.id = oi.order_id
         LEFT JOIN products p ON oi.product_id = p.id 
@@ -70,17 +72,24 @@ $result = $stmt->get_result();
 // Get order statistics
 $stats_sql = "SELECT 
     COUNT(DISTINCT o.id) as total_orders,
-    COUNT(DISTINCT o.user_name) as unique_customers,
+    COUNT(DISTINCT o.user_id) as unique_customers,
     COALESCE(SUM(oi.quantity * p.product_price), 0) as total_revenue,
     COUNT(DISTINCT CASE WHEN o.status = 'Pending' THEN o.id END) as pending_orders,
     COUNT(DISTINCT CASE WHEN o.status = 'Processing' THEN o.id END) as processing_orders,
     COUNT(DISTINCT CASE WHEN o.status = 'Shipped' THEN o.id END) as shipped_orders,
-    COUNT(DISTINCT CASE WHEN o.status = 'Delivered' THEN o.id END) as delivered_orders,
-    COUNT(DISTINCT CASE WHEN o.status = 'Cancelled' THEN o.id END) as cancelled_orders
+    COUNT(DISTINCT CASE WHEN o.status = 'Delivered' THEN o.id END) as delivered_orders
 FROM orders o
 LEFT JOIN order_items oi ON o.id = oi.order_id
 LEFT JOIN products p ON oi.product_id = p.id";
 $stats_result = $conn->query($stats_sql)->fetch_assoc();
+
+// Format the results to include complete address
+$orders = [];
+while ($row = $result->fetch_assoc()) {
+    $address_data = get_user_address($row['user_id'], $conn);
+    $row['delivery_address'] = get_complete_address($address_data);
+    $orders[] = $row;
+}
 ?>
 
 <!DOCTYPE html>
@@ -584,62 +593,56 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
             </div>
             
             <!-- Orders List -->
-            <div class="orders-list">
-                <?php
-                if ($result->num_rows > 0) {
-                    while($row = $result->fetch_assoc()) {
-                        ?>
-                        <div class="order-card">
-                            <div class="order-header">
-                                <div>
-                                    <strong>Order #<?php echo $row['id']; ?></strong>
-                                    <span class="order-date"><?php echo date('F d, Y', strtotime($row['order_date'])); ?></span>
-                                </div>
-                                <select class="status-select" 
-                                        onchange="updateOrderStatus(<?php echo $row['id']; ?>, this.value)"
-                                        data-order-id="<?php echo $row['id']; ?>">
-                                    <?php
-                                    $statuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
-                                    foreach ($statuses as $status) {
-                                        $selected = ($status === $row['status']) ? 'selected' : '';
-                                        echo "<option value=\"$status\" $selected>$status</option>";
-                                    }
-                                    ?>
-                                </select>
+            <?php if (empty($orders)): ?>
+                <div class="no-orders">
+                    <i class="fas fa-box-open"></i>
+                    <p>No orders found</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($orders as $row): ?>
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div class="order-id">
+                                Order #<?php echo str_pad($row['id'], 8, '0', STR_PAD_LEFT); ?>
                             </div>
-                            <div class="order-details">
-                                <div class="product-info">
-                                    <img src="<?php echo $row['product_image']; ?>" alt="Product" class="product-image">
-                                    <div>
-                                        <h4><?php echo htmlspecialchars($row['product_display_name']); ?></h4>
-                                        <p>Size: <?php echo strtoupper($row['size'] ?? 'N/A'); ?></p>
-                                        <p>Quantity: <?php echo $row['quantity']; ?></p>
-                                        <p>Unit Price: ₱<?php echo number_format($row['price'], 2); ?></p>
-                                        <p>Total: ₱<?php echo number_format($row['item_total'], 2); ?></p>
-                                        <p>Payment: <?php echo htmlspecialchars($row['payment_method'] ?? 'N/A'); ?></p>
-                                    </div>
-                                </div>
-                                <div class="customer-info">
-                                    <h4>Customer Details</h4>
-                                    <p><strong>Name:</strong> <?php echo htmlspecialchars($row['user_name']); ?></p>
-                                    <p><strong>Email:</strong> <?php echo htmlspecialchars($row['user_email']); ?></p>
-                                    <p><strong>Contact:</strong> <?php echo htmlspecialchars($row['contact_number']); ?></p>
-                                    <p><strong>Address:</strong> <?php echo htmlspecialchars($row['delivery_address']); ?></p>
-                                </div>
+                            <div class="order-date">
+                                <?php echo date('F d, Y', strtotime($row['order_date'])); ?>
                             </div>
-                            <div class="order-actions">
-                                <button class="action-btn print-btn" onclick="printWaybill(<?php echo $row['id']; ?>)">
-                                    <i class="fas fa-print"></i> Print Waybill
-                                </button>
+                            <div class="status-badge status-<?php echo strtolower($row['status']); ?>">
+                                <?php echo htmlspecialchars($row['status']); ?>
                             </div>
                         </div>
-                        <?php
-                    }
-                } else {
-                    echo "<p>No orders found</p>";
-                }
-                ?>
-            </div>
+                        <div class="order-details">
+                            <div class="product-info">
+                                <img src="<?php echo $row['product_image']; ?>" alt="Product" class="product-image">
+                                <div>
+                                    <h4><?php echo htmlspecialchars($row['product_display_name']); ?></h4>
+                                    <p>Size: <?php echo strtoupper($row['size'] ?? 'N/A'); ?></p>
+                                    <p>Quantity: <?php echo $row['quantity']; ?></p>
+                                    <p>Unit Price: ₱<?php echo number_format($row['price'], 2); ?></p>
+                                    <p>Total: ₱<?php echo number_format($row['item_total'], 2); ?></p>
+                                    <p>Payment: <?php echo htmlspecialchars($row['payment_method'] ?? 'N/A'); ?></p>
+                                </div>
+                            </div>
+                            <div class="customer-info">
+                                <h4>Customer Details</h4>
+                                <p><strong>Name:</strong> <?php echo htmlspecialchars($row['user_name']); ?></p>
+                                <p><strong>Email:</strong> <?php echo htmlspecialchars($row['user_email']); ?></p>
+                                <p><strong>Contact:</strong> <?php echo htmlspecialchars($row['contact_number']); ?></p>
+                                <p><strong>Address:</strong> <?php echo htmlspecialchars($row['delivery_address']); ?></p>
+                            </div>
+                        </div>
+                        <div class="order-actions">
+                            <a href="view_order.php?id=<?php echo $row['id']; ?>" class="btn btn-view">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            <button class="btn btn-status" onclick="updateStatus(<?php echo $row['id']; ?>, '<?php echo $row['status']; ?>')">
+                                <i class="fas fa-edit"></i> Update Status
+                            </button>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </main>
     </div>
 

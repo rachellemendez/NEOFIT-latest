@@ -1,3 +1,27 @@
+<?php
+session_start();
+include 'db.php';
+include 'includes/address_functions.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Get user's address
+$address_data = get_user_address($_SESSION['user_id'], $conn);
+$complete_address = $address_data ? get_complete_address($address_data) : 'No address set';
+
+// Get user's contact
+$stmt = $conn->prepare("SELECT name, contact FROM users WHERE id = ?");
+$stmt->bind_param("i", $_SESSION['user_id']);
+$stmt->execute();
+$stmt->bind_result($user_name, $contact);
+$stmt->fetch();
+$stmt->close();
+
+$conn->close();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -311,15 +335,14 @@
             <div class="address-panel">
                 <div class="address-card">
                     <div class="address-header">
-                        <div class="name">Jamil Mariano</div>
-                        <div class="phone">(+63) 912 345 6789</div>
+                        <div class="name"><?php echo htmlspecialchars($user_name); ?></div>
+                        <div class="phone"><?php echo htmlspecialchars($contact); ?></div>
                     </div>
                     <div class="address-details">
-                        123 Mabini Street, Brgy. Salitran II,<br>
-                        Dasmariñas City, Cavite, 4114, Philippines
+                        <?php echo htmlspecialchars($complete_address); ?>
                     </div>
                     <div class="address-actions">
-                        <button class="btn btn-edit">Edit</button>
+                        <button class="btn btn-edit" onclick="window.location.href='user-settings.php'">Edit</button>
                         <button class="btn btn-default">Default</button>
                     </div>
                 </div>

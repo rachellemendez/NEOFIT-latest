@@ -919,18 +919,18 @@ if (isset($_GET['saved'])) {
                     </div>
 
                     <div class="address-group">
-                        <label for="street_name">Street Name</label>
-                        <input type="text" id="street_name" name="street_name" 
+                        <label for="street">Street Name</label>
+                        <input type="text" id="street" name="street" 
                                placeholder="Street Name" 
-                               value="<?php echo htmlspecialchars($street_name); ?>"
+                               value="<?php echo htmlspecialchars($street); ?>"
                                required>
                     </div>
 
                     <div class="address-group">
-                        <label for="subdivision">Subdivision/Village/Building (Optional)</label>
-                        <input type="text" id="subdivision" name="subdivision" 
+                        <label for="place_type">Subdivision/Village/Building (Optional)</label>
+                        <input type="text" id="place_type" name="place_type" 
                                placeholder="Subdivision/Village/Building" 
-                               value="<?php echo htmlspecialchars($subdivision); ?>">
+                               value="<?php echo htmlspecialchars($place_type); ?>">
                     </div>
 
                     <!-- Contact Field -->
@@ -946,11 +946,13 @@ if (isset($_GET['saved'])) {
 
                     <!-- Current Address Display -->
                     <div class="current-info">
-                        <?php if (!empty($house_details) || !empty($barangay) || !empty($city) || !empty($province) || !empty($region)): ?>
+                        <?php if (!empty($house_number) || !empty($street) || !empty($barangay) || !empty($city) || !empty($province) || !empty($region)): ?>
                             <p><strong>Current Address:</strong></p>
                             <p><?php 
                                 $address_parts = array_filter([
-                                    $house_details,
+                                    $house_number,
+                                    $street,
+                                    $place_type,
                                     $barangay,
                                     $city,
                                     $province,
@@ -1388,6 +1390,31 @@ if (isset($_GET['saved'])) {
 
             // Add this to your existing script section
             document.addEventListener('DOMContentLoaded', function() {
+                // Format inputs on blur
+                document.getElementById('house_number').addEventListener('blur', function() {
+                    this.value = this.value.trim();
+                });
+
+                document.getElementById('street').addEventListener('blur', function() {
+                    let value = this.value.trim();
+                    // Capitalize first letter of each word
+                    value = value.replace(/\w\S*/g, function(txt) {
+                        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                    });
+                    this.value = value;
+                });
+
+                document.getElementById('place_type').addEventListener('blur', function() {
+                    let value = this.value.trim();
+                    if (value) {
+                        // Capitalize first letter of each word
+                        value = value.replace(/\w\S*/g, function(txt) {
+                            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                        });
+                    }
+                    this.value = value;
+                });
+
                 // Capitalize first letter of each word
                 function capitalizeWords(str) {
                     return str.split(' ')
@@ -1414,16 +1441,6 @@ if (isset($_GET['saved'])) {
                     return barangay;
                 }
 
-                // Format house details
-                function formatHouseDetails(houseNum, streetName, subdivision) {
-                    let details = capitalizeWords(houseNum.trim()) + ' ' + 
-                                capitalizeWords(streetName.trim());
-                    if (subdivision && subdivision.trim()) {
-                        details += ', ' + capitalizeWords(subdivision.trim());
-                    }
-                    return details;
-                }
-
                 // Form submission handler
                 document.getElementById('profileForm').addEventListener('submit', function(e) {
                     e.preventDefault();
@@ -1433,11 +1450,11 @@ if (isset($_GET['saved'])) {
                     const city = document.getElementById('city').value.trim();
                     const barangay = document.getElementById('barangay').value.trim();
                     const houseNumber = document.getElementById('house_number').value.trim();
-                    const streetName = document.getElementById('street_name').value.trim();
-                    const subdivision = document.getElementById('subdivision').value.trim();
+                    const street = document.getElementById('street').value.trim();
+                    const placeType = document.getElementById('place_type').value.trim();
 
                     // Only proceed if we have the required fields
-                    if (!region || !city || !barangay || !houseNumber || !streetName) {
+                    if (!region || !city || !barangay || !houseNumber || !street) {
                         alert('Please fill in all required fields');
                         return;
                     }
@@ -1445,8 +1462,8 @@ if (isset($_GET['saved'])) {
                     // Build house details
                     let houseDetails = [];
                     if (houseNumber) houseDetails.push(houseNumber);
-                    if (streetName) houseDetails.push(streetName);
-                    if (subdivision) houseDetails.push(subdivision);
+                    if (street) houseDetails.push(street);
+                    if (placeType) houseDetails.push(placeType);
                     
                     // Set the concatenated house details to the hidden input
                     document.getElementById('house_details').value = houseDetails.join(', ');

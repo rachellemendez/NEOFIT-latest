@@ -10,8 +10,8 @@ if (!isset($_SESSION['user_id'])) {
 try {
     // Get form input
     $house_number = trim($_POST['house_number'] ?? '');
-    $street_name = trim($_POST['street_name'] ?? '');
-    $subdivision = trim($_POST['subdivision'] ?? '');
+    $street = trim($_POST['street'] ?? '');
+    $place_type = trim($_POST['place_type'] ?? '');
     $barangay = trim($_POST['barangay'] ?? '');
     $city = trim($_POST['city'] ?? '');
     $province = trim($_POST['province'] ?? '');
@@ -20,7 +20,7 @@ try {
     $user_id = $_SESSION['user_id'];
 
     // Validate required fields
-    if (empty($house_number) || empty($street_name) || empty($barangay) || 
+    if (empty($house_number) || empty($street) || empty($barangay) || 
         empty($city) || empty($province) || empty($region)) {
         throw new Exception('Please fill in all required fields');
     }
@@ -30,15 +30,9 @@ try {
         throw new Exception('Contact number must start with 09 and be 11 digits long');
     }
 
-    // Combine house details
-    $house_details = $house_number . ', ' . $street_name;
-    if (!empty($subdivision)) {
-        $house_details .= ', ' . $subdivision;
-    }
-
     // Prepare SQL
-    $stmt = $conn->prepare("UPDATE users SET house_details = ?, barangay = ?, city = ?, province = ?, region = ?, contact = ? WHERE id = ?");
-    $stmt->bind_param("ssssssi", $house_details, $barangay, $city, $province, $region, $contact, $user_id);
+    $stmt = $conn->prepare("UPDATE users SET house_number = ?, street = ?, place_type = ?, barangay = ?, city = ?, province = ?, region = ?, contact = ? WHERE id = ?");
+    $stmt->bind_param("ssssssssi", $house_number, $street, $place_type, $barangay, $city, $province, $region, $contact, $user_id);
     
     if (!$stmt->execute()) {
         throw new Exception('Error updating profile: ' . $stmt->error);
