@@ -85,6 +85,10 @@ if ($result->num_rows > 0) {
             gap: 30px;
         }
 
+        .nav li {
+            list-style: none;
+        }
+
         .nav a {
             text-decoration: none;
             color: #000000;
@@ -442,14 +446,14 @@ if ($result->num_rows > 0) {
                     NEOFIT
                 </div>
                 <div class="nav">
-                    <a href="#">Trending</a>
-                    <a href="#">Men</a>
-                    <a href="#">Women</a>
+                    <li><a href="landing_page.php" class="nav-link">Home</a></li>
+                    <li><a href="browse_all_collection.php#men-section" class="nav-link">Men</a></li>
+                    <li><a href="browse_all_collection.php#women-section" class="nav-link">Women</a></li>
                 </div>
                 <div class="search-container">
                     <div class="search-bar">
                         <span></span>
-                        <input type="text" placeholder="Search">
+                        <input type="text" id="searchInput" placeholder="Search">
                     </div>
                     <div class="user-icon"><a href="user-settings.php"> <img src="profile.jpg" alt="Profile Icon" width="24" height="24"></a></div>
                     <div class="cart-icon">
@@ -458,6 +462,16 @@ if ($result->num_rows > 0) {
                             <span class="cart-count">0</span>
                         </a>
                     </div>
+                    <div class="shopping-bag-icon">
+                <a href="orders.php">
+                    <img src="shopping-bag.png" alt="Shopping Bag Icon" width="24" height="24">
+                </a>
+            </div>
+            <div class="favorites-icon">
+                <a href="favorites.php">
+                    <img src="favorites.png" alt="Favorites Icon" width="24" height="24">
+                </a>
+            </div>
                 </div>
             </div>
 
@@ -786,5 +800,16 @@ if ($result->num_rows > 0) {
 
         // Update cart count on page load
         updateCartCount();
+    });
+
+    // Handle search input
+    document.getElementById("searchInput").addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            const query = this.value.trim();
+            if (query) {
+                // Redirect to landing page with query in URL
+                window.location.href = `http://localhost/neofit-latest/landing_page.php?query=${encodeURIComponent(query)}`;
+            }
+        }
     });
     </script>

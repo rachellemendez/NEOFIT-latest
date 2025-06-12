@@ -893,7 +893,31 @@ $user_email = $_SESSION['email'];
     </main>
 
     <?php include 'footer.php'; ?>
-    <script>
+    
+        <script>
+        // Search Function from product 
+
+        window.addEventListener("DOMContentLoaded", function () {
+            const params = new URLSearchParams(window.location.search);
+            const query = params.get("query");
+
+            if (query) {
+                const searchInput = document.getElementById("search-input");
+                if (searchInput) {
+                    searchInput.value = query;
+
+                    const inputEvent = new Event('input', { bubbles: true });
+                    searchInput.dispatchEvent(inputEvent); // Replace with your actual search function
+                }
+            }
+        });
+
+        function performSearch(query) {
+            console.log("Searching for:", query);
+            // Your search logic here, like filtering products or fetching from database
+        }
+
+
         // Smooth scrolling for navigation links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
