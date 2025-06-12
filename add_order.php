@@ -19,7 +19,7 @@ $quantity = $_POST['quantity'] ?? 1;
 $payment_method = $_POST['payment_method'] ?? 'Unknown';
 $delivery_address = $_POST['delivery_address'] ?? 'Unknown';
 $contact_number = $_POST['contact_number'] ?? 'Unknown';
-$status = 'Pending';
+$status = 'To Pack';
 
 $total_price = $product_price * $quantity;
 
@@ -32,7 +32,7 @@ $sql = "INSERT INTO orders (
     user_id, user_name, user_email,
     total_amount, payment_method, delivery_address,
     contact_number, status
-) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')";
+) VALUES (?, ?, ?, ?, ?, ?, ?, 'To Pack')";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("issdsss", 

@@ -504,6 +504,14 @@ if (isset($_GET['saved'])) {
             font-weight: bold;
         }
 
+        .transaction-amount.deduction {
+            color: #dc3545;
+        }
+
+        .transaction-amount.addition {
+            color: #28a745;
+        }
+
         .transaction-date {
             font-size: 12px;
             color: #666;
@@ -1316,18 +1324,31 @@ if (isset($_GET['saved'])) {
                                 return;
                             }                            transactionList.innerHTML = data.transactions.map(transaction => {
                                 const isPayment = transaction.is_payment;
+                                const amount = isPayment ? 
+                                    `-${parseFloat(transaction.amount).toFixed(2)}` : 
+                                    parseFloat(transaction.amount).toFixed(2);
+                                const amountClass = isPayment ? 'deduction' : 'addition';
+                                
                                 return `
                                     <div class="transaction-item ${isPayment ? 'payment-transaction' : ''}">
                                         <div class="transaction-details">
-                                            <div class="transaction-amount">₱${parseFloat(transaction.amount).toFixed(2)}</div>
+                                            <div class="transaction-amount ${amountClass}">₱${amount}</div>
                                             <div class="transaction-date">${new Date(transaction.request_date).toLocaleString()}</div>
                                             ${isPayment ? `
-                                                <div class="transaction-type">Payment for Order #${transaction.order_id}</div>
-                                                <div class="order-details">
-                                                    <div class="order-items">${transaction.order_items}</div>
-                                                    <div class="order-status">Order Status: ${transaction.order_status}</div>
+                                                <div class="transaction-type">
+                                                    ${transaction.order_id ? 
+                                                        `Payment for Order #${transaction.order_id}` : 
+                                                        'NeoCreds Payment'}
                                                 </div>
-                                            ` : ''}
+                                                ${transaction.order_id && transaction.order_items ? `
+                                                    <div class="order-details">
+                                                        <div class="order-items">${transaction.order_items}</div>
+                                                        <div class="order-status">Order Status: ${transaction.order_status || 'Processing'}</div>
+                                                    </div>
+                                                ` : ''}
+                                            ` : `
+                                                <div class="transaction-type">NeoCreds Top-up</div>
+                                            `}
                                         </div>
                                         <span class="transaction-status status-${transaction.status.toLowerCase()}">
                                             ${transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}

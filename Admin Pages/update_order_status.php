@@ -22,6 +22,16 @@ function sendJsonResponse($success, $message, $data = null) {
     exit;
 }
 
+// Define valid status transitions
+$valid_status_transitions = [
+    'To Pack' => ['Packed', 'Cancelled'],
+    'Packed' => ['In Transit', 'Cancelled'],
+    'In Transit' => ['Delivered'],
+    'Delivered' => ['Returned'],
+    'Cancelled' => [],
+    'Returned' => []
+];
+
 try {
     // Validate request method and parameters
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -34,7 +44,7 @@ try {
 
     // Get and validate parameters
     $order_id = (int)$_POST['order_id'];
-    $new_status = strtolower(trim($_POST['new_status']));
+    $new_status = $_POST['new_status']; // Keep original case for display
 
     if ($order_id <= 0) {
         throw new Exception('Invalid order ID');
@@ -57,7 +67,13 @@ try {
     }
 
     $row = $result->fetch_assoc();
-    $current_status = strtolower($row['status']);
+    $current_status = $row['status'];
+
+    // Validate status transition
+    if (!isset($valid_status_transitions[$current_status]) || 
+        !in_array($new_status, $valid_status_transitions[$current_status])) {
+        throw new Exception("Invalid status transition from '$current_status' to '$new_status'");
+    }
 
     // Update the status
     $update_stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");

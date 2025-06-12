@@ -4,8 +4,29 @@ include '../includes/address_functions.php';
 
 // Get filters from URL
 $user_filter = isset($_GET['user']) ? $_GET['user'] : null;
-$active_tab = isset($_GET['status']) ? $_GET['status'] : 'all';
+$active_tab = isset($_GET['status']) ? strtolower($_GET['status']) : 'all';
 $search_term = isset($_GET['search']) ? $_GET['search'] : null;
+
+// Map old status names to new ones for backward compatibility
+$status_map = [
+    'pending' => 'To Pack',
+    'processing' => 'Packed',
+    'shipped' => 'In Transit'
+];
+
+if (isset($status_map[$active_tab])) {
+    $active_tab = $status_map[$active_tab];
+}
+
+// Define valid status transitions with consistent Title Case format
+$valid_status_transitions = [
+    'To Pack' => ['Packed', 'Cancelled'],
+    'Packed' => ['In Transit', 'Cancelled'],
+    'In Transit' => ['Delivered'],
+    'Delivered' => ['Returned'],
+    'Cancelled' => [],
+    'Returned' => []
+];
 $date_from = isset($_GET['date_from']) ? $_GET['date_from'] : null;
 $date_to = isset($_GET['date_to']) ? $_GET['date_to'] : null;
 
@@ -34,8 +55,8 @@ if ($user_filter) {
 }
 
 if ($active_tab !== 'all') {
-    $sql .= " AND o.status = ?";
-    $params[] = ucfirst($active_tab); // Capitalize first letter to match status in DB
+    $sql .= " AND LOWER(o.status) = LOWER(?)";
+    $params[] = str_replace('_', ' ', $active_tab); // Convert status format for DB
     $types .= "s";
 }
 
@@ -82,9 +103,9 @@ $stats_sql = "SELECT
     COUNT(DISTINCT o.id) as total_orders,
     COUNT(DISTINCT o.user_id) as unique_customers,
     COALESCE(SUM(oi.quantity * p.product_price), 0) as total_revenue,
-    COUNT(DISTINCT CASE WHEN o.status = 'Pending' THEN o.id END) as pending_orders,
-    COUNT(DISTINCT CASE WHEN o.status = 'Processing' THEN o.id END) as processing_orders,
-    COUNT(DISTINCT CASE WHEN o.status = 'Shipped' THEN o.id END) as shipped_orders,
+    COUNT(DISTINCT CASE WHEN o.status = 'To Pack' THEN o.id END) as to_pack_orders,
+    COUNT(DISTINCT CASE WHEN o.status = 'Packed' THEN o.id END) as packed_orders,
+    COUNT(DISTINCT CASE WHEN o.status = 'In Transit' THEN o.id END) as in_transit_orders,
     COUNT(DISTINCT CASE WHEN o.status = 'Delivered' THEN o.id END) as delivered_orders,
     COUNT(DISTINCT CASE WHEN o.status = 'Cancelled' THEN o.id END) as cancelled_orders,
     COUNT(DISTINCT CASE WHEN o.status = 'Returned' THEN o.id END) as returned_orders
@@ -395,17 +416,17 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
             font-weight: 500;
         }
 
-        .status-badge.status-pending {
+        .status-badge.status-to-pack {
             background-color: #fff3cd;
             color: #856404;
         }
 
-        .status-badge.status-processing {
+        .status-badge.status-packed {
             background-color: #cce5ff;
             color: #004085;
         }
 
-        .status-badge.status-shipped {
+        .status-badge.status-in-transit {
             background-color: #d4edda;
             color: #155724;
         }
@@ -598,16 +619,16 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                     <div class="stat-label">Total Revenue</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value"><?php echo $stats_result['pending_orders']; ?></div>
-                    <div class="stat-label">Pending Orders</div>
+                    <div class="stat-value"><?php echo $stats_result['to_pack_orders']; ?></div>
+                    <div class="stat-label">To Pack</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value"><?php echo $stats_result['processing_orders']; ?></div>
-                    <div class="stat-label">Processing</div>
+                    <div class="stat-value"><?php echo $stats_result['packed_orders']; ?></div>
+                    <div class="stat-label">Packed</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value"><?php echo $stats_result['shipped_orders']; ?></div>
-                    <div class="stat-label">Shipped</div>
+                    <div class="stat-value"><?php echo $stats_result['in_transit_orders']; ?></div>
+                    <div class="stat-label">In Transit</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value"><?php echo $stats_result['delivered_orders']; ?></div>
@@ -621,17 +642,17 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                    class="tab <?php echo $active_tab === 'all' ? 'active' : ''; ?>">
                     All Orders (<?php echo $stats_result['total_orders']; ?>)
                 </a>
-                <a href="?status=pending<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
-                   class="tab <?php echo $active_tab === 'pending' ? 'active' : ''; ?>">
-                    Pending (<?php echo $stats_result['pending_orders']; ?>)
+                <a href="?status=to_pack<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
+                   class="tab <?php echo $active_tab === 'to_pack' ? 'active' : ''; ?>">
+                    To Pack (<?php echo $stats_result['to_pack_orders']; ?>)
                 </a>
-                <a href="?status=processing<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
-                   class="tab <?php echo $active_tab === 'processing' ? 'active' : ''; ?>">
-                    Processing (<?php echo $stats_result['processing_orders']; ?>)
+                <a href="?status=packed<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
+                   class="tab <?php echo $active_tab === 'packed' ? 'active' : ''; ?>">
+                    Packed (<?php echo $stats_result['packed_orders']; ?>)
                 </a>
-                <a href="?status=shipped<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
-                   class="tab <?php echo $active_tab === 'shipped' ? 'active' : ''; ?>">
-                    Shipped (<?php echo $stats_result['shipped_orders']; ?>)
+                <a href="?status=in_transit<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
+                   class="tab <?php echo $active_tab === 'in_transit' ? 'active' : ''; ?>">
+                    In Transit (<?php echo $stats_result['in_transit_orders']; ?>)
                 </a>
                 <a href="?status=delivered<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
                    class="tab <?php echo $active_tab === 'delivered' ? 'active' : ''; ?>">
@@ -695,11 +716,12 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                 <?php
                 // Group orders by status
                 $grouped_orders = [
-                    'Pending' => [],
-                    'Processing' => [],
-                    'Shipped' => [],
+                    'To Pack' => [],
+                    'Packed' => [],
+                    'In Transit' => [],
                     'Delivered' => [],
-                    'Cancelled' => []
+                    'Cancelled' => [],
+                    'Returned' => []
                 ];
                 
                 foreach ($orders as $order) {
@@ -757,15 +779,15 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                                         <i class="fas fa-eye"></i> View Full Details
                                     </a>
                                     <?php
-                                    // Get current status in lowercase
+                                    // Get current status in lowercase and convert spaces to underscores
                                     $current_status = strtolower($row['status']);
                                     
                                     // Show appropriate action button based on current status
                                     switch($current_status) {
-                                        case 'pending':
+                                        case 'to pack':
                                             ?>
-                                            <button type="button" class="btn btn-status" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'processing')">
-                                                <i class="fas fa-cog"></i> Move to Processing
+                                            <button type="button" class="btn btn-status" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'packed')">
+                                                <i class="fas fa-box"></i> Move to Packed
                                             </button>
                                             <button type="button" class="btn btn-cancel" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'cancelled')">
                                                 <i class="fas fa-times-circle"></i> Cancel Order
@@ -773,10 +795,10 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                                             <?php
                                             break;
                                             
-                                        case 'processing':
+                                        case 'packed':
                                             ?>
-                                            <button type="button" class="btn btn-status" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'shipped')">
-                                                <i class="fas fa-shipping-fast"></i> Move to Shipped
+                                            <button type="button" class="btn btn-status" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'in_transit')">
+                                                <i class="fas fa-shipping-fast"></i> Move to In Transit
                                             </button>
                                             <button type="button" class="btn btn-cancel" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'cancelled')">
                                                 <i class="fas fa-times-circle"></i> Cancel Order
@@ -784,7 +806,7 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                                             <?php
                                             break;
                                             
-                                        case 'shipped':
+                                        case 'in transit':
                                             ?>
                                             <button type="button" class="btn btn-status" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'delivered')">
                                                 <i class="fas fa-check-circle"></i> Move to Delivered
@@ -798,6 +820,14 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                                                 <i class="fas fa-undo"></i> Mark as Returned
                                             </button>
                                             <?php
+                                            break;
+                                            
+                                        case 'cancelled':
+                                            // No actions available for cancelled orders
+                                            break;
+                                            
+                                        case 'returned':
+                                            // No actions available for returned orders
                                             break;
                                     }
                                     ?>
@@ -814,8 +844,40 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
     </div>
 
     <script>
+        // Status transitions using Title Case with spaces to match database format
+        const statusTransitions = {
+            'To Pack': ['Packed', 'Cancelled'],
+            'Packed': ['In Transit', 'Cancelled'],
+            'In Transit': ['Delivered'],
+            'Delivered': ['Returned'],
+            'Cancelled': [],
+            'Returned': []
+        };
+
         function updateOrderStatus(orderId, newStatus) {
-            if (!confirm(`Are you sure you want to update this order to ${newStatus}?`)) {
+            // Get current status from the order's status badge
+            const orderCard = event.target.closest('.order-card');
+            const currentStatusBadge = orderCard.querySelector('.status-badge');
+            // Get the raw status text without any hidden content
+            const currentStatus = currentStatusBadge.childNodes[0].textContent.trim();
+
+            // Convert underscored status to Title Case with spaces
+            const displayStatus = newStatus.split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+
+            // Debug output
+            console.log('Current Status:', currentStatus);
+            console.log('New Status:', displayStatus);
+            console.log('Valid Transitions:', statusTransitions[currentStatus]);
+
+            // Validate the transition
+            if (!statusTransitions[currentStatus]?.includes(displayStatus)) {
+                alert(`Invalid status transition from "${currentStatus}" to "${displayStatus}"`);
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to update this order to ${displayStatus}?`)) {
                 return;
             }
 
@@ -828,7 +890,7 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
             // Create form data
             const formData = new FormData();
             formData.append('order_id', orderId);
-            formData.append('new_status', newStatus);
+            formData.append('new_status', displayStatus);
 
             // Send AJAX request
             fetch('update_order_status.php', {

@@ -11,19 +11,36 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Get active tab from URL parameter, default to 'all'
-$active_tab = isset($_GET['status']) ? $_GET['status'] : 'all';
+$active_tab = isset($_GET['status']) ? strtolower($_GET['status']) : 'all';
+
+// Map old status names to new ones for backward compatibility
+$status_map = [
+    'pending' => 'to_pack',
+    'processing' => 'packed',
+    'shipped' => 'in_transit'
+];
+
+if (isset($status_map[$active_tab])) {
+    $active_tab = $status_map[$active_tab];
+}
+
+// Get order counts for each status
+$count_sql = "SELECT 
+    COUNT(CASE WHEN status = 'To Pack' THEN 1 END) as to_pack_count,
+    COUNT(CASE WHEN status = 'Packed' THEN 1 END) as packed_count,
+    COUNT(CASE WHEN status = 'In Transit' THEN 1 END) as in_transit_count,
+    COUNT(CASE WHEN status = 'Delivered' THEN 1 END) as delivered_count,
+    COUNT(CASE WHEN status = 'Cancelled' THEN 1 END) as cancelled_count,
+    COUNT(CASE WHEN status = 'Returned' THEN 1 END) as returned_count,
+    COUNT(*) as total_count
+    FROM orders 
+    WHERE user_id = ?";
+$count_stmt = $conn->prepare($count_sql);
+$count_stmt->bind_param("i", $user_id);
+$count_stmt->execute();
+$counts = $count_stmt->get_result()->fetch_assoc();
 
 // Get user's orders based on status filter
-$sql = "SELECT o.*, p.photoFront
-        FROM orders o
-        LEFT JOIN products p ON o.product_id = p.id
-        WHERE o.user_id = ?";
-
-// Add status filter if not showing all
-if ($active_tab !== 'all') {
-    $sql .= " AND o.status = ?";
-}
-/// Get user's orders based on status filter
 $sql = "SELECT o.*, oi.quantity, oi.size, p.product_name, p.photoFront, p.product_price as price,
         (oi.quantity * p.product_price) as item_total
         FROM orders o
@@ -33,6 +50,8 @@ $sql = "SELECT o.*, oi.quantity, oi.size, p.product_name, p.photoFront, p.produc
 
 // Add status filter if not showing all
 if ($active_tab !== 'all') {
+    // Convert status format to match database
+    $status_display = str_replace('_', ' ', ucwords($active_tab));
     $sql .= " AND o.status = ?";
 }
 $sql .= " ORDER BY o.order_date DESC";
@@ -41,7 +60,7 @@ $sql .= " ORDER BY o.order_date DESC";
 $stmt = $conn->prepare($sql);
 
 if ($active_tab !== 'all') {
-    $stmt->bind_param("is", $user_id, $active_tab);
+    $stmt->bind_param("is", $user_id, $status_display);
 } else {
     $stmt->bind_param("i", $user_id);
 }
@@ -194,17 +213,17 @@ $result = $stmt->get_result();
             text-transform: uppercase;
         }
 
-        .status-pending {
+        .status-to-pack {
             background-color: #fff3cd;
             color: #856404;
         }
 
-        .status-processing {
+        .status-packed {
             background-color: #cce5ff;
             color: #004085;
         }
 
-        .status-shipped {
+        .status-in-transit {
             background-color: #d4edda;
             color: #155724;
         }
@@ -217,6 +236,11 @@ $result = $stmt->get_result();
         .status-cancelled {
             background-color: #f8d7da;
             color: #721c24;
+        }
+        
+        .status-returned {
+            background-color: #e2e3e5;
+            color: #383d41;
         }
 
         .shipping-info {
@@ -313,22 +337,25 @@ $result = $stmt->get_result();
 
         <div class="order-tabs">
             <a href="?status=all" class="tab <?php echo $active_tab === 'all' ? 'active' : ''; ?>">
-                All Orders
+                All Orders (<?php echo $counts['total_count']; ?>)
             </a>
-            <a href="?status=pending" class="tab <?php echo $active_tab === 'pending' ? 'active' : ''; ?>">
-                Pending
+            <a href="?status=to_pack" class="tab <?php echo $active_tab === 'to_pack' ? 'active' : ''; ?>">
+                To Pack (<?php echo $counts['to_pack_count']; ?>)
             </a>
-            <a href="?status=processing" class="tab <?php echo $active_tab === 'processing' ? 'active' : ''; ?>">
-                Processing
+            <a href="?status=packed" class="tab <?php echo $active_tab === 'packed' ? 'active' : ''; ?>">
+                Packed (<?php echo $counts['packed_count']; ?>)
             </a>
-            <a href="?status=shipped" class="tab <?php echo $active_tab === 'shipped' ? 'active' : ''; ?>">
-                Shipped
+            <a href="?status=in_transit" class="tab <?php echo $active_tab === 'in_transit' ? 'active' : ''; ?>">
+                In Transit (<?php echo $counts['in_transit_count']; ?>)
             </a>
             <a href="?status=delivered" class="tab <?php echo $active_tab === 'delivered' ? 'active' : ''; ?>">
-                Delivered
+                Delivered (<?php echo $counts['delivered_count']; ?>)
             </a>
             <a href="?status=cancelled" class="tab <?php echo $active_tab === 'cancelled' ? 'active' : ''; ?>">
-                Cancelled
+                Cancelled (<?php echo $counts['cancelled_count']; ?>)
+            </a>
+            <a href="?status=returned" class="tab <?php echo $active_tab === 'returned' ? 'active' : ''; ?>">
+                Returned (<?php echo $counts['returned_count']; ?>)
             </a>
         </div>
 
@@ -337,17 +364,17 @@ $result = $stmt->get_result();
                 <?php while ($order = $result->fetch_assoc()): ?>
                     <div class="order-card">
                         <div class="order-header">
-                            <span class="order-id">Order #<?php echo $order['id']; ?></span>
+                            <span class="order-id">Order #<?php echo str_pad($order['id'], 8, '0', STR_PAD_LEFT); ?></span>
                             <span class="order-date"><?php echo date('F j, Y', strtotime($order['order_date'])); ?></span>
                         </div>
 
                         <div class="order-content">
                             <div class="order-item">
-                                <img src="Admin Pages/<?php echo $order['photoFront']; ?>" alt="<?php echo $order['product_name']; ?>" class="item-image">
+                                <img src="Admin Pages/<?php echo htmlspecialchars($order['photoFront']); ?>" alt="<?php echo htmlspecialchars($order['product_name']); ?>" class="item-image">
                                 <div class="item-details">
-                                    <div class="item-name"><?php echo $order['product_name']; ?></div>
-                                    <div class="item-size">Size: <?php echo strtoupper($order['size']); ?></div>
-                                    <div class="item-quantity">Quantity: <?php echo $order['quantity']; ?></div>
+                                    <div class="item-name"><?php echo htmlspecialchars($order['product_name']); ?></div>
+                                    <div class="item-size">Size: <?php echo strtoupper(htmlspecialchars($order['size'])); ?></div>
+                                    <div class="item-quantity">Quantity: <?php echo htmlspecialchars($order['quantity']); ?></div>
                                     <div class="item-price">₱<?php echo number_format($order['price'], 2); ?></div>
                                 </div>
                             </div>
@@ -362,17 +389,17 @@ $result = $stmt->get_result();
 
                         <div class="order-footer">
                             <div class="order-total">Total: ₱<?php echo number_format($order['item_total'], 2); ?></div>
-                            <div class="status-badge status-<?php echo strtolower($order['status']); ?>">
-                                <?php echo $order['status']; ?>
+                            <div class="status-badge status-<?php echo strtolower(str_replace(' ', '-', $order['status'])); ?>">
+                                <?php echo htmlspecialchars($order['status']); ?>
                             </div>
                         </div>
                     </div>
                 <?php endwhile; ?>
             <?php else: ?>
                 <div class="empty-orders">
-                    <h2>No orders yet</h2>
-                    <p>Start shopping to see your orders here.</p>
-                    <a href="landing_page.php" class="shop-now-btn">Shop Now</a>
+                    <h2>No orders found for this status</h2>
+                    <p>You don't have any orders with the selected status.</p>
+                    <a href="?status=all" class="shop-now-btn">View All Orders</a>
                 </div>
             <?php endif; ?>
         </div>

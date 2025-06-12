@@ -40,9 +40,9 @@ $sql = "SELECT
         o.user_name,
         COUNT(DISTINCT o.id) as order_count,
         MAX(o.order_date) as last_order_date,
-        SUM(CASE WHEN o.status = 'pending' THEN 1 ELSE 0 END) as pending_orders,
-        SUM(CASE WHEN o.status = 'processing' THEN 1 ELSE 0 END) as processing_orders,
-        SUM(CASE WHEN o.status = 'shipped' THEN 1 ELSE 0 END) as shipped_orders,
+        SUM(CASE WHEN o.status = 'To Pack' THEN 1 ELSE 0 END) as to_pack_orders,
+SUM(CASE WHEN o.status = 'Packed' THEN 1 ELSE 0 END) as packed_orders,
+SUM(CASE WHEN o.status = 'In Transit' THEN 1 ELSE 0 END) as in_transit_orders,
         SUM(CASE WHEN o.status = 'delivered' THEN 1 ELSE 0 END) as delivered_orders,
         SUM(CASE WHEN o.status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders,
         GROUP_CONCAT(DISTINCT CONCAT(p.product_name, ' (', oi.quantity, ')') SEPARATOR ', ') as order_items
@@ -365,22 +365,22 @@ $result = $conn->query($sql);
                             </div>
 
                             <div class="status-summary">
-                                <?php if ($row['pending_orders'] > 0): ?>
+                                <?php if ($row['to_pack_orders'] > 0): ?>
                                     <span class="status-badge status-pending">
                                         <i class="fas fa-clock"></i>
-                                        <?php echo $row['pending_orders']; ?> Pending
+                                        <?php echo $row['to_pack_orders']; ?> To Pack
                                     </span>
                                 <?php endif; ?>
-                                <?php if ($row['processing_orders'] > 0): ?>
+                                <?php if ($row['packed_orders'] > 0): ?>
                                     <span class="status-badge status-processing">
                                         <i class="fas fa-cog"></i>
-                                        <?php echo $row['processing_orders']; ?> Processing
+                                        <?php echo $row['packed_orders']; ?> Packed
                                     </span>
                                 <?php endif; ?>
-                                <?php if ($row['shipped_orders'] > 0): ?>
+                                <?php if ($row['in_transit_orders'] > 0): ?>
                                     <span class="status-badge status-shipped">
                                         <i class="fas fa-truck"></i>
-                                        <?php echo $row['shipped_orders']; ?> Shipped
+                                        <?php echo $row['in_transit_orders']; ?> In Transit
                                     </span>
                                 <?php endif; ?>
                                 <?php if ($row['delivered_orders'] > 0): ?>

@@ -50,11 +50,21 @@ $sql = "CREATE TABLE IF NOT EXISTS `neocreds_transactions` (
     `process_date` TIMESTAMP NULL,
     `processed_by` VARCHAR(50) NULL,
     `admin_notes` TEXT NULL,
+    `is_payment` TINYINT(1) DEFAULT 0,
+    `order_id` INT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 )";
 
 if (!$conn->query($sql)) {
     die("Error creating neocreds_transactions table: " . $conn->error);
+}
+
+// Add is_payment and order_id columns if they don't exist
+$sql = "ALTER TABLE neocreds_transactions 
+        ADD COLUMN IF NOT EXISTS is_payment TINYINT(1) DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS order_id INT NULL";
+if (!$conn->query($sql)) {
+    die("Error adding neocreds_transactions columns: " . $conn->error);
 }
 
 // Drop the unverified_users table if it exists

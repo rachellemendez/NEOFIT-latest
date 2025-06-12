@@ -12,7 +12,7 @@ $sql = "CREATE TABLE IF NOT EXISTS `orders` (
     `delivery_address` text NOT NULL,
     `contact_number` varchar(20) NOT NULL,
     `payment_method` varchar(50) NOT NULL,
-    `status` enum('Pending','Processing','Shipped','Delivered','Cancelled') NOT NULL DEFAULT 'Pending',
+    `status` enum('To Pack','Packed','In Transit','Delivered','Cancelled','Returned') NOT NULL DEFAULT 'To Pack',
     `order_date` timestamp NOT NULL DEFAULT current_timestamp(),
     PRIMARY KEY (`id`),
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)

@@ -204,6 +204,42 @@ $total_amount = 0;
             border-top: 1px solid #eee;
         }
 
+        #neocreds-summary {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        #neocreds-summary .summary-row {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        #neocreds-summary .summary-row:last-child {
+            margin-bottom: 0;
+            padding-top: 8px;
+            border-top: 1px dashed #ddd;
+        }
+
+        .deduction-amount {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .remaining-balance {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .remaining-balance.positive {
+            color: #28a745;
+        }
+
+        .remaining-balance.negative {
+            color: #dc3545;
+        }
+
         .place-order-btn {
             width: 100%;
             padding: 15px;
@@ -326,6 +362,20 @@ $total_amount = 0;
                 <span>Total</span>
                 <span>₱<?php echo number_format($total_amount, 2); ?></span>
             </div>
+            <div id="neocreds-summary" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <div class="summary-row">
+                    <span>Current NeoCreds Balance</span>
+                    <span id="current-balance">₱0.00</span>
+                </div>
+                <div class="summary-row" style="color: #dc3545;">
+                    <span>Amount to be Deducted</span>
+                    <span id="deduction-amount">-₱<?php echo number_format($total_amount, 2); ?></span>
+                </div>
+                <div class="summary-row" style="font-weight: bold;">
+                    <span>Remaining Balance</span>
+                    <span id="remaining-balance">₱0.00</span>
+                </div>
+            </div>
             <button id="place-order-btn" class="place-order-btn" <?php echo (!$address || !$contact) ? 'disabled' : ''; ?>>
                 Place Order
             </button>
@@ -348,7 +398,7 @@ $total_amount = 0;
                 .then(data => {
                     if (data.status === 'success') {
                         userNeocredsBalance = parseFloat(data.balance);
-                        document.getElementById('balance-amount').textContent = '₱' + userNeocredsBalance.toFixed(2);
+                        updateNeocredsDisplay();
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -358,7 +408,29 @@ $total_amount = 0;
         function handlePaymentMethodChange() {
             const paymentMethod = document.getElementById('payment-method').value;
             const balanceDisplay = document.getElementById('neocreds-balance-display');
+            const neocredsSummary = document.getElementById('neocreds-summary');
+            
             balanceDisplay.style.display = paymentMethod === 'NeoCreds' ? 'block' : 'none';
+            neocredsSummary.style.display = paymentMethod === 'NeoCreds' ? 'block' : 'none';
+            
+            if (paymentMethod === 'NeoCreds') {
+                updateNeocredsDisplay();
+            }
+        }
+
+        function updateNeocredsDisplay() {
+            const totalAmount = <?php echo $total_amount; ?>;
+            const remainingBalance = userNeocredsBalance - totalAmount;
+            
+            // Update all NeoCreds-related displays
+            document.getElementById('balance-amount').textContent = '₱' + userNeocredsBalance.toFixed(2);
+            document.getElementById('current-balance').textContent = '₱' + userNeocredsBalance.toFixed(2);
+            document.getElementById('deduction-amount').textContent = '-₱' + totalAmount.toFixed(2);
+            document.getElementById('remaining-balance').textContent = '₱' + remainingBalance.toFixed(2);
+            
+            // Update remaining balance color based on whether it's sufficient
+            const remainingBalanceElement = document.getElementById('remaining-balance');
+            remainingBalanceElement.style.color = remainingBalance >= 0 ? '#28a745' : '#dc3545';
         }
 
         document.getElementById('place-order-btn').addEventListener('click', function(e) {
@@ -373,7 +445,9 @@ $total_amount = 0;
                 if (paymentMethod === 'NeoCreds') {
                     const totalAmount = <?php echo $total_amount; ?>;
                     if (userNeocredsBalance < totalAmount) {
-                        alert('Insufficient NeoCreds balance. Your balance: ₱' + userNeocredsBalance.toFixed(2) + '\nRequired: ₱' + totalAmount.toFixed(2));
+                        alert('Insufficient NeoCreds balance.\n\nRequired: ₱' + totalAmount.toFixed(2) + 
+                              '\nYour Balance: ₱' + userNeocredsBalance.toFixed(2) +
+                              '\nShort By: ₱' + (totalAmount - userNeocredsBalance).toFixed(2));
                         return;
                     }
                 }
@@ -384,9 +458,14 @@ $total_amount = 0;
                 formData.append('contact_number', <?php echo json_encode($contact); ?>);
                 formData.append('user_name', '<?php echo htmlspecialchars($user_name); ?>');
                 formData.append('user_email', '<?php echo htmlspecialchars($user_email); ?>');
+                formData.append('amount', <?php echo $total_amount; ?>);
                 <?php if ($cart_id): ?>
                 formData.append('cart_id', <?php echo $cart_id; ?>);
                 <?php endif; ?>
+
+                // Disable the button to prevent double submission
+                this.disabled = true;
+                this.textContent = 'Processing...';
 
                 fetch('process_order.php', {
                     method: 'POST',
@@ -399,11 +478,15 @@ $total_amount = 0;
                         window.location.href = 'orders.php';
                     } else {
                         alert(data.message || 'Error processing order');
+                        this.disabled = false;
+                        this.textContent = 'Place Order';
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     alert('An error occurred while processing your order');
+                    this.disabled = false;
+                    this.textContent = 'Place Order';
                 });
             }
         });

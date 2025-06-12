@@ -106,7 +106,33 @@ try {
             echo json_encode(['success' => false, 'message' => 'Insufficient NeoCreds balance']);
             exit;
         }
+    }
 
+    // Create the order with forced status
+    $status = 'To Pack';
+    $order_sql = "INSERT INTO orders (user_id, user_name, user_email, total_amount, payment_method, delivery_address, contact_number, status) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, 'To Pack')";
+    $order_stmt = $conn->prepare($order_sql);
+    
+    if (!$order_stmt) {
+        throw new Exception("Error preparing order statement: " . $conn->error);
+    }
+    
+    $order_stmt->bind_param("issdsss", $user_id, $user_name, $user_email, $total_amount, $payment_method, $delivery_address, $contact_number);
+    
+    if (!$order_stmt->execute()) {
+        throw new Exception("Error creating order: " . $order_stmt->error);
+    }
+
+    $order_id = $conn->insert_id;
+
+    // Force update the status
+    $force_status = $conn->prepare("UPDATE orders SET status = 'To Pack' WHERE id = ?");
+    $force_status->bind_param("i", $order_id);
+    $force_status->execute();
+
+    // ✅ Handle NeoCreds payment after order creation
+    if ($payment_method === 'NeoCreds') {
         // Handle NeoCreds payment
         $update_balance_sql = "UPDATE users SET neocreds = neocreds - ? WHERE id = ?";
         $update_balance_stmt = $conn->prepare($update_balance_sql);
@@ -115,17 +141,17 @@ try {
         if (!$update_balance_stmt->execute()) {
             throw new Exception("Error updating NeoCreds balance: " . $conn->error);
         }
+
+        // Record NeoCreds transaction
+        $neocreds_sql = "INSERT INTO neocreds_transactions (user_id, user_name, user_email, amount, status, request_date, process_date, is_payment, order_id) 
+                        VALUES (?, ?, ?, ?, 'approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, ?)";
+        $neocreds_stmt = $conn->prepare($neocreds_sql);
+        $neocreds_stmt->bind_param("issdi", $user_id, $user_name, $user_email, $total_amount, $order_id);
+        
+        if (!$neocreds_stmt->execute()) {
+            throw new Exception("Error recording NeoCreds transaction: " . $conn->error);
+        }
     }
-
-    // ✅ Insert order
-    $order_stmt = $conn->prepare("INSERT INTO orders (user_id, user_name, user_email, total_amount, payment_method, delivery_address, contact_number, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')");
-    $order_stmt->bind_param("issdsss", $user_id, $user_name, $user_email, $total_amount, $payment_method, $delivery_address, $contact_number);
-
-    if (!$order_stmt->execute()) {
-        throw new Exception("Error creating order: " . $conn->error);
-    }
-
-    $order_id = $conn->insert_id;
     
     // Create payment record
     $transaction_id = generateTransactionId();
