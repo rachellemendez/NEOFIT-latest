@@ -786,6 +786,28 @@ if (isset($_GET['saved'])) {
             color: #666;
             margin-top: 4px;
         }
+
+        /* Add styles for province dropdown */
+        .address-group select#province {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background-color: white;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 35px;
+        }
+
+        .address-group select#province:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
     </style>
 </head>
 <body>
@@ -817,87 +839,134 @@ if (isset($_GET['saved'])) {
             <h2 class="section-title">Profile Information</h2>
             <form action="save_profile.php" method="POST" autocomplete="off" id="profileForm">
                 <div class="address-form">
+                    <!-- Region Field -->
                     <div class="address-group">
                         <label for="region">Region</label>
-                        <select id="region" name="region" <?php echo empty($region) ? 'required' : ''; ?>>
-                            <option value="" disabled selected>Select Region</option>
-                            <option value="National Capital Region">National Capital Region (NCR)</option>
-                            <option value="Cordillera Administrative Region">Cordillera Administrative Region (CAR)</option>
-                            <option value="Ilocos Region">Ilocos Region (Region I)</option>
-                            <option value="Cagayan Valley">Cagayan Valley (Region II)</option>
-                            <option value="Central Luzon">Central Luzon (Region III)</option>
-                            <option value="CALABARZON">CALABARZON (Region IV-A)</option>
-                            <option value="MIMAROPA">MIMAROPA (Region IV-B)</option>
-                            <option value="Bicol Region">Bicol Region (Region V)</option>
-                            <option value="Western Visayas">Western Visayas (Region VI)</option>
-                            <option value="Central Visayas">Central Visayas (Region VII)</option>
-                            <option value="Eastern Visayas">Eastern Visayas (Region VIII)</option>
-                            <option value="Zamboanga Peninsula">Zamboanga Peninsula (Region IX)</option>
-                            <option value="Northern Mindanao">Northern Mindanao (Region X)</option>
-                            <option value="Davao Region">Davao Region (Region XI)</option>
-                            <option value="SOCCSKSARGEN">SOCCSKSARGEN (Region XII)</option>
-                            <option value="Caraga">Caraga (Region XIII)</option>
-                            <option value="Bangsamoro">Bangsamoro (BARMM)</option>
+                        <select id="region" name="region" required>
+                            <option value="" disabled <?php echo empty($region) ? 'selected' : ''; ?>>Select Region</option>
+                            <option value="National Capital Region" <?php echo ($region === 'National Capital Region') ? 'selected' : ''; ?>>National Capital Region (NCR)</option>
+                            <option value="Cordillera Administrative Region" <?php echo ($region === 'Cordillera Administrative Region') ? 'selected' : ''; ?>>Cordillera Administrative Region (CAR)</option>
+                            <option value="Ilocos Region" <?php echo ($region === 'Ilocos Region') ? 'selected' : ''; ?>>Ilocos Region (Region I)</option>
+                            <option value="Cagayan Valley" <?php echo ($region === 'Cagayan Valley') ? 'selected' : ''; ?>>Cagayan Valley (Region II)</option>
+                            <option value="Central Luzon" <?php echo ($region === 'Central Luzon') ? 'selected' : ''; ?>>Central Luzon (Region III)</option>
+                            <option value="CALABARZON" <?php echo ($region === 'CALABARZON') ? 'selected' : ''; ?>>CALABARZON (Region IV-A)</option>
+                            <option value="MIMAROPA" <?php echo ($region === 'MIMAROPA') ? 'selected' : ''; ?>>MIMAROPA (Region IV-B)</option>
+                            <option value="Bicol Region" <?php echo ($region === 'Bicol Region') ? 'selected' : ''; ?>>Bicol Region (Region V)</option>
+                            <option value="Western Visayas" <?php echo ($region === 'Western Visayas') ? 'selected' : ''; ?>>Western Visayas (Region VI)</option>
+                            <option value="Central Visayas" <?php echo ($region === 'Central Visayas') ? 'selected' : ''; ?>>Central Visayas (Region VII)</option>
+                            <option value="Eastern Visayas" <?php echo ($region === 'Eastern Visayas') ? 'selected' : ''; ?>>Eastern Visayas (Region VIII)</option>
+                            <option value="Zamboanga Peninsula" <?php echo ($region === 'Zamboanga Peninsula') ? 'selected' : ''; ?>>Zamboanga Peninsula (Region IX)</option>
+                            <option value="Northern Mindanao" <?php echo ($region === 'Northern Mindanao') ? 'selected' : ''; ?>>Northern Mindanao (Region X)</option>
+                            <option value="Davao Region" <?php echo ($region === 'Davao Region') ? 'selected' : ''; ?>>Davao Region (Region XI)</option>
+                            <option value="SOCCSKSARGEN" <?php echo ($region === 'SOCCSKSARGEN') ? 'selected' : ''; ?>>SOCCSKSARGEN (Region XII)</option>
+                            <option value="Caraga" <?php echo ($region === 'Caraga') ? 'selected' : ''; ?>>Caraga (Region XIII)</option>
+                            <option value="Bangsamoro" <?php echo ($region === 'Bangsamoro') ? 'selected' : ''; ?>>Bangsamoro (BARMM)</option>
                         </select>
                     </div>
 
+                    <!-- Province Field -->
+                    <div class="address-group">
+                        <label for="province">Province</label>
+                        <select id="province" name="province" required>
+                            <option value="" disabled <?php echo empty($province) ? 'selected' : ''; ?>>Select Province</option>
+                            <?php if (!empty($region)): ?>
+                                <?php 
+                                $provinces = [];
+                                switch($region) {
+                                    case 'National Capital Region':
+                                        $provinces = ['Metro Manila'];
+                                        break;
+                                    case 'Cordillera Administrative Region':
+                                        $provinces = ['Abra', 'Apayao', 'Benguet', 'Ifugao', 'Kalinga', 'Mountain Province'];
+                                        break;
+                                    // ... add other cases for each region
+                                }
+                                foreach($provinces as $p): 
+                                ?>
+                                    <option value="<?php echo htmlspecialchars($p); ?>" <?php echo ($province === $p) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($p); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+
+                    <!-- City Field -->
                     <div class="address-group">
                         <label for="city">City/Municipality</label>
                         <input type="text" id="city" name="city" 
-                               placeholder="e.g., Makati City, Quezon City" 
-                               <?php echo empty($region) ? 'required' : ''; ?>>
+                               placeholder="Enter City/Municipality" 
+                               value="<?php echo htmlspecialchars($city); ?>"
+                               required>
                     </div>
 
+                    <!-- Barangay Field -->
                     <div class="address-group">
                         <label for="barangay">Barangay</label>
                         <input type="text" id="barangay" name="barangay" 
-                               placeholder="e.g., San Lorenzo" 
-                               <?php echo empty($region) ? 'required' : ''; ?>>
+                               placeholder="Enter Barangay" 
+                               value="<?php echo htmlspecialchars($barangay); ?>"
+                               required>
+                    </div>
+
+                    <!-- House Details Fields -->
+                    <div class="address-group">
+                        <label for="house_number">House/Unit Number</label>
+                        <input type="text" id="house_number" name="house_number" 
+                               placeholder="House/Unit Number" 
+                               value="<?php echo htmlspecialchars($house_number); ?>"
+                               required>
                     </div>
 
                     <div class="address-group">
-                        <label for="house_details">House Details</label>
-                        <div class="street-address">
-                            <input type="text" id="house_number" name="house_number" 
-                                   placeholder="House/Unit Number" 
-                                   <?php echo empty($region) ? 'required' : ''; ?>>
-                            <input type="text" id="street_name" name="street_name" 
-                                   placeholder="Street Name" 
-                                   <?php echo empty($region) ? 'required' : ''; ?>>
-                            <input type="text" id="subdivision" name="subdivision" 
-                                   placeholder="Subdivision/Village/Building (Optional)">
-                        </div>
+                        <label for="street_name">Street Name</label>
+                        <input type="text" id="street_name" name="street_name" 
+                               placeholder="Street Name" 
+                               value="<?php echo htmlspecialchars($street_name); ?>"
+                               required>
                     </div>
 
-                    <input type="hidden" id="house_details" name="house_details">
+                    <div class="address-group">
+                        <label for="subdivision">Subdivision/Village/Building (Optional)</label>
+                        <input type="text" id="subdivision" name="subdivision" 
+                               placeholder="Subdivision/Village/Building" 
+                               value="<?php echo htmlspecialchars($subdivision); ?>">
+                    </div>
 
-                    <div class="address-group contact-group">
+                    <!-- Contact Field -->
+                    <div class="address-group">
                         <label for="contact">Contact Number</label>
                         <input type="tel" id="contact" name="contact" 
                                placeholder="Enter your contact number (e.g., 09123456789)" 
-                               pattern="[0-9]{10,11}" 
-                               title="Please enter a valid contact number (For phone numbers start from '09' only)"
-                               <?php echo empty($contact) ? 'required' : ''; ?>>
+                               value="<?php echo htmlspecialchars($contact); ?>"
+                               pattern="[0-9]{11}" 
+                               title="Please enter a valid contact number (must start with 09 and be 11 digits)"
+                               required>
                     </div>
 
-                    <div class="form-actions" style="margin-top: 20px;">
-                        <button type="submit" class="btn">Save Changes</button>
-                    </div>
-
-                    <div class="current-info" style="margin-top: 20px;">
-                        <?php if (!empty($house_details) || !empty($barangay) || !empty($city) || !empty($region)): ?>
+                    <!-- Current Address Display -->
+                    <div class="current-info">
+                        <?php if (!empty($house_details) || !empty($barangay) || !empty($city) || !empty($province) || !empty($region)): ?>
                             <p><strong>Current Address:</strong></p>
                             <p><?php 
-                                $full_address = '';
-                                if (!empty($house_details) && !empty($barangay) && !empty($city) && !empty($region)) {
-                                    $full_address = $house_details . ', ' . $barangay . ', ' . $city . ', ' . $region;
-                                }
-                                echo htmlspecialchars($full_address);
+                                $address_parts = array_filter([
+                                    $house_details,
+                                    $barangay,
+                                    $city,
+                                    $province,
+                                    $region
+                                ]);
+                                echo htmlspecialchars(implode(', ', $address_parts));
                             ?></p>
                         <?php else: ?>
                             <p><strong>Current Address:</strong> Not set</p>
                         <?php endif; ?>
+                        
                         <p><strong>Current Contact:</strong> <?php echo htmlspecialchars($contact) ?: 'Not set'; ?></p>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn">Save Changes</button>
                     </div>
                 </div>
             </form>
@@ -1463,6 +1532,193 @@ if (isset($_GET['saved'])) {
         document.getElementById('region').addEventListener('change', function() {
             updateCityDropdown(this.value);
         });
+
+        // Province data by region
+        const provincesByRegion = {
+            "National Capital Region": [
+                "Metro Manila"
+            ],
+            "Cordillera Administrative Region": [
+                "Abra",
+                "Apayao",
+                "Benguet",
+                "Ifugao",
+                "Kalinga",
+                "Mountain Province"
+            ],
+            "Ilocos Region": [
+                "Ilocos Norte",
+                "Ilocos Sur",
+                "La Union",
+                "Pangasinan"
+            ],
+            "Cagayan Valley": [
+                "Batanes",
+                "Cagayan",
+                "Isabela",
+                "Nueva Vizcaya",
+                "Quirino"
+            ],
+            "Central Luzon": [
+                "Aurora",
+                "Bataan",
+                "Bulacan",
+                "Nueva Ecija",
+                "Pampanga",
+                "Tarlac",
+                "Zambales"
+            ],
+            "CALABARZON": [
+                "Batangas",
+                "Cavite",
+                "Laguna",
+                "Quezon",
+                "Rizal"
+            ],
+            "MIMAROPA": [
+                "Marinduque",
+                "Occidental Mindoro",
+                "Oriental Mindoro",
+                "Palawan",
+                "Romblon"
+            ],
+            "Bicol Region": [
+                "Albay",
+                "Camarines Norte",
+                "Camarines Sur",
+                "Catanduanes",
+                "Masbate",
+                "Sorsogon"
+            ],
+            "Western Visayas": [
+                "Aklan",
+                "Antique",
+                "Capiz",
+                "Guimaras",
+                "Iloilo",
+                "Negros Occidental"
+            ],
+            "Central Visayas": [
+                "Bohol",
+                "Cebu",
+                "Negros Oriental",
+                "Siquijor"
+            ],
+            "Eastern Visayas": [
+                "Biliran",
+                "Eastern Samar",
+                "Leyte",
+                "Northern Samar",
+                "Samar",
+                "Southern Leyte"
+            ],
+            "Zamboanga Peninsula": [
+                "Zamboanga del Norte",
+                "Zamboanga del Sur",
+                "Zamboanga Sibugay",
+                "Zamboanga City",
+                "Isabela City"
+            ],
+            "Northern Mindanao": [
+                "Bukidnon",
+                "Camiguin",
+                "Lanao del Norte",
+                "Misamis Occidental",
+                "Misamis Oriental",
+                "Cagayan de Oro City"
+            ],
+            "Davao Region": [
+                "Davao de Oro",
+                "Davao del Norte",
+                "Davao del Sur",
+                "Davao Occidental",
+                "Davao Oriental",
+                "Davao City"
+            ],
+            "SOCCSKSARGEN": [
+                "Cotabato",
+                "Sarangani",
+                "South Cotabato",
+                "Sultan Kudarat",
+                "General Santos City",
+                "Cotabato City"
+            ],
+            "Caraga": [
+                "Agusan del Norte",
+                "Agusan del Sur",
+                "Dinagat Islands",
+                "Surigao del Norte",
+                "Surigao del Sur",
+                "Butuan City"
+            ],
+            "Bangsamoro": [
+                "Basilan",
+                "Lanao del Sur",
+                "Maguindanao del Norte",
+                "Maguindanao del Sur",
+                "Sulu",
+                "Tawi-Tawi"
+            ]
+        };
+
+        // Function to update province dropdown
+        function updateProvinceDropdown(region) {
+            const provinceSelect = document.getElementById('province');
+            provinceSelect.innerHTML = '<option value="" disabled selected>Select Province</option>';
+            
+            if (region && provincesByRegion[region]) {
+                // Sort provinces alphabetically
+                const sortedProvinces = provincesByRegion[region].sort();
+                
+                sortedProvinces.forEach(province => {
+                    const option = document.createElement('option');
+                    option.value = province;
+                    option.textContent = province;
+                    provinceSelect.appendChild(option);
+                });
+
+                // If there's a saved province value, select it
+                const savedProvince = '<?php echo addslashes($province); ?>';
+                if (savedProvince) {
+                    const options = provinceSelect.options;
+                    for (let i = 0; i < options.length; i++) {
+                        if (options[i].value === savedProvince) {
+                            options[i].selected = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Function to update city placeholder
+        function updateCityPlaceholder(province) {
+            const cityInput = document.getElementById('city');
+            cityInput.placeholder = province ? 
+                `Enter City/Municipality in ${province}` : 
+                'Enter City/Municipality';
+        }
+
+        // Initialize dropdowns
+        const regionSelect = document.getElementById('region');
+        const provinceSelect = document.getElementById('province');
+
+        // Event listener for region changes
+        regionSelect.addEventListener('change', function() {
+            updateProvinceDropdown(this.value);
+            updateCityPlaceholder('');
+        });
+
+        // Event listener for province changes
+        provinceSelect.addEventListener('change', function() {
+            updateCityPlaceholder(this.value);
+        });
+
+        // Initialize province dropdown with current region if set
+        const currentRegion = regionSelect.value;
+        if (currentRegion) {
+            updateProvinceDropdown(currentRegion);
+        }
     </script>
 </body>
 </html>
