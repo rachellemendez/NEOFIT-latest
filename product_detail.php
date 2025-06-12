@@ -40,7 +40,7 @@ if ($result->num_rows > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEOFIT - Remo 98</title>
+    <title>NEOFIT - <?php echo htmlspecialchars($productName); ?></title>
     <style>
         * {
             margin: 0;
