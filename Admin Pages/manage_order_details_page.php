@@ -4,7 +4,7 @@ include '../includes/address_functions.php';
 
 // Get filters from URL
 $user_filter = isset($_GET['user']) ? $_GET['user'] : null;
-$status_filter = isset($_GET['status']) ? $_GET['status'] : null;
+$active_tab = isset($_GET['status']) ? $_GET['status'] : 'all';
 $search_term = isset($_GET['search']) ? $_GET['search'] : null;
 $date_from = isset($_GET['date_from']) ? $_GET['date_from'] : null;
 $date_to = isset($_GET['date_to']) ? $_GET['date_to'] : null;
@@ -33,9 +33,9 @@ if ($user_filter) {
     $types .= "s";
 }
 
-if ($status_filter) {
+if ($active_tab !== 'all') {
     $sql .= " AND o.status = ?";
-    $params[] = $status_filter;
+    $params[] = ucfirst($active_tab); // Capitalize first letter to match status in DB
     $types .= "s";
 }
 
@@ -69,6 +69,14 @@ if (!empty($params)) {
 $stmt->execute();
 $result = $stmt->get_result();
 
+// Format the results to include complete address
+$orders = [];
+while ($row = $result->fetch_assoc()) {
+    $address_data = get_user_address($row['user_id'], $conn);
+    $row['delivery_address'] = get_complete_address($address_data);
+    $orders[] = $row;
+}
+
 // Get order statistics
 $stats_sql = "SELECT 
     COUNT(DISTINCT o.id) as total_orders,
@@ -77,19 +85,13 @@ $stats_sql = "SELECT
     COUNT(DISTINCT CASE WHEN o.status = 'Pending' THEN o.id END) as pending_orders,
     COUNT(DISTINCT CASE WHEN o.status = 'Processing' THEN o.id END) as processing_orders,
     COUNT(DISTINCT CASE WHEN o.status = 'Shipped' THEN o.id END) as shipped_orders,
-    COUNT(DISTINCT CASE WHEN o.status = 'Delivered' THEN o.id END) as delivered_orders
+    COUNT(DISTINCT CASE WHEN o.status = 'Delivered' THEN o.id END) as delivered_orders,
+    COUNT(DISTINCT CASE WHEN o.status = 'Cancelled' THEN o.id END) as cancelled_orders,
+    COUNT(DISTINCT CASE WHEN o.status = 'Returned' THEN o.id END) as returned_orders
 FROM orders o
 LEFT JOIN order_items oi ON o.id = oi.order_id
 LEFT JOIN products p ON oi.product_id = p.id";
 $stats_result = $conn->query($stats_sql)->fetch_assoc();
-
-// Format the results to include complete address
-$orders = [];
-while ($row = $result->fetch_assoc()) {
-    $address_data = get_user_address($row['user_id'], $conn);
-    $row['delivery_address'] = get_complete_address($address_data);
-    $orders[] = $row;
-}
 ?>
 
 <!DOCTYPE html>
@@ -218,224 +220,226 @@ while ($row = $result->fetch_assoc()) {
 
         .order-card {
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .order-card:hover {
             transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         .order-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
             border-bottom: 1px solid #eee;
+        }
+
+        .order-id {
+            font-size: 1.1em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .order-date {
+            color: #666;
+            font-size: 0.9em;
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .order-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
+            margin-bottom: 20px;
         }
 
         .product-info, .customer-info {
             background: #f8f9fa;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
         }
 
         .product-info {
             display: flex;
-            gap: 15px;
+            gap: 20px;
         }
 
         .product-image {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             object-fit: cover;
-            border-radius: 4px;
+            border-radius: 8px;
         }
 
-        .print-btn {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
+        .product-details {
+            flex: 1;
+        }
+
+        .product-details h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .product-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .product-meta span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #555;
+        }
+
+        .product-meta i {
+            color: #7ab55c;
+            width: 16px;
+        }
+
+        .customer-info h4 {
+            margin-bottom: 15px;
+            color: #333;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .print-btn:hover {
-            background: #5a6268;
+        .customer-info i {
+            color: #7ab55c;
         }
 
-        .status-select {
-            padding: 8px 32px 8px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="6"><path d="M0 0h12L6 6z" fill="%23666"/></svg>') no-repeat;
-            background-position: right 12px center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 160px;
+        .customer-details {
+            display: grid;
+            gap: 10px;
         }
 
-        .status-select:focus {
-            outline: none;
-            border-color: #7ab55c;
-            box-shadow: 0 0 0 3px rgba(122, 181, 92, 0.1);
+        .customer-details p {
+            display: flex;
+            gap: 8px;
+            align-items: baseline;
         }
 
-        .status-select:hover {
-            border-color: #7ab55c;
-        }
-
-        /* Status-specific colors */
-        .status-select option[value="Pending"] {
-            color: #856404;
-            background-color: #fff3cd;
-        }
-
-        .status-select option[value="Processing"] {
-            color: #004085;
-            background-color: #cce5ff;
-        }
-
-        .status-select option[value="Shipped"] {
-            color: #155724;
-            background-color: #d4edda;
-        }
-
-        .status-select option[value="Delivered"] {
-            color: #1e7e34;
-            background-color: #c3e6cb;
-        }
-
-        .status-select option[value="Cancelled"] {
-            color: #721c24;
-            background-color: #f8d7da;
-        }
-
-        /* Status colors for the select itself */
-        .status-select.status-pending {
-            color: #856404;
-            border-color: #ffeeba;
-            background-color: #fff3cd;
-        }
-
-        .status-select.status-processing {
-            color: #004085;
-            border-color: #b8daff;
-            background-color: #cce5ff;
-        }
-
-        .status-select.status-shipped {
-            color: #155724;
-            border-color: #c3e6cb;
-            background-color: #d4edda;
-        }
-
-        .status-select.status-delivered {
-            color: #1e7e34;
-            border-color: #a3d7a8;
-            background-color: #c3e6cb;
-        }
-
-        .status-select.status-cancelled {
-            color: #721c24;
-            border-color: #f5c6cb;
-            background-color: #f8d7da;
-        }
-
-        .order-date {
+        .customer-details strong {
+            min-width: 80px;
             color: #666;
-            margin-left: 10px;
-            font-size: 0.9em;
         }
 
         .order-actions {
             display: flex;
             gap: 10px;
-            margin-top: 15px;
-            padding-top: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
             border-top: 1px solid #eee;
         }
 
-        .action-btn {
-            padding: 6px 12px;
+        .btn {
+            padding: 10px 20px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 0.9em;
             display: flex;
             align-items: center;
-            gap: 5px;
-            transition: background-color 0.2s;
+            gap: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
         }
 
-        .view-btn { background: #6c757d; color: white; }
-        .edit-btn { background: #7ab55c; color: white; }
-        .delete-btn { background: #dc3545; color: white; }
+        .btn i {
+            font-size: 1em;
+        }
 
-        .back-button {
+        .btn-view {
             background: #6c757d;
             color: white;
-            border: none;
+        }
+
+        .btn-status {
+            background: #7ab55c;
+            color: white;
+        }
+
+        .btn-return {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .btn-cancel {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .status-badge {
             padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
         }
 
-        .back-button:hover {
-            background: #5a6268;
+        .status-badge.status-pending {
+            background-color: #fff3cd;
+            color: #856404;
         }
 
-        .status-menu {
-            position: absolute;
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            display: none;
-            z-index: 100;
+        .status-badge.status-processing {
+            background-color: #cce5ff;
+            color: #004085;
         }
 
-        .status-menu.active {
-            display: block;
+        .status-badge.status-shipped {
+            background-color: #d4edda;
+            color: #155724;
         }
 
-        .status-option {
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: background-color 0.2s;
+        .status-badge.status-delivered {
+            background-color: #c3e6cb;
+            color: #1e7e34;
         }
 
-        .status-option:hover {
-            background-color: #f8f9fa;
+        .status-badge.status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge.status-returned {
+            background-color: #e2e3e5;
+            color: #383d41;
         }
 
         @media (max-width: 768px) {
-            .filters-grid {
+            .order-details {
                 grid-template-columns: 1fr;
             }
 
-            .order-details {
+            .product-info {
+                flex-direction: column;
+            }
+
+            .product-image {
+                width: 100%;
+                height: 200px;
+            }
+
+            .product-meta {
                 grid-template-columns: 1fr;
             }
 
@@ -443,9 +447,70 @@ while ($row = $result->fetch_assoc()) {
                 flex-direction: column;
             }
 
-            .action-btn {
+            .btn {
                 width: 100%;
                 justify-content: center;
+            }
+        }
+
+        .status-section {
+            margin-bottom: 40px;
+        }
+
+        .status-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .status-section:empty {
+            display: none;
+        }
+
+        .order-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background-color: #f5f5f5;
+            border-radius: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .tab.active {
+            background-color: #7ab55c;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .order-tabs {
+                padding-bottom: 10px;
+            }
+            
+            .tab {
+                padding: 8px 16px;
+                font-size: 13px;
             }
         }
     </style>
@@ -550,25 +615,47 @@ while ($row = $result->fetch_assoc()) {
                 </div>
             </div>
 
+            <!-- Order Tabs -->
+            <div class="order-tabs">
+                <a href="?status=all<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
+                   class="tab <?php echo $active_tab === 'all' ? 'active' : ''; ?>">
+                    All Orders (<?php echo $stats_result['total_orders']; ?>)
+                </a>
+                <a href="?status=pending<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
+                   class="tab <?php echo $active_tab === 'pending' ? 'active' : ''; ?>">
+                    Pending (<?php echo $stats_result['pending_orders']; ?>)
+                </a>
+                <a href="?status=processing<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
+                   class="tab <?php echo $active_tab === 'processing' ? 'active' : ''; ?>">
+                    Processing (<?php echo $stats_result['processing_orders']; ?>)
+                </a>
+                <a href="?status=shipped<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
+                   class="tab <?php echo $active_tab === 'shipped' ? 'active' : ''; ?>">
+                    Shipped (<?php echo $stats_result['shipped_orders']; ?>)
+                </a>
+                <a href="?status=delivered<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
+                   class="tab <?php echo $active_tab === 'delivered' ? 'active' : ''; ?>">
+                    Delivered (<?php echo $stats_result['delivered_orders']; ?>)
+                </a>
+                <a href="?status=cancelled<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
+                   class="tab <?php echo $active_tab === 'cancelled' ? 'active' : ''; ?>">
+                    Cancelled (<?php echo $stats_result['cancelled_orders']; ?>)
+                </a>
+                <a href="?status=returned<?php echo $user_filter ? '&user=' . urlencode($user_filter) : ''; ?>" 
+                   class="tab <?php echo $active_tab === 'returned' ? 'active' : ''; ?>">
+                    Returned (<?php echo $stats_result['returned_orders']; ?>)
+                </a>
+            </div>
+
             <!-- Filters Section -->
             <div class="filters-section">
                 <form id="filterForm" method="GET">
                     <div class="filters-grid">
                         <div class="filter-item">
-                            <label class="filter-label">Search</label>                            <input type="text" name="search" class="filter-input" 
+                            <label class="filter-label">Search</label>
+                            <input type="text" name="search" class="filter-input" 
                                    placeholder="Order ID, Customer, or Product" 
                                    value="<?php echo htmlspecialchars(str_replace('%', '', $search_term ?? '')); ?>">
-                        </div>
-                        <div class="filter-item">
-                            <label class="filter-label">Status</label>
-                            <select name="status" class="filter-input">
-                                <option value="">All Statuses</option>
-                                <option value="Pending" <?php echo $status_filter === 'Pending' ? 'selected' : ''; ?>>Pending</option>
-                                <option value="Processing" <?php echo $status_filter === 'Processing' ? 'selected' : ''; ?>>Processing</option>
-                                <option value="Shipped" <?php echo $status_filter === 'Shipped' ? 'selected' : ''; ?>>Shipped</option>
-                                <option value="Delivered" <?php echo $status_filter === 'Delivered' ? 'selected' : ''; ?>>Delivered</option>
-                                <option value="Cancelled" <?php echo $status_filter === 'Cancelled' ? 'selected' : ''; ?>>Cancelled</option>
-                            </select>
                         </div>
                         <div class="filter-item">
                             <label class="filter-label">Date From</label>
@@ -599,159 +686,191 @@ while ($row = $result->fetch_assoc()) {
                     <p>No orders found</p>
                 </div>
             <?php else: ?>
-                <?php foreach ($orders as $row): ?>
-                    <div class="order-card">
-                        <div class="order-header">
-                            <div class="order-id">
-                                Order #<?php echo str_pad($row['id'], 8, '0', STR_PAD_LEFT); ?>
-                            </div>
-                            <div class="order-date">
-                                <?php echo date('F d, Y', strtotime($row['order_date'])); ?>
-                            </div>
-                            <div class="status-badge status-<?php echo strtolower($row['status']); ?>">
-                                <?php echo htmlspecialchars($row['status']); ?>
-                            </div>
-                        </div>
-                        <div class="order-details">
-                            <div class="product-info">
-                                <img src="<?php echo $row['product_image']; ?>" alt="Product" class="product-image">
-                                <div>
-                                    <h4><?php echo htmlspecialchars($row['product_display_name']); ?></h4>
-                                    <p>Size: <?php echo strtoupper($row['size'] ?? 'N/A'); ?></p>
-                                    <p>Quantity: <?php echo $row['quantity']; ?></p>
-                                    <p>Unit Price: ₱<?php echo number_format($row['price'], 2); ?></p>
-                                    <p>Total: ₱<?php echo number_format($row['item_total'], 2); ?></p>
-                                    <p>Payment: <?php echo htmlspecialchars($row['payment_method'] ?? 'N/A'); ?></p>
+                <!-- Debug output -->
+                <div style="display: none;">
+                    <h3>Debug Information:</h3>
+                    <pre><?php print_r($orders); ?></pre>
+                </div>
+
+                <?php
+                // Group orders by status
+                $grouped_orders = [
+                    'Pending' => [],
+                    'Processing' => [],
+                    'Shipped' => [],
+                    'Delivered' => [],
+                    'Cancelled' => []
+                ];
+                
+                foreach ($orders as $order) {
+                    $grouped_orders[$order['status']][] = $order;
+                }
+                
+                // Display orders grouped by status
+                foreach ($grouped_orders as $status => $status_orders):
+                    if (!empty($status_orders)):
+                ?>
+                    <div class="status-section">
+                        <h2 class="status-title"><?php echo $status; ?> Orders</h2>
+                        <?php foreach ($status_orders as $row): ?>
+                            <div class="order-card">
+                                <div class="order-header">
+                                    <div class="order-id">
+                                        Order #<?php echo str_pad($row['id'], 8, '0', STR_PAD_LEFT); ?>
+                                        <span class="order-date">
+                                            <i class="fas fa-calendar"></i>
+                                            <?php echo date('F d, Y', strtotime($row['order_date'])); ?>
+                                        </span>
+                                    </div>
+                                    <div class="status-badge status-<?php echo strtolower($row['status']); ?>">
+                                        <?php echo htmlspecialchars($row['status']); ?>
+                                        <!-- Debug: Raw status value -->
+                                        <span style="display: none;">(Raw: <?php echo htmlspecialchars($row['status']); ?>)</span>
+                                    </div>
+                                </div>
+                                <div class="order-details">
+                                    <div class="product-info">
+                                        <img src="<?php echo $row['product_image']; ?>" alt="Product" class="product-image">
+                                        <div class="product-details">
+                                            <h4><?php echo htmlspecialchars($row['product_display_name']); ?></h4>
+                                            <div class="product-meta">
+                                                <span><i class="fas fa-box"></i> Size: <?php echo strtoupper($row['size'] ?? 'N/A'); ?></span>
+                                                <span><i class="fas fa-layer-group"></i> Quantity: <?php echo $row['quantity']; ?></span>
+                                                <span><i class="fas fa-tag"></i> Unit Price: ₱<?php echo number_format($row['price'], 2); ?></span>
+                                                <span><i class="fas fa-money-bill"></i> Total: ₱<?php echo number_format($row['item_total'], 2); ?></span>
+                                                <span><i class="fas fa-credit-card"></i> Payment: <?php echo htmlspecialchars($row['payment_method'] ?? 'N/A'); ?></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="customer-info">
+                                        <h4><i class="fas fa-user"></i> Customer Details</h4>
+                                        <div class="customer-details">
+                                            <p><strong>Name:</strong> <?php echo htmlspecialchars($row['user_name']); ?></p>
+                                            <p><strong>Email:</strong> <?php echo htmlspecialchars($row['user_email']); ?></p>
+                                            <p><strong>Contact:</strong> <?php echo htmlspecialchars($row['contact_number']); ?></p>
+                                            <p><strong>Address:</strong> <?php echo htmlspecialchars($row['delivery_address']); ?></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="order-actions">
+                                    <a href="view_order.php?id=<?php echo $row['id']; ?>" class="btn btn-view">
+                                        <i class="fas fa-eye"></i> View Full Details
+                                    </a>
+                                    <?php
+                                    // Get current status in lowercase
+                                    $current_status = strtolower($row['status']);
+                                    
+                                    // Show appropriate action button based on current status
+                                    switch($current_status) {
+                                        case 'pending':
+                                            ?>
+                                            <button type="button" class="btn btn-status" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'processing')">
+                                                <i class="fas fa-cog"></i> Move to Processing
+                                            </button>
+                                            <button type="button" class="btn btn-cancel" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'cancelled')">
+                                                <i class="fas fa-times-circle"></i> Cancel Order
+                                            </button>
+                                            <?php
+                                            break;
+                                            
+                                        case 'processing':
+                                            ?>
+                                            <button type="button" class="btn btn-status" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'shipped')">
+                                                <i class="fas fa-shipping-fast"></i> Move to Shipped
+                                            </button>
+                                            <button type="button" class="btn btn-cancel" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'cancelled')">
+                                                <i class="fas fa-times-circle"></i> Cancel Order
+                                            </button>
+                                            <?php
+                                            break;
+                                            
+                                        case 'shipped':
+                                            ?>
+                                            <button type="button" class="btn btn-status" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'delivered')">
+                                                <i class="fas fa-check-circle"></i> Move to Delivered
+                                            </button>
+                                            <?php
+                                            break;
+                                            
+                                        case 'delivered':
+                                            ?>
+                                            <button type="button" class="btn btn-return" onclick="updateOrderStatus('<?php echo $row['id']; ?>', 'returned')">
+                                                <i class="fas fa-undo"></i> Mark as Returned
+                                            </button>
+                                            <?php
+                                            break;
+                                    }
+                                    ?>
                                 </div>
                             </div>
-                            <div class="customer-info">
-                                <h4>Customer Details</h4>
-                                <p><strong>Name:</strong> <?php echo htmlspecialchars($row['user_name']); ?></p>
-                                <p><strong>Email:</strong> <?php echo htmlspecialchars($row['user_email']); ?></p>
-                                <p><strong>Contact:</strong> <?php echo htmlspecialchars($row['contact_number']); ?></p>
-                                <p><strong>Address:</strong> <?php echo htmlspecialchars($row['delivery_address']); ?></p>
-                            </div>
-                        </div>
-                        <div class="order-actions">
-                            <a href="view_order.php?id=<?php echo $row['id']; ?>" class="btn btn-view">
-                                <i class="fas fa-eye"></i> View Details
-                            </a>
-                            <button class="btn btn-status" onclick="updateStatus(<?php echo $row['id']; ?>, '<?php echo $row['status']; ?>')">
-                                <i class="fas fa-edit"></i> Update Status
-                            </button>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                <?php endforeach; ?>
+                <?php 
+                    endif;
+                endforeach; 
+                ?>
             <?php endif; ?>
         </main>
     </div>
 
     <script>
-        function resetFilters() {
-            document.querySelectorAll('.filter-input').forEach(input => {
-                input.value = '';
-            });
-            document.getElementById('filterForm').submit();
-        }
-
-        function printWaybill(orderId) {
-            // Open the waybill in a new window for printing
-            const printWindow = window.open(`view_order.php?id=${orderId}&print=true`, '_blank');
-            printWindow.onload = function() {
-                printWindow.print();
-            };
-        }
-
         function updateOrderStatus(orderId, newStatus) {
-            // Send AJAX request to update status
+            if (!confirm(`Are you sure you want to update this order to ${newStatus}?`)) {
+                return;
+            }
+
+            // Show loading state
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('order_id', orderId);
+            formData.append('new_status', newStatus);
+
+            // Send AJAX request
             fetch('update_order_status.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `order_id=${orderId}&status=${newStatus}`
+                body: formData
             })
-            .then(response => response.json())
+            .then(async response => {
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    // If response is not JSON, get the text and throw it
+                    const text = await response.text();
+                    throw new Error('Invalid response format. Server said: ' + text);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    // Update the select element's class based on the new status
-                    const select = document.querySelector(`select[data-order-id="${orderId}"]`);
-                    if (select) {
-                        // Remove all existing status classes
-                        select.classList.remove('status-pending', 'status-processing', 'status-shipped', 'status-delivered', 'status-cancelled');
-                        // Add the new status class
-                        select.classList.add(`status-${newStatus.toLowerCase()}`);
-                    }
-                    
-                    // Show success message
-                    alert('Order status updated successfully');
+                    alert(data.message);
+                    window.location.reload();
                 } else {
-                    alert(data.message || 'Error updating order status');
+                    alert(data.message || 'Failed to update order status');
+                    button.disabled = false;
+                    button.innerHTML = originalText;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error updating order status');
+                alert('Error updating status: ' + error.message);
+                button.disabled = false;
+                button.innerHTML = originalText;
             });
         }
 
-        // Add this function to set initial status colors
-        function initializeStatusColors() {
-            document.querySelectorAll('.status-select').forEach(select => {
-                const currentStatus = select.value.toLowerCase();
-                select.classList.add(`status-${currentStatus}`);
+        function resetFilters() {
+            const currentStatus = new URLSearchParams(window.location.search).get('status') || 'all';
+            document.querySelectorAll('.filter-input').forEach(input => {
+                if (input.type !== 'hidden') {
+                    input.value = '';
+                }
             });
+            window.location.href = `?status=${currentStatus}`;
         }
-
-        // Call this when the page loads
-        document.addEventListener('DOMContentLoaded', initializeStatusColors);
-
-        function viewOrderDetails(orderId) {
-            // Implement view details functionality
-            window.location.href = `view_order.php?id=${orderId}`;
-        }
-
-        function editOrder(orderId) {
-            // Implement edit order functionality
-            window.location.href = `edit_order.php?id=${orderId}`;
-        }
-
-        function deleteOrder(orderId) {
-            if (confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
-                // Send AJAX request to delete order
-                fetch('delete_order.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `order_id=${orderId}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Remove order card from UI
-                        const orderCard = document.querySelector(`[data-order-id="${orderId}"]`).closest('.order-card');
-                        orderCard.remove();
-                        alert('Order deleted successfully');
-                    } else {
-                        alert('Failed to delete order');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while deleting the order');
-                });
-            }
-        }
-
-        // Close status menus when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.status-container')) {
-                document.querySelectorAll('.status-menu').forEach(menu => {
-                    menu.classList.remove('active');
-                });
-            }
-        });
     </script>
 </body>
 </html>
