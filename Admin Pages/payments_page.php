@@ -302,8 +302,7 @@ require_once 'payment_functions.php';
 
                 <!-- Payments Table -->
                 <table>
-                    <thead>
-                        <tr>
+                    <thead>                        <tr>
                             <th>Transaction ID</th>
                             <th>Order ID</th>
                             <th>Customer</th>
@@ -311,7 +310,6 @@ require_once 'payment_functions.php';
                             <th>Amount</th>
                             <th>Payment Method</th>
                             <th>Status</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="payments-table-body">
@@ -336,23 +334,7 @@ require_once 'payment_functions.php';
                         <td><?php echo htmlspecialchars($payment['user_name']); ?></td>
                         <td><?php echo date('M d, Y H:i', strtotime($payment['payment_date'])); ?></td>
                         <td>₱<?php echo number_format($payment['amount'], 2); ?></td>
-                        <td><?php echo htmlspecialchars(ucfirst($payment['payment_method'])); ?></td>
-                        <td><span class="payment-status <?php echo $statusClass; ?>"><?php echo htmlspecialchars(ucfirst($payment['status'])); ?></span></td>
-                        <td>
-                            <div class="payment-actions">
-                                <button onclick="viewPaymentDetails('<?php echo htmlspecialchars($payment['transaction_id']); ?>')" class="btn-view">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <?php if ($payment['status'] === 'pending' && ($payment['payment_method'] === 'Cash On Delivery' || $payment['payment_method'] === 'Pickup')): ?>
-                                    <button onclick="updatePaymentStatus('<?php echo htmlspecialchars($payment['transaction_id']); ?>', 'success')" class="btn-approve" title="Mark as Paid">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button onclick="updatePaymentStatus('<?php echo htmlspecialchars($payment['transaction_id']); ?>', 'failed')" class="btn-reject" title="Mark as Cancelled">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                <?php endif; ?>
-                            </div>
-                        </td>
+                        <td><?php echo htmlspecialchars(ucfirst($payment['payment_method'])); ?></td>                        <td><span class="payment-status <?php echo $statusClass; ?>"><?php echo htmlspecialchars(ucfirst($payment['status'])); ?></span></td>
                             </tr>
                             <?php
                         }
@@ -407,19 +389,13 @@ require_once 'payment_functions.php';
                 }
                 
                 tbody.innerHTML += `
-                    <tr>
-                        <td>${payment.transaction_id}</td>
+                    <tr>                        <td>${payment.transaction_id}</td>
                         <td>${payment.order_id}</td>
                         <td>${payment.customer_name}</td>
                         <td>${payment.date}</td>
                         <td>₱${payment.amount}</td>
                         <td>${payment.payment_method}</td>
                         <td><span class="payment-status ${statusClass}">${payment.status}</span></td>
-                        <td>
-                            <span class="payment-details" onclick="viewPaymentDetails('${payment.transaction_id}')">
-                                View Details
-                            </span>
-                        </td>
                     </tr>
                 `;
             });
@@ -445,33 +421,73 @@ require_once 'payment_functions.php';
 
         // Function to load payments with filters
         let currentPage = 1;
-        
-        function loadPayments() {
+          function loadPayments() {
             showLoading();
             
-            const search = document.getElementById('search-input').value;
+            const search = document.getElementById('search-input').value.trim();
             const status = document.getElementById('status-filter').value;
             const date = document.getElementById('date-filter').value;
             
-            const url = `filter_payments.php?page=${currentPage}&search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}&date=${encodeURIComponent(date)}`;
+            const url = new URL('filter_payments.php', window.location.href);
+            url.searchParams.append('page', currentPage);
+            if (search) url.searchParams.append('search', search);
+            if (status) url.searchParams.append('status', status);
+            if (date) url.searchParams.append('date', date);
             
             fetch(url)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
                     updatePaymentsTable(data);
-                    hideLoading();
                 })
                 .catch(error => {
                     console.error('Error:', error);
+                    alert('Error loading payments: ' + error.message);
+                })
+                .finally(() => {
                     hideLoading();
                 });
-        }
-
-        // Event listener for filter button
+        }        // Event listeners for filters
         document.getElementById('apply-filters').addEventListener('click', function() {
             currentPage = 1;
             loadPayments();
         });
+
+        // Add input event listeners for real-time filtering
+        document.getElementById('search-input').addEventListener('input', debounce(function() {
+            currentPage = 1;
+            loadPayments();
+        }, 500));
+
+        document.getElementById('status-filter').addEventListener('change', function() {
+            currentPage = 1;
+            loadPayments();
+        });
+
+        document.getElementById('date-filter').addEventListener('change', function() {
+            currentPage = 1;
+            loadPayments();
+        });
+
+        // Debounce function to prevent too many requests
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        };
 
         // Event listeners for pagination
         document.querySelectorAll('.page-link').forEach(link => {

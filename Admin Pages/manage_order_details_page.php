@@ -39,9 +39,9 @@ if ($status_filter) {
 
 if ($search_term) {
     $search_term = "%$search_term%";
-    $sql .= " AND (o.user_name LIKE ? OR p.product_name LIKE ? OR o.id LIKE ?)";
-    $params = array_merge($params, [$search_term, $search_term, $search_term]);
-    $types .= "sss";
+    $sql .= " AND (o.user_name LIKE ? OR o.user_email LIKE ? OR CAST(o.id AS CHAR) LIKE ? OR p.product_name LIKE ?)";
+    $params = array_merge($params, [$search_term, $search_term, $search_term, $search_term]);
+    $types .= "ssss";
 }
 
 if ($date_from) {
@@ -546,10 +546,9 @@ $stats_result = $conn->query($stats_sql)->fetch_assoc();
                 <form id="filterForm" method="GET">
                     <div class="filters-grid">
                         <div class="filter-item">
-                            <label class="filter-label">Search</label>
-                            <input type="text" name="search" class="filter-input" 
+                            <label class="filter-label">Search</label>                            <input type="text" name="search" class="filter-input" 
                                    placeholder="Order ID, Customer, or Product" 
-                                   value="<?php echo htmlspecialchars($search_term ?? ''); ?>">
+                                   value="<?php echo htmlspecialchars(str_replace('%', '', $search_term ?? '')); ?>">
                         </div>
                         <div class="filter-item">
                             <label class="filter-label">Status</label>

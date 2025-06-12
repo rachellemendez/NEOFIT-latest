@@ -3,6 +3,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 include '../db.php';
+require_once 'payment_functions.php';
 
 header('Content-Type: application/json');
 
@@ -27,12 +28,18 @@ if (!in_array($status, $valid_statuses)) {
 }
 
 // Update order status
-$sql = "UPDATE orders SET status = ? WHERE id = ?";
+$sql = "UPDATE orders SET status = ?, delivery_status = ? WHERE id = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("si", $status, $order_id);
+$stmt->bind_param("ssi", $status, $status, $order_id);
 
 $success = $stmt->execute();
 $stmt->close();
+
+if ($success) {
+    // Update payment status based on delivery status for COD and Pickup orders
+    updatePaymentStatusFromDelivery($order_id, $status);
+}
+
 $conn->close();
 
 echo json_encode([

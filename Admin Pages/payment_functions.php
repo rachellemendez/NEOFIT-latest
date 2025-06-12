@@ -57,77 +57,68 @@ function getPendingPayments() {
     }
 }
 
-// Get filtered payments with pagination
-function getFilteredPayments($search = '', $status = '', $date = '', $page = 1, $limit = 10) {
+// Get filtered payments
+function getFilteredPayments($search = '', $status = '', $date = '', $page = 1) {
     global $conn;
     try {
-        $offset = ($page - 1) * $limit;
-        $where_clauses = [];
+        $conditions = [];
         $params = [];
+        $types = "";
         
+        // Build search condition for order_id or customer name
         if (!empty($search)) {
-            $where_clauses[] = "(p.transaction_id LIKE ? OR o.user_name LIKE ? OR u.email LIKE ?)";
-            $params[] = "%$search%";
-            $params[] = "%$search%";
-            $params[] = "%$search%";
+            $conditions[] = "(p.order_id LIKE ? OR o.user_name LIKE ?)";
+            $searchTerm = "%$search%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $types .= "ss";
         }
         
+        // Add status condition
         if (!empty($status)) {
-            if (!in_array($status, ['pending', 'success', 'failed'])) {
-                error_log("Invalid status filter attempted: $status");
-                return [];
-            }
-            $where_clauses[] = "p.status = ?";
+            $conditions[] = "p.status = ?";
             $params[] = $status;
+            $types .= "s";
         }
         
+        // Add date condition
         if (!empty($date)) {
-            $where_clauses[] = "DATE(p.payment_date) = ?";
+            $conditions[] = "DATE(p.payment_date) = ?";
             $params[] = $date;
+            $types .= "s";
         }
         
-        $where_sql = !empty($where_clauses) ? "WHERE " . implode(" AND ", $where_clauses) : "";
+        // Build the WHERE clause
+        $whereClause = !empty($conditions) ? "WHERE " . implode(" AND ", $conditions) : "";
         
-        $query = "SELECT p.*, o.user_name, o.user_email, 
-                                (SELECT SUM(oi2.quantity * pr2.product_price) 
-                                 FROM order_items oi2 
-                                 JOIN products pr2 ON oi2.product_id = pr2.id 
-                                 WHERE oi2.order_id = o.id) as order_total,
-                        u.first_name, u.last_name, u.email
+        // Calculate offset
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+        
+        $query = "SELECT p.*, o.user_name as customer_name 
                 FROM payments p 
-                JOIN orders o ON p.order_id = o.id 
-                JOIN users u ON o.user_id = u.id 
-                $where_sql 
+                LEFT JOIN orders o ON p.order_id = o.id 
+                $whereClause 
                 ORDER BY p.payment_date DESC 
                 LIMIT ? OFFSET ?";
-        
-        $params[] = $limit;
-        $params[] = $offset;
-        
+                
         $stmt = mysqli_prepare($conn, $query);
         if (!$stmt) {
-            error_log("Error preparing filtered payments query: " . mysqli_error($conn));
+            error_log("Error preparing query: " . mysqli_error($conn));
             return [];
         }
+        
+        // Add limit and offset to params
+        $params[] = $limit;
+        $params[] = $offset;
+        $types .= "ii";
         
         if (!empty($params)) {
-            $types = str_repeat('s', count($params));
-            if (!mysqli_stmt_bind_param($stmt, $types, ...$params)) {
-                error_log("Error binding parameters: " . mysqli_error($conn));
-                return [];
-            }
+            mysqli_stmt_bind_param($stmt, $types, ...$params);
         }
         
-        if (!mysqli_stmt_execute($stmt)) {
-            error_log("Error executing filtered payments query: " . mysqli_error($conn));
-            return [];
-        }
-        
+        mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
-        if (!$result) {
-            error_log("Error getting result set: " . mysqli_error($conn));
-            return [];
-        }
         
         $payments = [];
         while ($row = mysqli_fetch_assoc($result)) {
@@ -135,79 +126,64 @@ function getFilteredPayments($search = '', $status = '', $date = '', $page = 1, 
         }
         
         return $payments;
-        
     } catch (Exception $e) {
-        error_log("Exception in getFilteredPayments: " . $e->getMessage());
+        error_log("Error in getFilteredPayments: " . $e->getMessage());
         return [];
     }
 }
 
-// Get total count of filtered payments
+// Get count of filtered payments
 function getFilteredPaymentsCount($search = '', $status = '', $date = '') {
     global $conn;
     try {
-        $where_clauses = [];
+        $conditions = [];
         $params = [];
+        $types = "";
         
         if (!empty($search)) {
-            $where_clauses[] = "(p.transaction_id LIKE ? OR o.user_name LIKE ? OR u.email LIKE ?)";
-            $params[] = "%$search%";
-            $params[] = "%$search%";
-            $params[] = "%$search%";
+            $conditions[] = "(p.order_id LIKE ? OR o.user_name LIKE ?)";
+            $searchTerm = "%$search%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $types .= "ss";
         }
         
         if (!empty($status)) {
-            if (!in_array($status, ['pending', 'success', 'failed'])) {
-                error_log("Invalid status filter attempted: $status");
-                return 0;
-            }
-            $where_clauses[] = "p.status = ?";
+            $conditions[] = "p.status = ?";
             $params[] = $status;
+            $types .= "s";
         }
         
         if (!empty($date)) {
-            $where_clauses[] = "DATE(p.payment_date) = ?";
+            $conditions[] = "DATE(p.payment_date) = ?";
             $params[] = $date;
+            $types .= "s";
         }
         
-        $where_sql = !empty($where_clauses) ? "WHERE " . implode(" AND ", $where_clauses) : "";
+        $whereClause = !empty($conditions) ? "WHERE " . implode(" AND ", $conditions) : "";
         
         $query = "SELECT COUNT(*) as total 
                 FROM payments p 
-                JOIN orders o ON p.order_id = o.id 
-                JOIN users u ON o.user_id = u.id 
-                $where_sql";
-        
+                LEFT JOIN orders o ON p.order_id = o.id 
+                $whereClause";
+                
         $stmt = mysqli_prepare($conn, $query);
         if (!$stmt) {
-            error_log("Error preparing filtered payments count query: " . mysqli_error($conn));
+            error_log("Error preparing count query: " . mysqli_error($conn));
             return 0;
         }
         
         if (!empty($params)) {
-            $types = str_repeat('s', count($params));
-            if (!mysqli_stmt_bind_param($stmt, $types, ...$params)) {
-                error_log("Error binding parameters: " . mysqli_error($conn));
-                return 0;
-            }
+            mysqli_stmt_bind_param($stmt, $types, ...$params);
         }
         
-        if (!mysqli_stmt_execute($stmt)) {
-            error_log("Error executing filtered payments count query: " . mysqli_error($conn));
-            return 0;
-        }
-        
+        mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
-        if (!$result) {
-            error_log("Error getting result set: " . mysqli_error($conn));
-            return 0;
-        }
-        
         $row = mysqli_fetch_assoc($result);
-        return $row['total'] ?? 0;
         
+        return (int)$row['total'];
     } catch (Exception $e) {
-        error_log("Exception in getFilteredPaymentsCount: " . $e->getMessage());
+        error_log("Error in getFilteredPaymentsCount: " . $e->getMessage());
         return 0;
     }
 }
@@ -274,6 +250,42 @@ function updatePaymentStatus($transaction_id, $new_status) {
     } catch (Exception $e) {
         mysqli_rollback($conn);
         error_log("Exception in updatePaymentStatus: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Function to auto-update payment status based on delivery status
+function updatePaymentStatusFromDelivery($order_id, $delivery_status) {
+    global $conn;
+    try {
+        // Only update for COD and Pickup orders
+        $query = "UPDATE payments p
+                 INNER JOIN orders o ON p.order_id = o.id
+                 SET p.status = CASE 
+                    WHEN LOWER(o.delivery_status) = 'delivered' THEN 'success'
+                    WHEN LOWER(o.delivery_status) = 'cancelled' THEN 'failed'
+                    ELSE p.status
+                 END
+                 WHERE p.order_id = ? 
+                 AND (LOWER(p.payment_method) = 'cash on delivery' OR LOWER(p.payment_method) = 'pickup')";
+                 
+        $stmt = mysqli_prepare($conn, $query);
+        if (!$stmt) {
+            error_log("Error preparing update payment status query: " . mysqli_error($conn));
+            return false;
+        }
+        
+        mysqli_stmt_bind_param($stmt, "s", $order_id);
+        $result = mysqli_stmt_execute($stmt);
+        
+        if (!$result) {
+            error_log("Error updating payment status: " . mysqli_stmt_error($stmt));
+            return false;
+        }
+        
+        return true;
+    } catch (Exception $e) {
+        error_log("Error in updatePaymentStatusFromDelivery: " . $e->getMessage());
         return false;
     }
 }
