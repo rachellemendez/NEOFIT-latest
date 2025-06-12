@@ -3,9 +3,9 @@ session_start();
 include 'db.php';
 include 'includes/address_functions.php';
 
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+$user_name = $_SESSION['user_name'] ?? 'Guest';
+$user_email = $_SESSION['email'];
+
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -14,8 +14,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$user_name = $_SESSION['user_name'] ?? 'Guest';
-$user_email = $_SESSION['email'] ?? '';
 
 // Get user's address
 $address_data = get_user_address($user_id, $conn);
@@ -30,7 +28,7 @@ $stmt->fetch();
 $stmt->close();
 
 // Check if we're checking out a specific cart item or the entire cart
-$cart_id = isset($_GET['cart_id']) ? intval($_GET['cart_id']) : null;
+$cart_id = $_GET['cart_id'] ?? null;
 
 if ($cart_id) {
     // Single item checkout
@@ -39,9 +37,6 @@ if ($cart_id) {
             JOIN products p ON c.product_id = p.id
             WHERE c.id = ? AND c.user_id = ?";
     $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        die("Error preparing cart query: " . $conn->error);
-    }
     $stmt->bind_param("ii", $cart_id, $user_id);
 } else {
     // Full cart checkout
@@ -51,32 +46,13 @@ if ($cart_id) {
             WHERE c.user_id = ?
             ORDER BY c.added_at DESC";
     $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        die("Error preparing cart query: " . $conn->error);
-    }
     $stmt->bind_param("i", $user_id);
 }
 
 $stmt->execute();
 $result = $stmt->get_result();
 
-if (!$result) {
-    die("Error executing query: " . $stmt->error);
-}
-
 $total_amount = 0;
-$cart_items = [];
-
-while ($row = $result->fetch_assoc()) {
-    $cart_items[] = $row;
-    $total_amount += $row['product_price'] * $row['quantity'];
-}
-
-// If no items found, redirect to cart
-if (empty($cart_items)) {
-    header('Location: cart.php');
-    exit;
-}
 ?>
 
 <!DOCTYPE html>
@@ -377,7 +353,7 @@ if (empty($cart_items)) {
                 <h2 class="section-title">Order Items</h2>
                 <div class="order-items">
                     <?php 
-                    foreach ($cart_items as $item):
+                    while ($item = $result->fetch_assoc()):
                         $subtotal = $item['quantity'] * $item['product_price'];
                         $total_amount += $subtotal;
                     ?>
@@ -390,7 +366,7 @@ if (empty($cart_items)) {
                                 <div class="item-price">₱<?php echo number_format($item['product_price'], 2); ?></div>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                    <?php endwhile; ?>
                 </div>
             </div>
 
