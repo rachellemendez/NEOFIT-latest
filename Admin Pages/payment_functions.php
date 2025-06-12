@@ -95,7 +95,7 @@ function getFilteredPayments($search = '', $status = '', $date = '', $page = 1) 
         $limit = 10;
         $offset = ($page - 1) * $limit;
         
-        $query = "SELECT p.*, o.user_name as customer_name 
+        $query = "SELECT p.*, COALESCE(o.user_name, 'Unknown User') as customer_name 
                 FROM payments p 
                 LEFT JOIN orders o ON p.order_id = o.id 
                 $whereClause 

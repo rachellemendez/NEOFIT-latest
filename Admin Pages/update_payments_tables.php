@@ -1,5 +1,5 @@
 <?php
-require_once '../db_connection.php';
+require_once dirname(__FILE__) . '/../db.php';
 
 try {
     // Add user_name column to payments table if it doesn't exist
