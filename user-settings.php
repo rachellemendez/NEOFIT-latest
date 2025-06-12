@@ -891,7 +891,51 @@ if (isset($_GET['saved'])) {
                                     case 'Cordillera Administrative Region':
                                         $provinces = ['Abra', 'Apayao', 'Benguet', 'Ifugao', 'Kalinga', 'Mountain Province'];
                                         break;
-                                    // ... add other cases for each region
+                                    case 'Ilocos Region':
+                                        $provinces = ['Ilocos Norte', 'Ilocos Sur', 'La Union', 'Pangasinan'];
+                                        break;
+                                    case 'Cagayan Valley':
+                                        $provinces = ['Batanes', 'Cagayan', 'Isabela', 'Nueva Vizcaya', 'Quirino'];
+                                        break;
+                                    case 'Central Luzon':
+                                        $provinces = ['Aurora', 'Bataan', 'Bulacan', 'Nueva Ecija', 'Pampanga', 'Tarlac', 'Zambales'];
+                                        break;
+                                    case 'CALABARZON':
+                                        $provinces = ['Batangas', 'Cavite', 'Laguna', 'Quezon', 'Rizal'];
+                                        break;
+                                    case 'MIMAROPA':
+                                        $provinces = ['Marinduque', 'Occidental Mindoro', 'Oriental Mindoro', 'Palawan', 'Romblon'];
+                                        break;
+                                    case 'Bicol Region':
+                                        $provinces = ['Albay', 'Camarines Norte', 'Camarines Sur', 'Catanduanes', 'Masbate', 'Sorsogon'];
+                                        break;
+                                    case 'Western Visayas':
+                                        $provinces = ['Aklan', 'Antique', 'Capiz', 'Guimaras', 'Iloilo', 'Negros Occidental'];
+                                        break;
+                                    case 'Central Visayas':
+                                        $provinces = ['Bohol', 'Cebu', 'Negros Oriental', 'Siquijor'];
+                                        break;
+                                    case 'Eastern Visayas':
+                                        $provinces = ['Biliran', 'Eastern Samar', 'Leyte', 'Northern Samar', 'Samar', 'Southern Leyte'];
+                                        break;
+                                    case 'Zamboanga Peninsula':
+                                        $provinces = ['Zamboanga del Norte', 'Zamboanga del Sur', 'Zamboanga Sibugay'];
+                                        break;
+                                    case 'Northern Mindanao':
+                                        $provinces = ['Bukidnon', 'Camiguin', 'Lanao del Norte', 'Misamis Occidental', 'Misamis Oriental'];
+                                        break;
+                                    case 'Davao Region':
+                                        $provinces = ['Davao de Oro', 'Davao del Norte', 'Davao del Sur', 'Davao Occidental', 'Davao Oriental'];
+                                        break;
+                                    case 'SOCCSKSARGEN':
+                                        $provinces = ['Cotabato', 'Sarangani', 'South Cotabato', 'Sultan Kudarat'];
+                                        break;
+                                    case 'Caraga':
+                                        $provinces = ['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur'];
+                                        break;
+                                    case 'Bangsamoro':
+                                        $provinces = ['Basilan', 'Lanao del Sur', 'Maguindanao', 'Sulu', 'Tawi-Tawi'];
+                                        break;
                                 }
                                 foreach($provinces as $p): 
                                 ?>
@@ -1704,62 +1748,28 @@ if (isset($_GET['saved'])) {
         };
 
         // Function to update province dropdown
-        function updateProvinceDropdown(region) {
+        function updateProvinces() {
+            const selectedRegion = document.getElementById('region').value;
             const provinceSelect = document.getElementById('province');
             provinceSelect.innerHTML = '<option value="" disabled selected>Select Province</option>';
             
-            if (region && provincesByRegion[region]) {
-                // Sort provinces alphabetically
-                const sortedProvinces = provincesByRegion[region].sort();
-                
-                sortedProvinces.forEach(province => {
+            if (selectedRegion && provincesByRegion[selectedRegion]) {
+                provincesByRegion[selectedRegion].forEach(province => {
                     const option = document.createElement('option');
                     option.value = province;
                     option.textContent = province;
                     provinceSelect.appendChild(option);
                 });
-
-                // If there's a saved province value, select it
-                const savedProvince = '<?php echo addslashes($province); ?>';
-                if (savedProvince) {
-                    const options = provinceSelect.options;
-                    for (let i = 0; i < options.length; i++) {
-                        if (options[i].value === savedProvince) {
-                            options[i].selected = true;
-                            break;
-                        }
-                    }
-                }
             }
         }
 
-        // Function to update city placeholder
-        function updateCityPlaceholder(province) {
-            const cityInput = document.getElementById('city');
-            cityInput.placeholder = province ? 
-                `Enter City/Municipality in ${province}` : 
-                'Enter City/Municipality';
-        }
-
-        // Initialize dropdowns
+        // Listen for region changes
         const regionSelect = document.getElementById('region');
-        const provinceSelect = document.getElementById('province');
-
-        // Event listener for region changes
-        regionSelect.addEventListener('change', function() {
-            updateProvinceDropdown(this.value);
-            updateCityPlaceholder('');
-        });
-
-        // Event listener for province changes
-        provinceSelect.addEventListener('change', function() {
-            updateCityPlaceholder(this.value);
-        });
-
-        // Initialize province dropdown with current region if set
-        const currentRegion = regionSelect.value;
-        if (currentRegion) {
-            updateProvinceDropdown(currentRegion);
+        regionSelect.addEventListener('change', updateProvinces);
+        
+        // Initialize provinces if a region is already selected
+        if (regionSelect.value) {
+            updateProvinces();
         }
     </script>
 </body>
